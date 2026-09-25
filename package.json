@@ -1,0 +1,32 @@
+{
+  "name": "roblox-stats-api",
+  "version": "1.0.0",
+  "description": "Public REST API with live Roblox game statistics: owner, likes, active players, thumbnail, banner and more.",
+  "type": "module",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "mcp": "node extras/mcp/server.js",
+    "test": "node extras/tests/smoke.js && node extras/tests/smoke-sdk.js && node extras/tests/smoke-mcp.js && node extras/tests/smoke-auth.js",
+    "smoke": "node extras/tests/smoke.js",
+    "smoke:sdk": "node extras/tests/smoke-sdk.js",
+    "smoke:mcp": "node extras/tests/smoke-mcp.js",
+    "smoke:auth": "node extras/tests/smoke-auth.js"
+  },
+  "keywords": [
+    "roblox",
+    "api",
+    "game-stats",
+    "thumbnails",
+    "rest"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}

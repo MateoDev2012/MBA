@@ -1,0 +1,23 @@
+{
+  "name": "roblox-stats-sdk",
+  "version": "1.0.0",
+  "description": "SDK de Node para consumir la Roblox Stats API: estadísticas en vivo de juegos de Roblox.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    "roblox",
+    "api",
+    "sdk",
+    "game-stats"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  }
+}

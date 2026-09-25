@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Documentation — Roblox Stats API</title>
+<meta name="description" content="Full reference for the Roblox Stats API: every endpoint, every stat name, code examples in five languages, limits, error codes and self-hosting." />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23e8384f'/><text x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'>R</text></svg>" />
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('rbx-theme');
+      if (!saved) saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+    } catch (_) {}
+  })();
+</script>
+<link rel="stylesheet" href="/theme.css" />
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+<div class="progress"><i data-progress></i></div>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <span class="brand-mark">R</span>
+      Roblox&nbsp;Stats&nbsp;API
+    </a>
+    <nav class="nav">
+      <a href="/docs">Docs</a>
+      <a href="/demo">Demo</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/legal">Legal</a>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn btn-sm topbar-cta" href="/demo">Live demo</a>
+      <button class="icon-btn" data-theme-toggle type="button" aria-label="Switch theme">
+        <svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" data-menu-toggle type="button" aria-expanded="false" aria-controls="mobileNav" aria-label="Menu">
+        <svg class="menux" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="menubar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="mobilenav" id="mobileNav" aria-label="Main" hidden>
+    <a href="/docs">Documentation</a>
+    <a href="/demo">Live demo</a>
+    <a href="/pricing">Pricing &amp; limits</a>
+    <a href="/legal">Legal notice</a>
+    <a class="btn" href="/demo">Live demo</a>
+  </nav>
+</header>
+
+<main id="main">
+<div class="wrap wrap-wide">
+  <div class="docs">
+
+    <!-- ================= On this page ================= -->
+    <nav class="toc" data-toc aria-label="On this page">
+      <p class="toc-title">On this page</p>
+      <a href="#start">Quick start</a>
+      <a href="#endpoints">Endpoints</a>
+      <a href="#fields">Stat names</a>
+      <a href="#autofill">Auto-fill rules</a>
+      <a href="#widget">Ready-made card</a>
+      <a href="#formats">Code examples</a>
+      <a href="#response">Live response</a>
+      <a href="#sdks">SDK &amp; MCP</a>
+      <a href="#errors">Errors &amp; limits</a>
+      <a href="#notes">Good to know</a>
+      <a href="#run">Self-hosting</a>
+    </nav>
+
+    <div class="docs-main">
+
+      <div class="pagehead">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="/">Home</a><span class="sep">/</span><span>Documentation</span>
+        </nav>
+        <h1>Documentation</h1>
+        <p class="lead">
+          Everything about the API in one place: the endpoints, the twenty stat names, how the
+          auto-fill rules work, the error codes and the limits. Read the quick start and you can
+          skip the rest.
+        </p>
+        <div class="pagehead-rail">
+          <a class="btn btn-accent" href="/roblox-stats.js?download=1">Download roblox-stats.js</a>
+          <a class="btn btn-ghost" href="/api">JSON index</a>
+        </div>
+      </div>
+
+      <details class="toc-inline">
+        <summary>On this page</summary>
+        <nav class="toc" data-toc aria-label="On this page, compact">
+          <a href="#start">Quick start</a>
+          <a href="#endpoints">Endpoints</a>
+          <a href="#fields">Stat names</a>
+          <a href="#autofill">Auto-fill rules</a>
+          <a href="#widget">Ready-made card</a>
+          <a href="#formats">Code examples</a>
+          <a href="#response">Live response</a>
+          <a href="#sdks">SDK &amp; MCP</a>
+          <a href="#errors">Errors &amp; limits</a>
+          <a href="#notes">Good to know</a>
+          <a href="#run">Self-hosting</a>
+        </nav>
+      </details>
+
+      <!-- ================= Quick start ================= -->
+      <section class="section" id="start">
+        <div class="section-head">
+          <span class="kicker">Start here</span>
+          <h2>Quick start</h2>
+          <p>There are two ways in, and you can mix them freely.</p>
+        </div>
+
+        <h3 class="mt-0">1. The file (no code)</h3>
+        <p>Copy <code>roblox-stats.js</code> into your project, add one script tag, and write the name of
+          any stat wherever you want it.</p>
+
+        <div class="codeblock-label">index.html <span class="lang">html</span></div>
+        <div class="codeblock">
+          <pre><code>&lt;body data-rbx-game="994732206"&gt;
+
+  &lt;h2&gt;{{name}}&lt;/h2&gt;
+  &lt;p&gt;{{playing}} players right now &middot; {{likes}} likes&lt;/p&gt;
+  &lt;img data-rbx-set="src=thumbnail:url"&gt;
+
+  &lt;script src="https://YOUR-DOMAIN.com/roblox-stats.js"&gt;&lt;/script&gt;</code></pre>
+        </div>
+
+        <div class="chips mt-2">
+          <a class="chip" href="/demo">See it working →</a>
+          <a class="chip" href="/roblox-stats.js">Open the file →</a>
+        </div>
+
+        <h3 class="mt-3">2. The JSON API (any language)</h3>
+        <p>Everything the file builds is also an ordinary HTTP call, with open CORS. The id below is
+          Blox&nbsp;Fruits.</p>
+
+        <div class="codeblock">
+          <pre><code>GET /api/v1/games/994732206</code></pre>
+        </div>
+
+        <div class="note good">
+          <p><strong>Nothing above needs a signup, a token or an account.</strong> There is a per-IP
+            rate limit and nothing else. If a key ever becomes mandatory, this page and the demo keep
+            working on their own — see <a href="#run">API keys</a>.</p>
+        </div>
+      </section>
+
+      <!-- ================= Endpoints ================= -->
+      <section class="section" id="endpoints">
+        <div class="section-head">
+          <span class="kicker">Reference</span>
+          <h2>Every endpoint</h2>
+          <p>All of them are <code>GET</code> except the two <code>POST</code> render endpoints.
+            Responses always use the same envelope: <code>{ "ok": true, "data": … }</code>.</p>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="ep">
+            <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/v1/games/{universeId}</span></div>
+            <p>Everything important about a game in one call: data, owner, votes, favorites, thumbnail, banners and media.</p>
+          </div>
+          <div class="ep">
+            <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/v1/games/{universeId}/quick</span></div>
+            <p>Lightweight version without heavy media. Ideal for cards, listings and widgets where payload size matters.</p>
+          </div>
+          <div class="ep">
+            <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/v1/games/batch?ids=1,2,3</span></div>
+            <p>Up to 50 games in a single request. For listings: do not make 50 calls, make one.</p>
+          </div>
+          <div class="ep">
+            <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/v1/resolve?url={url}</span></div>
+            <p>Converts any Roblox URL to its <code>universeId</code>. Handles both game URLs (<code>/games/123/Slug</code>) and place URLs (<code>/games/123/Place</code>).</p>
+          </div>
+          <div class="ep">
+            <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/v1/search?q={text}&amp;limit=10</span></div>
+            <p>Search games by name. Returns player counts and votes directly. Roblox does not return the creator on search results, so <code>creatorName</code> is <code>null</code> there — use <code>/games/{id}</code> if you need it.</p>
+          </div>
+          <div class="ep">
+            <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/v1/games/{universeId}/game-passes</span></div>
+            <p>Game passes. Add <code>?includePrices=true</code> to include the price in Robux (slower: one lookup per pass).</p>
+          </div>
+          <div class="ep">
+            <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/v1/games/{universeId}/badges</span></div>
+            <p>Badges of the game. Roblox requires an even <code>limit</code> for this endpoint, which the API handles for you.</p>
+          </div>
+          <div class="ep">
+            <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/v1/games/{universeId}/developer</span></div>
+            <p>Creator data: whether the game is active or archived, privacy, plus group details when the owner is a group.</p>
+          </div>
+          <div class="ep">
+            <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/v1/groups/{groupId}</span></div>
+            <p>Name, description and member count of a Roblox group.</p>
+          </div>
+          <div class="ep">
+            <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/v1/groups/{groupId}/games?limit=50</span></div>
+            <p>Every game published by a group. Roblox does not publish player counts here, so <code>playing</code> is <code>null</code> unless you add <code>&amp;includeStats=true</code>, which fills them in with one extra request. <code>null</code> means "not published", never "zero players".</p>
+          </div>
+          <div class="ep">
+            <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/v1/users/{userId}/games?limit=50</span></div>
+            <p>Same, for games owned by a user.</p>
+          </div>
+          <div class="ep">
+            <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/v1/trending?limit=20</span></div>
+            <p>The most played games right now, sorted by live player count. A popularity ranking, not a curated chart. Add <code>includeMedia=true</code> for thumbnails and banners, which search results do not carry by default.</p>
+          </div>
+          <div class="ep">
+            <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/v1/fields</span></div>
+            <p>The list of every valid placeholder name, with its type and whether it abbreviates. Machine readable, so you can validate before rendering.</p>
+          </div>
+          <div class="ep">
+            <div class="ep-top"><span class="method post">POST</span><span class="ep-path">/api/v1/render</span></div>
+            <p>Fills <code>{{placeholders}}</code> in an HTML string with live data. Body: <code>{ "universeId": 994732206, "html": "&lt;b&gt;{{playing}}&lt;/b&gt;" }</code>. Works from a server or straight from the browser.</p>
+          </div>
+          <div class="ep">
+            <div class="ep-top"><span class="method post">POST</span><span class="ep-path">/api/v1/render/multi</span></div>
+            <p>Same, for several games at once. Address a specific game with <code>{{universeId:field}}</code>, e.g. <code>{{994732206:playing}}</code>.</p>
+          </div>
+        </div>
+
+        <div class="statrow mt-3">
+          <div><b>15</b><span>endpoints</span></div>
+          <div><b>20</b><span>stat variables</span></div>
+          <div><b>50</b><span>games per batch</span></div>
+          <div><b>0</b><span>keys needed</span></div>
+        </div>
+
+        <div class="note info">
+          <p><strong>Machine-readable index.</strong> <a href="/api"><code>GET /api</code></a> returns the
+            whole endpoint map as JSON, including the current key mode and rate limits. Point your code
+            at that if you want to discover the API instead of hardcoding it.</p>
+        </div>
+      </section>
+
+      <!-- ================= Stat names ================= -->
+      <section class="section" id="fields">
+        <div class="section-head">
+          <span class="kicker">Reference</span>
+          <h2>The twenty stat names</h2>
+          <p>These are the names you write in <code>{{braces}}</code>. The same list comes back from
+            <a href="/api/v1/fields"><code>GET /api/v1/fields</code></a> if you want it at runtime.</p>
+        </div>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th style="width:26%">Name</th><th>What it gives you</th><th style="width:22%">Shortens to</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>{{name}}</code></td><td>Game name</td><td class="muted">no</td></tr>
+              <tr><td><code>{{id}}</code></td><td>The game’s universeId</td><td class="muted">no</td></tr>
+              <tr><td><code>{{description}}</code></td><td>Game description, with line breaks kept</td><td class="muted">no</td></tr>
+              <tr><td><code>{{url}}</code></td><td>Public Roblox URL, safe for an <code>href</code></td><td class="muted">no</td></tr>
+              <tr><td><code>{{thumbnail}}</code></td><td>Logo image URL, escaped for <code>src="…"</code></td><td class="muted">no</td></tr>
+              <tr><td><code>{{banner}}</code></td><td>Banner image URL, escaped the same way</td><td class="muted">no</td></tr>
+              <tr><td><code>{{playing}}</code></td><td>Players online right now</td><td><code>245.4K</code></td></tr>
+              <tr><td><code>{{visits}}</code></td><td>All-time total visits</td><td><code>1.2B</code></td></tr>
+              <tr><td><code>{{maxPlayers}}</code></td><td>Max players per server</td><td class="muted">no</td></tr>
+              <tr><td><code>{{likes}}</code></td><td>Likes (upvotes). Same as <code>{{upVotes}}</code></td><td><code>1.4M</code></td></tr>
+              <tr><td><code>{{upVotes}}</code></td><td>Likes (upvotes)</td><td><code>1.4M</code></td></tr>
+              <tr><td><code>{{downVotes}}</code></td><td>Dislikes (downvotes)</td><td><code>1.4K</code></td></tr>
+              <tr><td><code>{{favorites}}</code></td><td>Favorite count</td><td><code>938.2K</code></td></tr>
+              <tr><td><code>{{upVoteRatio}}</code></td><td>Share of positive votes, 0–100, with a <code>%</code></td><td>shown as <code>93.7%</code></td></tr>
+              <tr><td><code>{{totalVotes}}</code></td><td>Likes plus dislikes</td><td><code>1.5M</code></td></tr>
+              <tr><td><code>{{creator}}</code></td><td>Owner name, user or group</td><td class="muted">no</td></tr>
+              <tr><td><code>{{creatorType}}</code></td><td><code>"User"</code> or <code>"Group"</code></td><td class="muted">no</td></tr>
+              <tr><td><code>{{creatorUrl}}</code></td><td>Link to the owner profile or the group</td><td class="muted">no</td></tr>
+              <tr><td><code>{{created}}</code></td><td>Creation date, ISO 8601</td><td class="muted">no</td></tr>
+              <tr><td><code>{{updated}}</code></td><td>Last update date, ISO 8601</td><td class="muted">no</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note info">
+          <p><strong>Three ways to force a format.</strong> <code>{{playing}}</code> is escaped and
+            abbreviated only when it reads better. Use <code>{{playing:raw}}</code> for the exact
+            number, <code>{{playing:short}}</code> to always abbreviate, and
+            <code>{{playing:full}}</code> to always write it out in full.</p>
+        </div>
+      </section>
+
+      <!-- ================= Auto-fill ================= -->
+      <section class="section" id="autofill">
+        <div class="section-head">
+          <span class="kicker">No code required</span>
+          <h2>How the auto-fill rules work</h2>
+          <p>
+            This is what <code>roblox-stats.js</code> does. The script finds the names, asks the API once,
+            and writes the real values into your page. No framework, no build step, works on any host
+            including GitHub Pages.
+          </p>
+        </div>
+
+        <h3 class="mt-0">Four ways to write them, all equivalent</h3>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th style="width:52%">You write</th><th>You get</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>{{playing}}</code></td><td>abbreviated when it reads better: <code>245.4K</code></td></tr>
+              <tr><td><code>{{playing:raw}}</code></td><td>the exact number: <code>245412</code></td></tr>
+              <tr><td><code>{{playing:short}}</code></td><td>always abbreviated: <code>245.4K</code></td></tr>
+              <tr><td><code>{{thumbnail:url}}</code></td><td>escaped for <code>src="…"</code></td></tr>
+              <tr><td><code>&lt;span data-rbx-bind="playing"&gt;&lt;/span&gt;</code></td><td>sets the element’s text</td></tr>
+              <tr><td><code>&lt;img data-rbx-set="src=thumbnail:url"&gt;</code></td><td>sets an attribute once the URL is real</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note warn">
+          <p><strong>For images use <code>data-rbx-set</code>, not <code>src="{{thumbnail:url}}"</code>.</strong>
+            A literal <code>src</code> makes the browser request the placeholder text before the script runs,
+            which leaves a 404 in the console on every page load.</p>
+        </div>
+
+        <h3 class="mt-3">Several games on one page</h3>
+        <p>Put <code>data-rbx-game</code> on any element and it owns the placeholders inside it, so each
+          card keeps its own numbers even when the cards are nested.</p>
+
+        <div class="codeblock">
+          <pre><code>&lt;div data-rbx-game="994732206"&gt;{{name}}: {{playing}}&lt;/div&gt;
+&lt;div data-rbx-game="1686885941"&gt;{{name}}: {{playing}}&lt;/div&gt;</code></pre>
+        </div>
+
+        <p><strong>A typo is reported, not hidden.</strong> Write <code>{{playng}}</code> by mistake and you get
+          a warning in the console naming the bad field, rather than a blank box. The authoritative list of
+          names is <a href="/api/v1/fields"><code>/api/v1/fields</code></a>.</p>
+
+        <div class="note info">
+          <p><strong>A binding with no <code>data-rbx-game</code> above it is left alone on purpose.</strong>
+            Otherwise an element outside every scope would still get filled, and you would have no way to
+            write the literal text <code>{{playing}}</code> in a tutorial or an example.</p>
+        </div>
+
+        <div class="chips mt-2">
+          <a class="chip" href="/demo">Open the live demo →</a>
+          <a class="chip" href="/roblox-stats.js">View the file →</a>
+        </div>
+      </section>
+
+      <!-- ================= Widget ================= -->
+      <section class="section" id="widget">
+        <div class="section-head">
+          <span class="kicker">Same file</span>
+          <h2>Or take the card as it is</h2>
+          <p>No layout to write. Put an id in an empty <code>&lt;div&gt;</code> and the same script turns it
+            into a live card with the banner, the logo and the numbers.</p>
+        </div>
+
+        <div class="codeblock">
+          <pre><code>&lt;div data-roblox-game="994732206"&gt;&lt;/div&gt;
+&lt;script src="https://YOUR-DOMAIN.com/roblox-stats.js"&gt;&lt;/script&gt;</code></pre>
+        </div>
+
+        <p>Styleable with CSS, auto-updates with <code>data-roblox-refresh="30"</code>, and it injects no
+          global styles so it cannot break the design of the page that embeds it.</p>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th style="width:34%">Attribute</th><th>What it does</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>data-roblox-game</code></td><td>The universeId of the game. Required.</td></tr>
+              <tr><td><code>data-roblox-theme</code></td><td><code>"dark"</code> (default) or <code>"light"</code>.</td></tr>
+              <tr><td><code>data-roblox-fields</code></td><td><code>"stats"</code> (default) or <code>"compact"</code>.</td></tr>
+              <tr><td><code>data-roblox-refresh</code></td><td>Seconds between updates. <code>0</code> means never.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="chips">
+          <a class="chip" href="/demo">See live card examples →</a>
+        </div>
+      </section>
+
+      <!-- ================= Code examples ================= -->
+      <section class="section" id="formats">
+        <div class="section-head">
+          <span class="kicker">Usage</span>
+          <h2>Code examples</h2>
+          <p>Replace <code>YOUR-DOMAIN.com</code> with the address of your own deployment, or with this one
+            if you use a public instance.</p>
+        </div>
+
+        <div data-tabs="lang">
+          <div class="tabs" role="tablist" aria-label="Language">
+            <button class="tab" role="tab" id="tab-js" aria-controls="panel-js" data-tab="js" aria-selected="true">JavaScript</button>
+            <button class="tab" role="tab" id="tab-node" aria-controls="panel-node" data-tab="node" aria-selected="false" tabindex="-1">Node.js SDK</button>
+            <button class="tab" role="tab" id="tab-py" aria-controls="panel-py" data-tab="py" aria-selected="false" tabindex="-1">Python</button>
+            <button class="tab" role="tab" id="tab-php" aria-controls="panel-php" data-tab="php" aria-selected="false" tabindex="-1">PHP</button>
+            <button class="tab" role="tab" id="tab-curl" aria-controls="panel-curl" data-tab="curl" aria-selected="false" tabindex="-1">cURL</button>
+          </div>
+
+          <div class="tabpanel" role="tabpanel" id="panel-js" aria-labelledby="tab-js">
+            <div class="codeblock">
+              <pre><code>const res = await fetch('https://YOUR-DOMAIN.com/api/v1/games/994732206');
+const { data } = await res.json();
+
+console.log(data.name);                 // "Blox Fruits"
+console.log(data.playing);              // players online right now
+console.log(data.ratings.upVotes);      // likes
+console.log(data.creator.name);         // owner
+console.log(data.thumbnail);            // logo
+document.querySelector('#logo').src = data.thumbnail;</code></pre>
+            </div>
+          </div>
+
+          <div class="tabpanel" role="tabpanel" id="panel-node" aria-labelledby="tab-node" hidden>
+            <div class="codeblock">
+              <pre><code>import { getGame, search } from 'roblox-stats-sdk';
+
+// Point it at your own deployment if you run the server.
+const game = await getGame(994732206);
+console.log(game.name, game.playing, game.ratings.upVotes);
+
+const results = await search('Blox Fruits', { limit: 5 });</code></pre>
+            </div>
+            <p class="hint">Install with <code>npm install roblox-stats-sdk</code>. The SDK unwraps
+              <code>{ ok, data }</code>, so the methods return the data directly.</p>
+          </div>
+
+          <div class="tabpanel" role="tabpanel" id="panel-py" aria-labelledby="tab-py" hidden>
+            <div class="codeblock">
+              <pre><code>import requests
+
+data = requests.get("https://YOUR-DOMAIN.com/api/v1/games/994732206").json()["data"]
+print(data["name"], data["playing"], data["ratings"]["upVotes"])</code></pre>
+            </div>
+          </div>
+
+          <div class="tabpanel" role="tabpanel" id="panel-php" aria-labelledby="tab-php" hidden>
+            <div class="codeblock">
+              <pre><code>$json = file_get_contents("https://YOUR-DOMAIN.com/api/v1/games/994732206");
+$data = json_decode($json, true)["data"];
+echo $data["name"] . " — " . number_format($data["playing"]) . " playing";</code></pre>
+            </div>
+          </div>
+
+          <div class="tabpanel" role="tabpanel" id="panel-curl" aria-labelledby="tab-curl" hidden>
+            <div class="codeblock">
+              <pre><code>curl https://YOUR-DOMAIN.com/api/v1/games/994732206
+
+# Many at once, one request:
+curl "https://YOUR-DOMAIN.com/api/v1/games/batch?ids=994732206,1686885941"
+
+# Fill a template with live values:
+curl -X POST https://YOUR-DOMAIN.com/api/v1/render \
+  -H "Content-Type: application/json" \
+  -d '{"universeId":994732206,"html":"{{playing}} players"}'</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= Live response ================= -->
+      <section class="section" id="response">
+        <div class="section-head">
+          <span class="kicker">Try it</span>
+          <h2>Live response</h2>
+          <p>Same envelope for every endpoint: <code>{ "ok": true, "data": … }</code>. Errors use
+            <code>{ "ok": false, "error": { "code", "message" } }</code>. A <code>universeId</code> is the
+            number in the game URL: in <code>roblox.com/games/<strong>994732206</strong>/Blox-Fruits</code>
+            it is <code>994732206</code>.</p>
+        </div>
+
+        <div class="field" style="margin-bottom:16px">
+          <input type="text" id="gameId" value="994732206" inputmode="numeric" aria-label="Roblox universeId" />
+          <button class="btn" type="button" data-action="full">Load the full response</button>
+          <button class="btn btn-ghost" type="button" data-action="quick">Load the lightweight one</button>
+        </div>
+        <pre id="result">Hit a button to see a live response.</pre>
+
+        <h3 class="mt-3">Template playground</h3>
+        <p>Shows the raw HTML the API returned <em>and</em> what it looks like painted, so a typo in a
+          field name is obvious instead of being an empty gap.</p>
+        <div class="card">
+          <div class="field">
+            <input type="text" id="tplId" value="994732206" inputmode="numeric" aria-label="universeId" />
+            <button class="btn" type="button" data-action="render">Fill it in</button>
+          </div>
+          <textarea id="tplHtml" rows="3" aria-label="HTML template">&lt;b&gt;{{playing}}&lt;/b&gt; players in &lt;b&gt;{{name}}&lt;/b&gt; by {{creator}} &middot; {{likes:short}} likes</textarea>
+          <p class="hint">Runs against <code>POST /api/v1/render</code>. The <strong>Rendered</strong> panel
+            below shows what a browser would actually paint.</p>
+          <div id="tplOut"></div>
+        </div>
+      </section>
+
+      <!-- ================= SDKs ================= -->
+      <section class="section" id="sdks">
+        <div class="section-head">
+          <span class="kicker">Optional</span>
+          <h2>Node SDK and MCP server</h2>
+          <p>Neither is required — plain <code>fetch</code> is always enough. They exist so a server does
+            not have to unwrap envelopes or remember endpoint shapes.</p>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="card">
+            <h3 class="mt-0">Node SDK</h3>
+            <p>One method per endpoint. The <code>{ ok, data }</code> envelope is unwrapped for you, so
+              the methods return the data directly.</p>
+            <div class="codeblock">
+              <pre><code>npm install roblox-stats-sdk</code></pre>
+            </div>
+            <p class="mb-0 hint">Extras in the repository, under <code>extras/sdk/</code>. Set
+              <code>ROBLOX_BASE_URL</code> to point it at your own deployment.</p>
+          </div>
+          <div class="card">
+            <h3 class="mt-0">MCP server</h3>
+            <p>Exposes the API to AI tools over the Model Context Protocol, so an assistant can look up
+              live game statistics instead of guessing.</p>
+            <div class="codeblock">
+              <pre><code>ROBLOX_API_KEY=Made by MoonlightStudios \
+  node extras/mcp/server.js</code></pre>
+            </div>
+            <p class="mb-0 hint">It reads the key on its own, so there is nothing extra to wire up.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= Errors ================= -->
+      <section class="section" id="errors">
+        <div class="section-head">
+          <span class="kicker">Behaviour</span>
+          <h2>Errors and limits</h2>
+          <p>Every failure comes back as JSON with the same shape, so one handler covers all of them.</p>
+        </div>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th style="width:22%">Code</th><th style="width:12%" class="num">HTTP</th><th>What it means</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>INVALID_ID</code></td><td class="num">400</td><td>The id in the path is not a positive number.</td></tr>
+              <tr><td><code>INVALID_QUERY</code></td><td class="num">400</td><td>A query parameter is missing or out of range.</td></tr>
+              <tr><td><code>UNKNOWN_FIELDS</code></td><td class="num">400</td><td>A <code>{{placeholder}}</code> name does not exist. The message lists the bad ones.</td></tr>
+              <tr><td><code>MISSING_KEY</code></td><td class="num">401</td><td>This deployment requires an API key and none was sent.</td></tr>
+              <tr><td><code>INVALID_KEY</code></td><td class="num">403</td><td>The key is not one of the configured ones, or its domain lock does not match.</td></tr>
+              <tr><td><code>RATE_LIMITED</code></td><td class="num">429</td><td>Too many requests. Retry after the seconds in <code>Retry-After</code>.</td></tr>
+              <tr><td><code>NOT_FOUND</code></td><td class="num">404</td><td>No game, group, user or route with that id.</td></tr>
+              <tr><td><code>UPSTREAM_ERROR</code></td><td class="num">502</td><td>Roblox is down, slow, or refusing us. Retry in a few seconds.</td></tr>
+              <tr><td><code>INTERNAL_ERROR</code></td><td class="num">500</td><td>A bug on our side. The message is deliberately vague.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="mt-3">Rate limits</h3>
+        <p>Limits are per IP per minute and per key per minute. With no keys configured the ceiling is
+          <code>RATE_LIMIT_MAX</code>, 120/min. Every answer carries the headers
+          <code>RateLimit-Limit</code>, <code>RateLimit-Remaining</code> and <code>RateLimit-Reset</code>,
+          and they are exposed to the browser through CORS so client code can read them.</p>
+
+        <div class="codeblock">
+          <pre><code>HTTP/1.1 200 OK
+Access-Control-Expose-Headers: X-RBX-Key, RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset, Retry-After
+RateLimit-Limit: 120
+RateLimit-Remaining: 119
+RateLimit-Reset: 60
+X-RBX-Key: anonymous</code></pre>
+        </div>
+
+        <p><a href="/api/v1/keys/me"><code>GET /api/v1/keys/me</code></a> always works, even in the strictest
+          mode. It tells you which key you are being treated as, what your limit is, and — when there is
+          exactly one key — what the public key is, which is what lets this page keep working.</p>
+      </section>
+
+      <!-- ================= Notes ================= -->
+      <section class="section" id="notes">
+        <div class="section-head">
+          <span class="kicker">Before you rely on it</span>
+          <h2>Good to know</h2>
+          <p>The things that surprise people, stated up front.</p>
+        </div>
+
+        <div class="note warn">
+          <p><strong>Active players vs. visits.</strong> <code>playing</code> is the number of players connected
+            <em>right now</em> and changes constantly. <code>visits</code> is the all-time total since the game
+            was created. They are not comparable.</p>
+        </div>
+        <div class="note warn">
+          <p><strong>Data is not perfectly real-time.</strong> Roblox’s own API lags: <code>playing</code> is
+            usually 10 to 30 seconds behind the Roblox website. Do not treat it as an exact counter.</p>
+        </div>
+        <div class="note info">
+          <p><strong>Do not confuse universeId with placeId.</strong> They are different things. A URL ending in
+            <code>/Place</code> carries a placeId; use <code>/api/v1/resolve</code> if you are unsure and the API
+            converts it for you.</p>
+        </div>
+        <div class="note info">
+          <p><strong>About the cache.</strong> Player counts are cached for 30&nbsp;s and votes for 5&nbsp;min, so
+            two calls in a row can return the same number. That is on purpose: it is what lets this API stay free
+            without hitting Roblox’s rate limits.</p>
+        </div>
+        <div class="note info">
+          <p><strong>Do you need an API key?</strong> Not with the script tag: <code>roblox-stats.js</code>
+            already sends one for you, so there is nothing to configure. If you are calling the JSON endpoints
+            yourself, ignore this too: with no keys configured every request is welcome, up to
+            <code>RATE_LIMIT_MAX</code> (120/min) per IP. Only send one if you run your own deployment and have
+            turned keys on, in the <code>X-API-Key</code> header and never a query parameter: those leak into
+            access logs and into the <code>Referer</code> of every link on your page. Check what a key is worth
+            with <a href="/api/v1/keys/me"><code>/api/v1/keys/me</code></a>.</p>
+        </div>
+        <div class="note good">
+          <p><strong>The credit badge is the part that matters.</strong> The API key is a rate limit you can
+            tune; the small <strong>MBA · Made by Moonlight Studios</strong> badge is what actually keeps this
+            free, because deleting it switches the file off. It links to the studio’s site, so leaving it in
+            place is also how people find out who made this.</p>
+        </div>
+        <div class="note info">
+          <p><strong>Roblox only publishes a limited set of list endpoints.</strong> <code>limit</code> on the
+            games-of-a-group routes only accepts 10, 25, 50 or 100 — anything else is a <code>400</code>.
+            There is no public list of a game’s servers, so player counts are the closest thing available.</p>
+        </div>
+      </section>
+
+      <!-- ================= Run your own ================= -->
+      <section class="section" id="run">
+        <div class="section-head">
+          <span class="kicker">Self-hosting</span>
+          <h2>Run your own copy</h2>
+          <p>Only for people who want their own deployment. If you do not, just point the script tag at a
+            public instance and skip all of this.</p>
+        </div>
+
+        <div class="note info">
+          <p><strong>Which files do I actually need?</strong> To <em>use</em> the API you need
+            <strong>one</strong>: <code>roblox-stats.js</code> (or zero, if you use a hosted instance).
+            The other files in this repository are the server — the part you deploy once so other people
+            can call it. Most of them are one small job each: talking to Roblox, caching, and formatting
+            answers. That is a normal shape for a Node project, and it is what keeps any single file from
+            turning into a wall of code.</p>
+        </div>
+
+        <ol class="steps">
+          <li><b>Install</b>Clone or download this project and run <code>npm install</code>.</li>
+          <li><b>Run it</b>Start it with <code>npm start</code> (or <code>npm run dev</code> for auto-reload).</li>
+          <li><b>Point the badge somewhere real</b>Set <code>SITE_URL</code> near the top of
+            <code>roblox-stats.js</code> to your own site, so the credit badge links somewhere.</li>
+          <li><b>Fix the examples</b>Replace <code>YOUR-DOMAIN.com</code> with your own domain in the
+            examples above.</li>
+          <li><b>Tune it</b>Optional: copy <code>.env.example</code> to <code>.env</code> and adjust the cache
+            TTLs, the request limits and the API key.</li>
+        </ol>
+
+        <div class="note warn">
+          <p><strong>Set <code>SITE_URL</code> before you publish anything.</strong> It ships empty on purpose:
+            I was not going to invent your address. With it empty the badge still renders and still enforces
+            itself, it just is not a link yet.</p>
+        </div>
+
+        <h3 class="mt-3">API keys, if you want them</h3>
+        <p>Out of the box you do not need a key: every request is welcome, up to
+          <code>RATE_LIMIT_MAX</code> per IP per minute. Set <code>API_KEYS</code> in <code>.env</code> and you
+          get three modes to choose from, with separate limits for callers who send a key and callers who do
+          not.</p>
+
+        <div class="codeblock-label">.env <span class="lang">dotenv</span></div>
+        <div class="codeblock">
+          <pre><code># a public key, readable by anyone who has the file
+API_KEYS=Made by MoonlightStudios
+
+# off        no key at all (only possible with no keys configured)
+# optional   no key works, but a valid key gets a higher limit   &lt;- default
+# required   every endpoint answers 401 without a valid key
+API_KEY_MODE=optional
+
+RATE_LIMIT_ANON_MAX=30
+RATE_LIMIT_KEYED_MAX=600</code></pre>
+        </div>
+
+        <p>Callers send it in a header, never in the URL:</p>
+
+        <div class="codeblock">
+          <pre><code>fetch('https://YOUR-DOMAIN.com/api/v1/games/994732206', {
+  headers: { 'X-API-Key': 'Made by MoonlightStudios' }
+})</code></pre>
+        </div>
+
+        <p>Each key can carry a name and an optional domain lock, and entries are separated by
+          semicolons:</p>
+
+        <div class="codeblock">
+          <pre><code>API_KEYS=Made by MoonlightStudios;partner-key:AcmeSite:yoursite.com,acme.dev</code></pre>
+        </div>
+
+        <p>The bundled SDK and the MCP server read <code>ROBLOX_API_KEY</code> from the environment on their
+          own, so they need no extra wiring:</p>
+
+        <div class="codeblock">
+          <pre><code>ROBLOX_API_KEY=Made by MoonlightStudios</code></pre>
+        </div>
+
+        <div class="note warn">
+          <p><strong>A key here is not a secret, and pretending otherwise would be worse than saying so.</strong>
+            It sits in plain text inside a file every visitor downloads, so anyone can read it with
+            view-source. What it actually buys you is a rate limit you control, the ability to revoke one
+            caller without restarting anything, and an optional domain lock
+            (<code>API_KEYS=key:Name:yoursite.com</code>). It does not make the data private, and it is not
+            what keeps this API free to use — the credit badge in <code>roblox-stats.js</code> is.
+            <a href="/api/v1/keys/me">Check what a key can do</a>.</p>
+        </div>
+
+        <h3 class="mt-3">Environment variables</h3>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th style="width:30%">Name</th><th style="width:22%">Default</th><th>What it does</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><code>PORT</code></td><td><code>3000</code></td><td>Port to listen on.</td></tr>
+              <tr><td><code>CORS_ORIGIN</code></td><td><code>*</code></td><td>Comma-separated allow-list, or <code>*</code> for everyone.</td></tr>
+              <tr><td><code>RATE_LIMIT_MAX</code></td><td><code>120</code></td><td>Requests per minute per IP with no keys configured.</td></tr>
+              <tr><td><code>API_KEYS</code></td><td><em>empty</em></td><td>The keys, separated by <code>;</code>, optionally <code>key:Name:domain</code>.</td></tr>
+              <tr><td><code>API_KEY_MODE</code></td><td><code>optional</code></td><td><code>off</code>, <code>optional</code> or <code>required</code>.</td></tr>
+              <tr><td><code>RATE_LIMIT_ANON_MAX</code></td><td><code>30</code></td><td>Per-minute limit for a caller without a key.</td></tr>
+              <tr><td><code>RATE_LIMIT_KEYED_MAX</code></td><td><code>600</code></td><td>Per-minute limit for a caller with a valid key.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="hint">The cache TTLs and the remaining variables are documented in
+          <code>.env.example</code>, which is the authoritative list.</p>
+      </section>
+
+    </div>
+  </div>
+</div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <a class="footer-brand" href="/">
+          <span class="brand-mark">R</span>
+          Roblox&nbsp;Stats&nbsp;API
+        </a>
+        <p class="footer-about">
+          Live Roblox game statistics over plain HTTP, free to use. Data comes from Roblox's public
+          APIs; this project is not affiliated with Roblox Corporation.
+        </p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="/docs">Documentation</a>
+        <a href="/demo">Live demo</a>
+        <a href="/pricing">Pricing &amp; limits</a>
+        <a href="/api">JSON index</a>
+      </div>
+      <div class="footer-col">
+        <h4>Reference</h4>
+        <a href="/docs#endpoints">Endpoints</a>
+        <a href="/api/v1/fields">Stat names</a>
+        <a href="/roblox-stats.js">roblox-stats.js</a>
+        <a href="/health">Health</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="/legal">Terms of use</a>
+        <a href="/legal#privacy">Privacy</a>
+        <a href="/legal#license">License</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© <span data-year>2026</span> · Data provided by Roblox's public APIs. Not affiliated with Roblox Corporation.</p>
+      <p class="push studio-credit"><span class="tag">MBA</span> Made by Moonlight Studios</p>
+    </div>
+  </div>
+</footer>
+
+<script src="/api.js"></script>
+<script src="/site.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var api = window.RbxApi;
+
+  // --- Live response ---------------------------------------------------------
+  function loadGame(variant) {
+    var input = document.getElementById('gameId');
+    var out = document.getElementById('result');
+    if (!input || !out) return;
+    var id = input.value.trim();
+    var url = variant === 'quick'
+      ? '/api/v1/games/' + encodeURIComponent(id) + '/quick'
+      : '/api/v1/games/' + encodeURIComponent(id);
+    out.textContent = 'Loading…';
+    api.fetch(url)
+      .then(function (res) { return res.json(); })
+      .then(function (body) { api.show(out, url + '\n\n' + JSON.stringify(body, null, 2)); })
+      .catch(function (err) { out.textContent = 'Error: ' + err.message; });
+  }
+
+  // --- Template playground ---------------------------------------------------
+  function renderTpl() {
+    var id = document.getElementById('tplId').value.trim();
+    var html = document.getElementById('tplHtml').value;
+    var out = document.getElementById('tplOut');
+    out.innerHTML = '<p class="hint"><span class="spinner"></span> Filling it in…</p>';
+
+    api.fetch('/api/v1/render', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ universeId: Number(id), html: html }),
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (body) {
+        out.textContent = '';
+        if (!body.ok) {
+          var err = document.createElement('div');
+          err.className = 'note warn';
+          var p = document.createElement('p');
+          p.textContent = body.error.code + ': ' + body.error.message;
+          err.appendChild(p);
+          out.appendChild(err);
+          return;
+        }
+
+        var code = document.createElement('pre');
+        code.textContent = 'Variables used: ' + body.data.used.join(', ') + '\n\n' + body.data.html;
+        out.appendChild(code);
+
+        var label = document.createElement('p');
+        label.className = 'kicker mt-2';
+        label.textContent = 'Rendered';
+        out.appendChild(label);
+
+        var shown = document.createElement('div');
+        shown.className = 'card';
+        shown.innerHTML = body.data.html;
+        out.appendChild(shown);
+
+        // The code block was created after load, so it needs the copy button.
+        if (window.RbxSite) window.RbxSite.enhance(out);
+      })
+      .catch(function (err) { out.textContent = 'Error: ' + err.message; });
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-action]'), function (btn) {
+    btn.addEventListener('click', function () {
+      var kind = btn.getAttribute('data-action');
+      if (kind === 'render') renderTpl();
+      else loadGame(kind === 'quick' ? 'quick' : 'full');
+    });
+  });
+
+  function start() {
+    renderTpl();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+})();
+</script>
+</body>
+</html>

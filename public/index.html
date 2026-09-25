@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Roblox Stats API — live Roblox game statistics</title>
+<meta name="description" content="Public REST API with live Roblox game data: owner, likes, players online, thumbnail and banner. No signup, open CORS, and embeddable with a single script tag." />
+<meta name="color-scheme" content="light dark" />
+<meta property="og:title" content="Roblox Stats API" />
+<meta property="og:description" content="Live Roblox game statistics in one call. No signup, open CORS, embeddable." />
+<meta property="og:type" content="website" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23e8384f'/><text x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'>R</text></svg>" />
+
+<!-- Sets the theme before first paint so there is no flash of the wrong colours. -->
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('rbx-theme');
+      if (!saved) {
+        saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', saved);
+    } catch (_) {}
+  })();
+</script>
+<link rel="stylesheet" href="/theme.css" />
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <span class="brand-mark">R</span>
+      Roblox&nbsp;Stats&nbsp;API
+    </a>
+    <nav class="nav">
+      <a href="/docs">Docs</a>
+      <a href="/demo">Demo</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/legal">Legal</a>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn btn-sm topbar-cta" href="/docs">Get started</a>
+      <button class="icon-btn" data-theme-toggle type="button" aria-label="Switch theme">
+        <svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" data-menu-toggle type="button" aria-expanded="false" aria-controls="mobileNav" aria-label="Menu">
+        <svg class="menux" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="menubar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="mobilenav" id="mobileNav" aria-label="Main" hidden>
+    <a href="/docs">Documentation</a>
+    <a href="/demo">Live demo</a>
+    <a href="/pricing">Pricing &amp; limits</a>
+    <a href="/legal">Legal notice</a>
+    <a class="btn" href="/docs">Get started</a>
+  </nav>
+</header>
+
+<main id="main">
+<div class="wrap">
+
+  <!-- ================= Hero ================= -->
+  <section class="hero">
+    <div class="hero-grid">
+      <div>
+        <span class="kicker">Public REST API</span>
+        <h1>Live Roblox game stats, one call away</h1>
+        <p class="lead">
+          Owner, likes, players online right now, visits, thumbnail and banner for any Roblox game.
+          Drop it in with a single <code>&lt;script&gt;</code> tag, or call plain JSON from anywhere.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-accent" href="/docs">Get started
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="btn btn-ghost" href="/demo">See it working</a>
+        </div>
+        <div class="pills">
+          <span class="pill ok">No signup</span>
+          <span class="pill ok">Open CORS</span>
+          <span class="pill">Live data from Roblox</span>
+          <span class="pill">Caching included</span>
+        </div>
+      </div>
+
+      <!-- Real data, fetched on load. Proof, not a screenshot. -->
+      <div class="herocard">
+        <div class="herocard-head">
+          <span class="dot-live" aria-hidden="true"></span>
+          <strong>Top 10 right now</strong>
+          <span class="muted" id="lcUpdated">loading…</span>
+        </div>
+
+        <div class="livecard" id="liveCard">
+          <a class="livecard-link" id="lcLink" href="#" target="_blank" rel="noopener noreferrer">
+            <div class="livecard-banner" id="lcBanner"></div>
+            <span class="livecard-rank" id="lcRank">#1</span>
+            <div class="livecard-body">
+              <div class="livecard-head">
+                <div class="livecard-logo" id="lcLogo"></div>
+                <div class="livecard-titles">
+                  <p class="livecard-title" id="lcName">Loading live data…</p>
+                  <div class="livecard-creator" id="lcCreator">Most played games</div>
+                  <div class="livecard-credit"><span class="livecard-credit-tag">MBA</span> Made by Moonlight Studios</div>
+                </div>
+              </div>
+              <div class="livecard-stats">
+                <div><b id="lcPlaying">—</b><span>Playing now</span></div>
+                <div><b id="lcLikes">—</b><span>Likes</span></div>
+              </div>
+            </div>
+          </a>
+          <div class="livecard-dots" id="lcDots" aria-label="Top 10 games"></div>
+        </div>
+
+        <p class="herocard-foot">
+          Sorted by live player count from <a href="/api/v1/trending"><code>/api/v1/trending</code></a>.
+          Hover to hold a game, click a bar to jump to it.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Proof numbers ================= -->
+  <section class="section reveal">
+    <div class="statrow">
+      <div><b>15</b><span>endpoints</span></div>
+      <div><b>20</b><span>stat variables</span></div>
+      <div><b>1</b><span>file to copy</span></div>
+      <div><b>0</b><span>lines of code needed</span></div>
+    </div>
+  </section>
+
+  <!-- ================= Three ways ================= -->
+  <section class="section reveal" id="ways">
+    <div class="section-head">
+      <span class="kicker">Pick your path</span>
+      <h2>Three ways to use it</h2>
+      <p>Same data, same endpoints. Use as much or as little of it as you need.</p>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="feature">
+        <div class="feature-ico red">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+        </div>
+        <h3>One script tag</h3>
+        <p>Write <code>{{playing}}</code> anywhere in your HTML and the numbers appear. No build step, works on any host, even GitHub Pages.</p>
+        <p class="mt-2"><a href="/demo">Live demo →</a></p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-ico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        </div>
+        <h3>Plain JSON</h3>
+        <p>Every endpoint is an ordinary <code>GET</code> with open CORS. Call it from a browser, a server, Python, PHP, anything.</p>
+        <p class="mt-2"><a href="/docs#endpoints">Endpoint list →</a></p>
+      </div>
+
+      <div class="feature">
+        <div class="feature-ico green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg>
+        </div>
+        <h3>SDK and MCP</h3>
+        <p>A small Node SDK unwraps the responses for you, and an MCP server exposes the whole API to AI tools. Both read one env var.</p>
+        <p class="mt-2"><a href="/docs#sdks">Node SDK →</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Start ================= -->
+  <section class="section reveal" id="start">
+    <div class="section-head">
+      <span class="kicker">Start here</span>
+      <h2>One file, one script tag, done</h2>
+      <p>
+        You do not need to study this API to use it. Copy <code>roblox-stats.js</code> into your project,
+        add the tag below, and write the name of any stat wherever you want it. That is the entire setup.
+      </p>
+    </div>
+
+    <div class="codeblock-label">index.html <span class="lang">html</span></div>
+    <div class="codeblock">
+      <pre><code>&lt;body data-rbx-game="994732206"&gt;
+
+  &lt;h2&gt;{{name}}&lt;/h2&gt;
+  &lt;p&gt;{{playing}} players right now &middot; {{likes}} likes&lt;/p&gt;
+  &lt;img data-rbx-set="src=thumbnail:url"&gt;
+
+  &lt;script src="https://YOUR-DOMAIN.com/roblox-stats.js"&gt;&lt;/script&gt;</code></pre>
+    </div>
+
+    <div class="chips mt-2">
+      <a class="chip" href="/roblox-stats.js?download=1">Download the file →</a>
+      <a class="chip" href="/docs#autofill">All the stat names →</a>
+    </div>
+
+    <h3 class="mt-3">Prefer plain JSON?</h3>
+    <p>Everything the file above builds is also one plain HTTP call, with no library and no key.
+      The id below is Blox&nbsp;Fruits.</p>
+    <div class="codeblock">
+      <pre><code>GET /api/v1/games/994732206</code></pre>
+    </div>
+
+    <div class="card mt-2">
+      <h3 class="mt-0">Try a game right here</h3>
+      <div class="field">
+        <input type="text" id="gameId" value="994732206" inputmode="numeric" aria-label="Roblox universeId" />
+        <button class="btn" type="button" data-action="full">Full response</button>
+        <button class="btn btn-ghost" type="button" data-action="quick">Lightweight</button>
+      </div>
+      <p class="hint">
+        Try <code>994732206</code> (Blox&nbsp;Fruits), <code>1686885941</code> (Brookhaven RP) or
+        <code>15339</code>. Only have a link? Use <code>/api/v1/resolve?url=…</code> to get the id.
+      </p>
+      <pre id="result">Hit a button to see a live response.</pre>
+    </div>
+  </section>
+
+  <!-- ================= Endpoints teaser ================= -->
+  <section class="section reveal" id="endpoints">
+    <div class="section-head">
+      <span class="kicker">Reference</span>
+      <h2>Everything it can answer</h2>
+      <p>Fifteen endpoints, all <code>GET</code> except the two render ones. Every response uses the same
+        envelope: <code>{ "ok": true, "data": … }</code>.</p>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="ep">
+        <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/v1/games/{universeId}</span></div>
+        <p>Everything important about a game in one call: data, owner, votes, favorites, thumbnail, banners and media.</p>
+      </div>
+      <div class="ep">
+        <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/v1/games/{universeId}/quick</span></div>
+        <p>Lightweight version without heavy media. Ideal for cards, listings and widgets where payload size matters.</p>
+      </div>
+      <div class="ep">
+        <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/v1/games/batch?ids=1,2,3</span></div>
+        <p>Up to 50 games in a single request. For listings: do not make 50 calls, make one.</p>
+      </div>
+      <div class="ep">
+        <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/v1/trending?limit=20</span></div>
+        <p>The most played games right now, sorted by live player count. A popularity ranking, not a curated chart.</p>
+      </div>
+      <div class="ep">
+        <div class="ep-top"><span class="method get">GET</span><span class="ep-path">/api/v1/resolve?url={url}</span></div>
+        <p>Converts any Roblox URL to its <code>universeId</code>, including place URLs.</p>
+      </div>
+      <div class="ep">
+        <div class="ep-top"><span class="method post">POST</span><span class="ep-path">/api/v1/render</span></div>
+        <p>Fills <code>{{placeholders}}</code> in an HTML string with live data. Works from a server or the browser.</p>
+      </div>
+    </div>
+
+    <div class="chips mt-2">
+      <a class="chip" href="/docs#endpoints">See all 15 endpoints →</a>
+      <a class="chip" href="/api">JSON index</a>
+    </div>
+  </section>
+
+  <!-- ================= The rule ================= -->
+  <section class="section reveal" id="credit">
+    <div class="banner">
+      <div style="flex:1 1 320px">
+        <span class="kicker">The one rule</span>
+        <h2>Leave the credit badge in</h2>
+        <p>
+          The small <strong>MBA · Made by Moonlight Studios</strong> badge that comes with
+          <code>roblox-stats.js</code> is what keeps this free. Delete it, or hide it with CSS, and the
+          file stops filling in numbers. It links to the studio's site, so leaving it in place is also
+          how people find out who built this.
+        </p>
+        <p class="muted" style="font-size:.9rem">
+          There is no API key to leak, no account to close, no per-request billing. The badge is the deal.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CTA ================= -->
+  <section class="section reveal">
+    <div class="banner">
+      <div style="flex:1 1 320px">
+        <h2>Ready in about two minutes</h2>
+        <p>Read the quick start, copy one line, and watch a real number appear on your own page.</p>
+      </div>
+      <div class="banner-cta">
+        <a class="btn btn-accent" href="/docs">Read the docs</a>
+        <a class="btn btn-ghost" href="/demo">Open the demo</a>
+      </div>
+    </div>
+  </section>
+
+</div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <a class="footer-brand" href="/">
+          <span class="brand-mark">R</span>
+          Roblox&nbsp;Stats&nbsp;API
+        </a>
+        <p class="footer-about">
+          Live Roblox game statistics over plain HTTP, free to use. Data comes from Roblox's public
+          APIs; this project is not affiliated with Roblox Corporation.
+        </p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="/docs">Documentation</a>
+        <a href="/demo">Live demo</a>
+        <a href="/pricing">Pricing &amp; limits</a>
+        <a href="/api">JSON index</a>
+      </div>
+      <div class="footer-col">
+        <h4>Reference</h4>
+        <a href="/docs#endpoints">Endpoints</a>
+        <a href="/api/v1/fields">Stat names</a>
+        <a href="/roblox-stats.js">roblox-stats.js</a>
+        <a href="/health">Health</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="/legal">Terms of use</a>
+        <a href="/legal#privacy">Privacy</a>
+        <a href="/legal#license">License</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© <span data-year>2026</span> · Data provided by Roblox's public APIs. Not affiliated with Roblox Corporation.</p>
+      <p class="push studio-credit"><span class="tag">MBA</span> Made by Moonlight Studios</p>
+    </div>
+  </div>
+</footer>
+
+<script src="/api.js"></script>
+<script src="/site.js"></script>
+<script>
+// Everything lives inside this function on purpose. A bare `var top = []` at
+// page level is silently ignored, because window.top is a read-only property of
+// the browser: the array never gets stored and the card stays empty with no
+// error anywhere. An IIFE also keeps the page's own variables out of window,
+// where they could collide with anything else on the site.
+(function () {
+  'use strict';
+
+  var api = window.RbxApi;
+
+  // --- Live top 10 in the hero ----------------------------------------------
+  // The card cycles through the ten games with the most players connected right
+  // now. Every number comes from this API, so the first thing on the page
+  // proves the thing works instead of showing a screenshot of it.
+  var TOP_N = 10;
+  var ROTATE_MS = 4500;
+
+  var lc = {
+    card: document.getElementById('liveCard'),
+    link: document.getElementById('lcLink'),
+    banner: document.getElementById('lcBanner'),
+    rank: document.getElementById('lcRank'),
+    logo: document.getElementById('lcLogo'),
+    name: document.getElementById('lcName'),
+    creator: document.getElementById('lcCreator'),
+    playing: document.getElementById('lcPlaying'),
+    likes: document.getElementById('lcLikes'),
+    dots: document.getElementById('lcDots'),
+    updated: document.getElementById('lcUpdated'),
+    since: 0,
+  };
+
+  var top = [];
+  var idx = 0;
+  var timer = null;
+  var held = false; // true while the pointer rests on the card
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function paint(i) {
+    var g = top[i];
+    if (!g) return;
+    idx = i;
+
+    lc.banner.style.backgroundImage = g.banner ? 'url("' + g.banner + '")' : '';
+    lc.logo.style.backgroundImage = g.thumbnail ? 'url("' + g.thumbnail + '")' : '';
+    lc.rank.textContent = '#' + (i + 1);
+    lc.name.textContent = g.name;
+    lc.creator.textContent = g.creator || 'Unknown creator';
+    lc.playing.textContent = api.abbr(g.playing);
+    lc.likes.textContent = api.abbr(g.upVotes);
+    lc.link.href = g.url || '#';
+    lc.since = Date.now();
+
+    Array.prototype.forEach.call(lc.dots.children, function (dot, n) {
+      dot.setAttribute('aria-current', String(n === i));
+    });
+    tickAge();
+  }
+
+  // A short fade hides the swap. Skipped when the visitor asked for less motion.
+  function show(i) {
+    if (reduceMotion) { paint(i); return; }
+    lc.link.classList.add('swap');
+    setTimeout(function () {
+      paint(i);
+      lc.link.classList.remove('swap');
+    }, 170);
+  }
+
+  function advance() {
+    if (!top.length) return;
+    if (idx + 1 >= top.length) {
+      // A full pass finished: ask Roblox again, because the ranking moves.
+      show(0);
+      loadTop();
+      return;
+    }
+    show(idx + 1);
+  }
+
+  function startTimer() {
+    stopTimer();
+    if (held || document.hidden || !top.length) return;
+    timer = setInterval(advance, ROTATE_MS);
+  }
+
+  function stopTimer() {
+    if (timer) { clearInterval(timer); timer = null; }
+  }
+
+  function buildDots() {
+    lc.dots.textContent = '';
+    top.forEach(function (g, i) {
+      var dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'livecard-dot';
+      dot.title = '#' + (i + 1) + ' ' + g.name;
+      dot.setAttribute('aria-label', 'Show #' + (i + 1) + ': ' + g.name);
+      dot.addEventListener('click', function () { show(i); startTimer(); });
+      lc.dots.appendChild(dot);
+    });
+  }
+
+  function loadTop() {
+    return api.fetch('/api/v1/trending?limit=' + TOP_N + '&includeMedia=true')
+      .then(function (res) { return res.json(); })
+      .then(function (body) {
+        if (!body.ok) throw new Error(body.error && body.error.message);
+        if (!body.data.length) throw new Error('no games returned');
+        top = body.data;
+        buildDots();
+        paint(0);
+        startTimer();
+      })
+      .catch(function (err) {
+        lc.name.textContent = 'Could not load the ranking';
+        lc.creator.textContent = err.message;
+        lc.updated.textContent = 'the API is unreachable from here';
+      });
+  }
+
+  // A visible "how old is this number" beats a static label: the whole point of
+  // the page is that the data is live.
+  function tickAge() {
+    if (!lc.since) return;
+    var secs = Math.round((Date.now() - lc.since) / 1000);
+    lc.updated.textContent = 'updated ' + secs + 's ago';
+  }
+
+  // Moving content is hostile to anyone trying to read or click it, so it holds
+  // still while the pointer is on it and while the tab is in the background.
+  lc.card.addEventListener('mouseenter', function () { held = true; stopTimer(); });
+  lc.card.addEventListener('mouseleave', function () { held = false; startTimer(); });
+  lc.card.addEventListener('focusin', function () { held = true; stopTimer(); });
+  lc.card.addEventListener('focusout', function () { held = false; startTimer(); });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stopTimer(); else startTimer();
+  });
+
+  // --- Interactive game tester ----------------------------------------------
+  function loadGame(variant) {
+    var input = document.getElementById('gameId');
+    var out = document.getElementById('result');
+    if (!input || !out) return;
+    var id = input.value.trim();
+    var url = variant === 'quick'
+      ? '/api/v1/games/' + encodeURIComponent(id) + '/quick'
+      : '/api/v1/games/' + encodeURIComponent(id);
+    out.textContent = 'Loading…';
+    api.fetch(url)
+      .then(function (res) { return res.json(); })
+      .then(function (body) { api.show(out, body); })
+      .catch(function (err) { out.textContent = 'Error: ' + err.message; });
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-action]'), function (btn) {
+    var kind = btn.getAttribute('data-action');
+    btn.addEventListener('click', function () {
+      loadGame(kind === 'quick' ? 'quick' : 'full');
+    });
+  });
+
+  // The page's own script runs at parse time, but site.js wires things up on
+  // DOMContentLoaded, so wait for the DOM before the first render.
+  function start() {
+    loadTop();
+    setInterval(tickAge, 1000);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+})();
+</script>
+</body>
+</html>

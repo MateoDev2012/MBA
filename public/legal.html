@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Legal notice — Roblox Stats API</title>
+<meta name="description" content="Terms of use, privacy, license and the credit badge requirement for the Roblox Stats API, made by Moonlight Studios." />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23e8384f'/><text x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'>R</text></svg>" />
+<!--
+  OPERATOR TODO before publishing:
+    1. Replace the contact address below (it uses the reserved .example TLD on
+       purpose, so it is impossible to mistake for a real one).
+    2. Set the effective date in <time datetime="..."> near the top.
+    3. Read this once with someone who knows your jurisdiction. This text is
+       written to be honest and plain, not to be a substitute for advice.
+-->
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('rbx-theme');
+      if (!saved) saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+    } catch (_) {}
+  })();
+</script>
+<link rel="stylesheet" href="/theme.css" />
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <span class="brand-mark">R</span>
+      Roblox&nbsp;Stats&nbsp;API
+    </a>
+    <nav class="nav">
+      <a href="/docs">Docs</a>
+      <a href="/demo">Demo</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/legal">Legal</a>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn btn-sm topbar-cta" href="/docs">Get started</a>
+      <button class="icon-btn" data-theme-toggle type="button" aria-label="Switch theme">
+        <svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" data-menu-toggle type="button" aria-expanded="false" aria-controls="mobileNav" aria-label="Menu">
+        <svg class="menux" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="menubar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="mobilenav" id="mobileNav" aria-label="Main" hidden>
+    <a href="/docs">Documentation</a>
+    <a href="/demo">Live demo</a>
+    <a href="/pricing">Pricing &amp; limits</a>
+    <a href="/legal">Legal notice</a>
+    <a class="btn" href="/docs">Get started</a>
+  </nav>
+</header>
+
+<main id="main">
+<div class="wrap">
+
+  <div class="pagehead">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="/">Home</a><span class="sep">/</span><span>Legal</span>
+    </nav>
+    <h1>Legal notice</h1>
+    <p class="lead">
+      Plain terms, written to be read. If something here is unclear, that is a bug in this page rather
+      than in your question — <a href="#contact">say so</a>.
+    </p>
+    <div class="legal-meta">
+      <span>Effective <time datetime="2026-01-01">1 January 2026</time></span>
+      <span>·</span>
+      <span>Operated by Moonlight Studios</span>
+      <span>·</span>
+      <span>Not affiliated with Roblox Corporation</span>
+    </div>
+  </div>
+
+  <div class="legal-block">
+
+    <h2 id="terms">Terms of use</h2>
+    <p>By requesting anything from this API you agree to these terms. If you do not agree, do not use it.</p>
+    <ul>
+      <li>The service is provided <strong>as is</strong>, with no warranty of availability, accuracy or
+        fitness for any purpose. Player counts in particular are snapshots, not live counters.</li>
+      <li>You may use the API for anything lawful, including commercial projects, monetised sites and
+        resale of your own work. There is no per-request fee to pass on to anyone.</li>
+      <li>You may run your own copy of the server. That copy is yours; these terms govern the hosted one.</li>
+      <li>The data belongs to its respective owners. Roblox game names, descriptions, images and player
+        counts belong to their creators and to Roblox. You get a licence to read them through this API, not
+        ownership of them.</li>
+    </ul>
+
+    <h2 id="credit">The credit badge</h2>
+    <p>One condition comes with free use, and it is the only one:</p>
+    <div class="note good">
+      <p><strong>When you use <code>roblox-stats.js</code> or its ready-made card widget, keep the
+        <strong>MBA · Made by Moonlight Studios</strong> badge visible, complete and linking to the
+        studio’s site.</strong> Removing it, blanking the name, breaking the link or hiding it with CSS
+        switches the file off — the numbers stop appearing.</p>
+    </div>
+    <p>The badge is enforced in the browser file itself, in readable JavaScript you can inspect at any
+      time. It is not hidden and it is not obfuscated. Calling the JSON endpoints directly with your own
+      code needs no badge, and asking people to come back is a courtesy rather than a licence fee.</p>
+    <p>Do not present Roblox’s names, logos or artwork as your own, and do not imply that Moonlight Studios
+      or this project is endorsed by Roblox Corporation.</p>
+
+    <h2 id="acceptable-use">Acceptable use</h2>
+    <p>There is a rate limit, and the limit is the only thing standing between a shared free server and
+      Roblox blocking it for everyone. Do not:</p>
+    <ul>
+      <li>Run a script, scraper or bot that pulls thousands of requests per minute, or that ignores
+        <code>Retry-After</code> when it gets a <code>429</code>.</li>
+      <li>Use the API as a general-purpose proxy, or to cache and re-serve Roblox images at scale.</li>
+      <li>Attempt to bypass the rate limit, the badge check, or any other limit on the service.</li>
+      <li>Use it to break the law, to harass anyone, or to distribute malware.</li>
+    </ul>
+    <p>Exceeding the limits may get a single IP throttled. Sustained abuse gets the instance blocked
+      without notice, because the alternative is the whole API going down for everybody.</p>
+
+    <h2 id="privacy">Privacy</h2>
+    <p>Short version: this service does not want to know who you are, so it does not ask.</p>
+    <ul>
+      <li>No accounts, no sign-in, no API keys required, no cookies, no tracking pixels, no analytics, no
+        fingerprinting.</li>
+      <li>The server keeps the standard access log the web server writes: IP address, timestamp, method,
+        path, status. It is used to enforce the rate limit and to find out what is broken. It is not sold
+        and not used for advertising.</li>
+      <li>Responses are cached in memory for 30 seconds (player counts) and 5 minutes (votes) so that
+        popular games are not fetched from Roblox over and over. The cache is shared by everyone, which is
+        part of why there is no per-request cost.</li>
+      <li>Outbound requests carry nothing about you. They are made to Roblox’s own API endpoints with no
+        identifier attached.</li>
+    </ul>
+
+    <h2 id="license">License</h2>
+    <p>The source code of this project is published with the repository and is released under the license
+      stated in its <code>LICENSE</code> file — read that file, because it, not this page, is the
+      license. In plain terms: you may use, copy, modify and self-host it.</p>
+    <p>Roblox, the Roblox logo, game names and game assets are trademarks or property of Roblox
+      Corporation. This project is an independent, unofficial tool. It is not affiliated with, endorsed by
+      or sponsored by Roblox Corporation.</p>
+
+    <h2 id="liability">Disclaimers and liability</h2>
+    <p>The data can be late, incomplete, cached, or occasionally wrong, because Roblox’s own public API
+      works that way. Do not use it for anything where being wrong by thirty seconds matters — financial
+      systems, anti-cheat judgements, anything that spends money on a player count.</p>
+    <p>To the fullest extent the law allows, Moonlight Studios and the contributors to this project are
+      not liable for any loss arising from your use of the service or of the data it returns.</p>
+
+    <h2 id="changes">Changes to these terms</h2>
+    <p>These terms may change. Material changes will be reflected in the date at the top of this page. The
+      version that applied is the one published when you made the request, and the git history of the
+      repository keeps every earlier version.</p>
+
+    <h2 id="contact">Contact</h2>
+    <p>For a bug report, a takedown request, an endpoint request or a question about these terms, write to
+      <a href="mailto:hello@your-domain.example">hello@your-domain.example</a>. If you run your own copy
+      of this project, the contact address is the one configured by whoever deployed it.</p>
+    <p>A useful bug report is one line: the id you asked about and the endpoint you used. A failing id
+      usually means the game is private, archived or removed, and that is Roblox’s answer to give, not a
+      bug here.</p>
+
+  </div>
+
+</div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <a class="footer-brand" href="/">
+          <span class="brand-mark">R</span>
+          Roblox&nbsp;Stats&nbsp;API
+        </a>
+        <p class="footer-about">
+          Live Roblox game statistics over plain HTTP, free to use. Data comes from Roblox's public
+          APIs; this project is not affiliated with Roblox Corporation.
+        </p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="/docs">Documentation</a>
+        <a href="/demo">Live demo</a>
+        <a href="/pricing">Pricing &amp; limits</a>
+        <a href="/api">JSON index</a>
+      </div>
+      <div class="footer-col">
+        <h4>Reference</h4>
+        <a href="/docs#endpoints">Endpoints</a>
+        <a href="/api/v1/fields">Stat names</a>
+        <a href="/roblox-stats.js">roblox-stats.js</a>
+        <a href="/health">Health</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="/legal">Terms of use</a>
+        <a href="/legal#privacy">Privacy</a>
+        <a href="/legal#license">License</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© <span data-year>2026</span> · Data provided by Roblox's public APIs. Not affiliated with Roblox Corporation.</p>
+      <p class="push studio-credit"><span class="tag">MBA</span> Made by Moonlight Studios</p>
+    </div>
+  </div>
+</footer>
+
+<script src="/site.js"></script>
+</body>
+</html>

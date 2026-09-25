@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pricing &amp; limits — Roblox Stats API</title>
+<meta name="description" content="There is no paid tier and no per-request billing. What the free limits are, what running your own copy changes, and the one rule that keeps this free." />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23e8384f'/><text x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'>R</text></svg>" />
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('rbx-theme');
+      if (!saved) saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+    } catch (_) {}
+  })();
+</script>
+<link rel="stylesheet" href="/theme.css" />
+</head>
+<body>
+
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <span class="brand-mark">R</span>
+      Roblox&nbsp;Stats&nbsp;API
+    </a>
+    <nav class="nav">
+      <a href="/docs">Docs</a>
+      <a href="/demo">Demo</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/legal">Legal</a>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn btn-sm topbar-cta" href="/docs">Get started</a>
+      <button class="icon-btn" data-theme-toggle type="button" aria-label="Switch theme">
+        <svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" data-menu-toggle type="button" aria-expanded="false" aria-controls="mobileNav" aria-label="Menu">
+        <svg class="menux" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="menubar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="mobilenav" id="mobileNav" aria-label="Main" hidden>
+    <a href="/docs">Documentation</a>
+    <a href="/demo">Live demo</a>
+    <a href="/pricing">Pricing &amp; limits</a>
+    <a href="/legal">Legal notice</a>
+    <a class="btn" href="/docs">Get started</a>
+  </nav>
+</header>
+
+<main id="main">
+<div class="wrap">
+
+  <div class="pagehead">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="/">Home</a><span class="sep">/</span><span>Pricing &amp; limits</span>
+    </nav>
+    <h1>Free, and staying that way</h1>
+    <p class="lead">
+      There is no paid tier, no per-request billing and no account to create. What follows is the whole
+      commercial situation, written out so nobody has to ask.
+    </p>
+  </div>
+
+  <!-- ================= Plans ================= -->
+  <section class="section">
+    <div class="grid grid-3" style="align-items:stretch">
+
+      <div class="price featured">
+        <span class="price-flag">What most people use</span>
+        <h3>Public instance</h3>
+        <div class="price-num">Free</div>
+        <p class="price-tag">forever, no signup</p>
+        <ul class="price-feats">
+          <li>All 15 endpoints</li>
+          <li>All 20 stat names</li>
+          <li>120 requests per minute per IP</li>
+          <li>Open CORS, works from any browser</li>
+          <li><code>roblox-stats.js</code> with the credit badge</li>
+          <li class="off">No key of your own</li>
+        </ul>
+        <a class="btn btn-accent" href="/docs">Read the docs</a>
+      </div>
+
+      <div class="price">
+        <h3>Your own deployment</h3>
+        <div class="price-num">Free</div>
+        <p class="price-tag">same code, your server</p>
+        <ul class="price-feats">
+          <li>Everything in the column on the left</li>
+          <li>Your own limits, your own cache TTLs</li>
+          <li>API keys with domain locks and revocation</li>
+          <li>Lock CORS to your own domains</li>
+          <li>No dependency on this server staying up</li>
+          <li class="off">You host and pay for the server</li>
+        </ul>
+        <a class="btn btn-ghost" href="/docs#run">How to self-host</a>
+      </div>
+
+      <div class="price">
+        <h3>Sponsor</h3>
+        <div class="price-num">—</div>
+        <p class="price-tag">optional, and not for sale</p>
+        <ul class="price-feats">
+          <li>No paid plan exists yet, on purpose</li>
+          <li>Sponsoring buys a mention, not a quota</li>
+          <li>No one gets an SLA or priority lane</li>
+          <li>Nothing here is gated behind money</li>
+        </ul>
+        <a class="btn btn-ghost" href="/legal#contact">Get in touch</a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================= The rule ================= -->
+  <section class="section">
+    <div class="section-head">
+      <span class="kicker">The one rule</span>
+      <h2>Keep the badge, keep the API</h2>
+      <p>The free tier is not a trial. It costs money to run — a server, a domain, and the request budget
+        that keeps the numbers honest. What pays for it is one line of credit.</p>
+    </div>
+
+    <div class="banner">
+      <div style="flex:1 1 320px">
+        <h3>What the badge actually does</h3>
+        <p>
+          <code>roblox-stats.js</code> draws a small <strong>MBA · Made by Moonlight Studios</strong> badge and
+          links the studio’s name to the studio’s site. It then checks that the badge is still in the page,
+          visible and connected, before it writes any number into it. Remove the element, empty its text, or
+          cover it with <code>display:none</code>, and the script stops.
+        </p>
+        <p class="mb-0">
+          That is not a legal trick. It is the whole mechanism, in about forty lines of readable JavaScript
+          you can inspect with view-source.
+        </p>
+      </div>
+    </div>
+
+    <div class="note good">
+      <p><strong>Running your own copy?</strong> Then the badge is a request, not a lock. The enforcement
+        lives in the browser file, which is yours to read and edit. The terms ask you to keep the credit
+        visible, and in exchange you get an API with no dependency on this server. Nothing else changes.</p>
+    </div>
+  </section>
+
+  <!-- ================= What is not behind anything ================= -->
+  <section class="section">
+    <div class="section-head">
+      <span class="kicker">No account needed</span>
+      <h2>What is <em>not</em> behind anything</h2>
+      <p>Spelled out, because “free” usually hides a list somewhere.</p>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="feature">
+        <h3>No signup, no email</h3>
+        <p>There is no user table, no cookie, no tracker and no analytics on this site. Nothing to fill in.</p>
+      </div>
+      <div class="feature">
+        <h3>No API key to obtain</h3>
+        <p>With no keys configured every request is welcome, up to <code>RATE_LIMIT_MAX</code> per IP.</p>
+      </div>
+      <div class="feature">
+        <h3>No rate limit per feature</h3>
+        <p>One limit covers everything. There is no “call this endpoint 10 times a day” tier.</p>
+      </div>
+      <div class="feature">
+        <h3>No attribution required for JSON</h3>
+        <p>Calling <code>/api/v1/…</code> from your own code needs no credit. The badge belongs to the
+          ready-made file and the card widget.</p>
+      </div>
+      <div class="feature">
+        <h3>No CORS wall</h3>
+        <p>Any origin may read the responses, from a browser, without a proxy. That is deliberate.</p>
+      </div>
+      <div class="feature">
+        <h3>No expiry</h3>
+        <p>No trial that turns into a paid plan, no request quota that resets monthly, no seat count.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= Limits ================= -->
+  <section class="section">
+    <div class="section-head">
+      <span class="kicker">The actual numbers</span>
+      <h2>Limits as they are</h2>
+      <p>Configurable on a self-hosted copy. These are the defaults.</p>
+    </div>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th style="width:42%">Limit</th><th style="width:20%" class="num">Value</th><th>Why</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Requests per minute, per IP</td><td class="num">120</td><td>Enough for a page of cards, not enough to be a free CDN.</td></tr>
+          <tr><td>Requests per minute, per valid key</td><td class="num">600</td><td>So a server that caches properly is not punished for it.</td></tr>
+          <tr><td>Games per <code>/batch</code> call</td><td class="num">50</td><td>One request instead of fifty is the point of the endpoint.</td></tr>
+          <tr><td>Games per <code>/trending</code> call</td><td class="num">20</td><td>Each extra game is another request to Roblox.</td></tr>
+          <tr><td>Template size, <code>POST /render</code></td><td class="num">200 KB</td><td>It renders strings, it does not host your page.</td></tr>
+          <tr><td>Player count cache</td><td class="num">30 s</td><td>Roblox itself lags 10–30 s, so a shorter TTL buys nothing but quota.</td></tr>
+          <tr><td>Vote cache</td><td class="num">5 min</td><td>Likes move slowly; asking more often is pure waste.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="note info">
+      <p><strong>Check your own quota at any time.</strong> Every response carries
+        <code>RateLimit-Limit</code>, <code>RateLimit-Remaining</code> and <code>RateLimit-Reset</code>, and
+        <a href="/api/v1/keys/me"><code>GET /api/v1/keys/me</code></a> tells you how the server is treating
+        you right now.</p>
+    </div>
+  </section>
+
+  <!-- ================= FAQ ================= -->
+  <section class="section">
+    <div class="section-head">
+      <span class="kicker">Questions</span>
+      <h2>Frequently asked</h2>
+    </div>
+
+    <div class="faq">
+      <details>
+        <summary>Can I use this commercially, for a real product?</summary>
+        <div class="faq-body">
+          <p>Yes. The terms are on the <a href="/legal">legal page</a>: use it commercially, monetise your
+            own site, no per-request fee to anyone. The two things asked of you are to leave the credit badge
+            visible when you use <code>roblox-stats.js</code>, and not to hammer the endpoints.</p>
+        </div>
+      </details>
+      <details>
+        <summary>What exactly counts as removing the badge?</summary>
+        <div class="faq-body">
+          <p>Deleting the badge element, emptying the studio name out of it, breaking the link, covering it
+            with CSS, or repointing the link somewhere that is not the studio’s site. The file checks for all
+            of those before it fills anything in. The honest summary: if someone opening view-source cannot
+            see the credit, the badge is not there.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Do I need a key if I only want the JSON?</summary>
+        <div class="faq-body">
+          <p>No. A key only exists on deployments where somebody configured one, and it is documented as
+            public, not secret — it buys a higher rate limit, revocation and domain locks. It does not make
+            your copy of the data private, and it is not what funds this.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Will the public instance stay up?</summary>
+        <div class="faq-body">
+          <p>No promise, and nobody should build a business on somebody else’s free server. The cache, the
+            rate limits and the fact that the whole thing is one small Node app are all there so that
+            <a href="/docs#run">running your own copy</a> takes an afternoon and costs a few dollars a month.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Is the data legal to redistribute?</summary>
+        <div class="faq-body">
+          <p>It comes from Roblox’s public APIs, and the short answer is that reading a public page and
+            publishing a number is not the same as republishing Roblox’s assets. Do not mirror Roblox
+            thumbnails or banners as if they were yours, and do not use Roblox marks in your branding. The
+            <a href="/legal">legal page</a> has the version I would stand behind.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Can I report a bug or request an endpoint?</summary>
+        <div class="faq-body">
+          <p>Please do — the contact address is on the <a href="/legal#contact">legal page</a>. The most
+            useful reports are an id that returned nothing and the endpoint that was used.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="banner">
+      <div style="flex:1 1 320px">
+        <h2>Start now, it costs nothing</h2>
+        <p>One script tag and a real number on your own page, about two minutes from now.</p>
+      </div>
+      <div class="banner-cta">
+        <a class="btn btn-accent" href="/docs">Read the docs</a>
+        <a class="btn btn-ghost" href="/demo">Open the demo</a>
+      </div>
+    </div>
+  </section>
+
+</div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <a class="footer-brand" href="/">
+          <span class="brand-mark">R</span>
+          Roblox&nbsp;Stats&nbsp;API
+        </a>
+        <p class="footer-about">
+          Live Roblox game statistics over plain HTTP, free to use. Data comes from Roblox's public
+          APIs; this project is not affiliated with Roblox Corporation.
+        </p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="/docs">Documentation</a>
+        <a href="/demo">Live demo</a>
+        <a href="/pricing">Pricing &amp; limits</a>
+        <a href="/api">JSON index</a>
+      </div>
+      <div class="footer-col">
+        <h4>Reference</h4>
+        <a href="/docs#endpoints">Endpoints</a>
+        <a href="/api/v1/fields">Stat names</a>
+        <a href="/roblox-stats.js">roblox-stats.js</a>
+        <a href="/health">Health</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="/legal">Terms of use</a>
+        <a href="/legal#privacy">Privacy</a>
+        <a href="/legal#license">License</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© <span data-year>2026</span> · Data provided by Roblox's public APIs. Not affiliated with Roblox Corporation.</p>
+      <p class="push studio-credit"><span class="tag">MBA</span> Made by Moonlight Studios</p>
+    </div>
+  </div>
+</footer>
+
+<script src="/site.js"></script>
+</body>
+</html>
