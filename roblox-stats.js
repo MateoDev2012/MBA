@@ -122,7 +122,6 @@
   'use strict';
 
   console.error('[roblox-stats] SCRIPT START');
-  throw new Error('[roblox-stats] DELIBERATE ERROR TO TEST CONSOLE');
 
   // ==========================================================================
   // Moonlight Studios — attribution
