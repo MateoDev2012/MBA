@@ -127,8 +127,9 @@
 
       <div class="empty-state" id="emptyState" style="display:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-        <h3>No games found</h3>
-        <p>Try a different search term or filter.</p>
+        <h3 id="emptyTitle">No games found</h3>
+        <p id="emptyMessage">Try a different search term or filter.</p>
+        <button type="button" class="btn" id="retryBtn" style="display:none">Try again</button>
       </div>
 
       <div class="loading-state" id="loadingState" style="display:none">
@@ -253,8 +254,9 @@
   var prevPage = document.getElementById('prevPage');
   var nextPage = document.getElementById('nextPage');
   var pageInfo = document.getElementById('pageInfo');
-  var emptyState = document.getElementById('emptyState');
-  var loadingState = document.getElementById('loadingState');
+  var emptyTitle = document.getElementById('emptyTitle');
+  var emptyMessage = document.getElementById('emptyMessage');
+  var retryBtn = document.getElementById('retryBtn');
 
   // Modal elements
   var gameModal = document.getElementById('gameModal');
@@ -302,6 +304,10 @@
   }, 300);
 
   searchInput.addEventListener('input', doSearch);
+  retryBtn.addEventListener('click', function () {
+    state.page = 1;
+    loadGames();
+  });
   sortSelect.addEventListener('change', function () {
     state.sort = this.value;
     state.page = 1;
@@ -485,6 +491,7 @@
     showLoading(true);
     gamesGrid.innerHTML = '';
     emptyState.style.display = 'none';
+    retryBtn.style.display = 'none';
     pagination.style.display = 'none';
 
     api.fetch(url)
@@ -504,6 +511,10 @@
 
         if (games.length === 0) {
           gamesGrid.innerHTML = '';
+          emptyTitle.textContent = 'No games found';
+          emptyMessage.textContent = q
+            ? 'Nothing matches "' + q + '". Try a shorter or different term.'
+            : 'Try a different search term or filter.';
           emptyState.style.display = 'flex';
           pagination.style.display = 'none';
           summaryStats.style.display = 'none';
@@ -519,9 +530,14 @@
       .catch(function (err) {
         showLoading(false);
         gamesGrid.innerHTML = '';
+        emptyTitle.textContent = 'Could not load games';
+        emptyMessage.textContent = err.message;
+        // Roblox rate limits us now and then and the failure is not the
+        // visitor's fault, so offer a retry instead of a dead page.
+        retryBtn.style.display = 'inline-flex';
         emptyState.style.display = 'flex';
-        document.getElementById('emptyState').querySelector('h3').textContent = 'Error loading games';
-        document.getElementById('emptyState').querySelector('p').textContent = err.message;
+        summaryStats.style.display = 'none';
+        pagination.style.display = 'none';
         console.error('[explorer] Load games error:', err);
       });
   }
