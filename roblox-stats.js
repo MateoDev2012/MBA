@@ -5,19 +5,28 @@
  * name of the stat wherever you want it. No build step, no framework, no
  * bundler, no API key. Works on any static host, including GitHub Pages.
  *
- *   1) Auto-fill: write the stat name in your HTML
+ *   1) Auto-fill (simplest): set a global game ID, then write stat names anywhere
+ *
+ *      <script>
+ *        window.RBX_GAME_ID = '994732206';  // your game's universeId
+ *      </script>
+ *      <script src="https://YOUR-DOMAIN.com/roblox-stats.js"></script>
+ *
+ *      <h2>{{name}}</h2>
+ *      <p>{{playing}} players right now · {{likes}} likes</p>
+ *      <img data-rbx-set="src=thumbnail:url">
+ *
+ *   2) Auto-fill (per-element scope): put the game id on an element
  *
  *      <body data-rbx-game="994732206">
  *        <h2>{{name}}</h2>
  *        <p>{{playing}} players right now · {{likes}} likes</p>
  *        <img data-rbx-set="src=thumbnail:url">
+ *      </script src="https://YOUR-DOMAIN.com/roblox-stats.js"></script>
  *
- *   2) Ready-made card: put a game id in an empty div
+ *   3) Ready-made card: put a game id in an empty div
  *
  *      <div data-roblox-game="994732206"></div>
- *
- *   One tag covers both:
- *
  *      <script src="https://YOUR-DOMAIN.com/roblox-stats.js"></script>
  *
  *   If you host this file yourself, point it at the API first:
@@ -49,6 +58,16 @@
  * it as a name, not a password. What it buys you is a rate limit you control,
  * the ability to revoke one caller without restarting anything, and optional
  * domain locking. It does not make the data private.
+ *
+ * -----------------------------------------------------------------------------
+ * Global config (optional, set BEFORE the script loads)
+ * -----------------------------------------------------------------------------
+ *
+ *   window.RBX_GAME_ID = '994732206';              // default game for {{placeholders}}
+ *   // or
+ *   window.RobloxStatsConfig = { gameId: '994732206' };
+ *
+ * If set, you don't need data-rbx-game on the body. Placeholders work globally.
  *
  * -----------------------------------------------------------------------------
  * Syntax
@@ -408,15 +427,16 @@
   function runBindings() {
     var scopes = allScopes();
 
-    // No scope anywhere: fall back to ?game= on the URL and treat the whole
-    // page as one game, which is the simplest possible setup.
+    // No scope anywhere: check for global config, then ?game= URL param.
     if (scopes.length === 0) {
-      var fallback = new URLSearchParams(location.search).get('game');
+      // Global config: window.RBX_GAME_ID or window.RobloxStatsConfig.gameId
+      var globalId = (window.RBX_GAME_ID || (window.RobloxStatsConfig && window.RobloxStatsConfig.gameId) || '').trim();
+      var fallback = globalId || new URLSearchParams(location.search).get('game');
       if (!fallback) {
         if (document.body.querySelector('[data-rbx-bind]') ||
             /\{\{\s*[a-zA-Z]/.test(document.body.innerHTML)) {
           console.warn('[roblox-stats] found placeholders but no game id. ' +
-            'Add data-rbx-game="<universeId>" to an element, or ?game=<universeId> to the URL.');
+            'Set window.RBX_GAME_ID, add data-rbx-game="<universeId>" to an element, or use ?game=<universeId> in the URL.');
         }
         return Promise.resolve();
       }
