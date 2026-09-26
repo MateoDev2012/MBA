@@ -277,6 +277,61 @@
     Array.prototype.forEach.call(slots, function (el) { el.textContent = y; });
   }
 
+  // Feeds the pointer position to the cards, so their highlight follows the
+  // cursor. Two custom properties written on pointermove and read by a CSS
+  // radial-gradient: no per-frame layout, no listeners on the document, and it
+  // degrades to the resting highlight when the pointer never moves.
+  //
+  // Skipped for anyone who asked for less motion, and for coarse pointers,
+  // where there is no cursor to follow in the first place.
+  function initPointerGlow() {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (window.matchMedia('(hover: none)').matches) return;
+
+    var cards = document.querySelectorAll('.feature, .linkcard, .ep');
+    if (!cards.length) return;
+
+    var pending = false;
+    var lastEvent = null;
+
+    function paint() {
+      pending = false;
+      if (!lastEvent) return;
+      Array.prototype.forEach.call(cards, function (card) {
+        var r = card.getBoundingClientRect();
+        card.style.setProperty('--mx', lastEvent.clientX - r.left + 'px');
+        card.style.setProperty('--my', lastEvent.clientY - r.top + 'px');
+      });
+    }
+
+    function onMove(e) {
+      lastEvent = e;
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(paint);
+    }
+
+    // Only while the pointer is actually over one of them: a document-level
+    // pointermove that walks the card list on every mouse move is the kind of
+    // thing that makes a page feel heavy on a trackpad.
+    document.addEventListener(
+      'pointerover',
+      function (e) {
+        var card = e.target.closest && e.target.closest('.feature, .linkcard, .ep');
+        if (!card) return;
+        if (card._glowBound) return;
+        card._glowBound = true;
+        card.addEventListener('pointermove', onMove);
+        card.addEventListener('pointerleave', function () {
+          card._glowBound = false;
+          card.style.removeProperty('--mx');
+          card.style.removeProperty('--my');
+        });
+      },
+      { passive: true }
+    );
+  }
+
   function init() {
     initTheme();
     initCopyButtons();
@@ -286,6 +341,7 @@
     initScrollspy();
     initProgress();
     initReveal();
+    initPointerGlow();
     initYear();
     // So a page that injects markup at runtime (the playground) can give the
     // new code blocks their copy buttons too.

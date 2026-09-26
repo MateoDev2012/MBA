@@ -37,6 +37,7 @@
   --muted: #5b5480;
   --code-text: #2e2760;
   --code-bg: #f2f0fb;
+  --code-bg-2: #eae6f8;
   --code-border: #ddd8ef;
 
   /* Violet is the brand: it is what the logo, the buttons and the focus ring
@@ -56,6 +57,17 @@
 
   --brand-grad: linear-gradient(150deg, #8b5cf6 0%, #6d28d9 45%, #4c1d95 100%);
   --glow-grad: linear-gradient(180deg, #22d3ee, #0e7490);
+
+  /* Atmosphere. On the light side the sky is a pale wash, so the moon is a soft
+     disc and there are barely any stars: a starfield over white paper reads as
+     dust on the screen, not as space. */
+  --moon-lit: rgba(124, 58, 237, 0.16);
+  --moon-halo: rgba(124, 58, 237, 0.1);
+  --star: rgba(76, 29, 149, 0.5);
+  --star-dim: rgba(76, 29, 149, 0.24);
+  --edge-light: rgba(255, 255, 255, 0.9);
+  --lift: 0 1px 2px rgba(26, 20, 54, 0.05), 0 8px 24px -8px rgba(76, 29, 149, 0.14);
+  --lift-hi: 0 2px 4px rgba(26, 20, 54, 0.06), 0 18px 40px -12px rgba(76, 29, 149, 0.24);
 
   --shadow-sm: 0 1px 2px rgba(26, 20, 54, 0.06), 0 1px 3px rgba(26, 20, 54, 0.05);
   --shadow-md: 0 4px 14px rgba(26, 20, 54, 0.08), 0 2px 4px rgba(26, 20, 54, 0.04);
@@ -88,6 +100,7 @@
   --muted: #a49dd0;
   --code-text: #ded9ff;
   --code-bg: #05040f;
+  --code-bg-2: #0a0819;
   --code-border: #1e1a3d;
 
   /* Lighter than the light theme's accent on purpose: the same hex that reads
@@ -107,6 +120,16 @@
 
   --brand-grad: linear-gradient(150deg, #c4b5fd 0%, #8b5cf6 45%, #5b21b6 100%);
   --glow-grad: linear-gradient(180deg, #a5f3fc, #0891b2);
+
+  --moon-lit: rgba(226, 220, 255, 0.95);
+  --moon-halo: rgba(139, 92, 246, 0.28);
+  --star: rgba(226, 220, 255, 0.85);
+  --star-dim: rgba(196, 181, 253, 0.4);
+  /* The 1px highlight along the top edge of every surface. It is what makes a
+     flat box read as a lit object instead of a printed rectangle. */
+  --edge-light: rgba(255, 255, 255, 0.07);
+  --lift: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+  --lift-hi: 0 2px 6px rgba(0, 0, 0, 0.45), 0 24px 50px -14px rgba(0, 0, 0, 0.75);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
   --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.55);
@@ -230,11 +253,6 @@ strong { font-weight: 680; color: var(--text); }
 .mobilenav a.active { background: var(--accent-2-soft); color: var(--accent-2-ink); }
 .mobilenav .btn { margin-top: 8px; justify-content: center; }
 
-@media (max-width: 900px) {
-  .nav, .topbar-cta { display: none; }
-  .menu-btn { display: grid; }
-}
-
 /* --- Reading progress ------------------------------------------------------ */
 
 .progress {
@@ -258,12 +276,21 @@ strong { font-weight: 680; color: var(--text); }
      which is 1.8:1 against white text: the top of the button was effectively
      invisible in the light theme. Every stop of the violet clears 5:1. */
   background: var(--brand-grad);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.22);
   transition: filter .15s, transform .06s, box-shadow .15s;
   white-space: nowrap;
 }
-.btn:hover { filter: brightness(1.08); text-decoration: none; color: #fff; }
-.btn:active { transform: translateY(1px); }
+.btn:hover {
+  filter: brightness(1.09);
+  text-decoration: none;
+  color: #fff;
+  /* A lift on hover, not just a colour change: at rest the button sits on the
+     page, on hover it comes off it. */
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px -4px rgba(124, 58, 237, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+.btn:active { transform: translateY(0); filter: brightness(0.98); }
+.btn:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 3px; }
 .btn-accent { background: var(--brand-grad); box-shadow: 0 2px 12px rgba(124, 58, 237, 0.32); }
 /* Cyan is for decoration and for dark text, never for white text on a light
    stop. Used for the endpoint pills and the inline code accents. */
@@ -276,14 +303,30 @@ strong { font-weight: 680; color: var(--text); }
 .btn-sm { padding: 7px 13px; font-size: 0.85rem; border-radius: 8px; }
 .btn svg { width: 16px; height: 16px; flex: none; }
 
+/* Mobile: the nav becomes the hamburger sheet and the topbar CTA moves into it.
+   This has to come AFTER .btn. .btn sets display:inline-flex at the same
+   specificity, so a media query placed earlier loses on source order and leaves
+   a 129px button in a 375px bar - which pushed the whole page into a sideways
+   scroll on every page with a CTA. */
+@media (max-width: 900px) {
+  .nav { display: none; }
+  .topbar-cta { display: none; }
+  .menu-btn { display: grid; }
+}
+
 .icon-btn {
   display: grid; place-items: center;
   width: 36px; height: 36px; flex: none;
   border-radius: 9px; cursor: pointer;
   border: 1px solid var(--border); background: var(--panel); color: var(--text-soft);
-  transition: background .15s, color .15s, border-color .15s;
+  box-shadow: inset 0 1px 0 var(--edge-light);
+  transition: background .15s, color .15s, border-color .15s, transform .12s;
 }
-.icon-btn:hover { background: var(--panel-2); color: var(--text); border-color: var(--border-strong); }
+.icon-btn:hover {
+  background: var(--panel-2); color: var(--text); border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+.icon-btn:active { transform: translateY(0); }
 .icon-btn svg { width: 17px; height: 17px; }
 :root[data-theme="dark"] .theme-sun { display: block; }
 :root[data-theme="dark"] .theme-moon { display: none; }
@@ -295,27 +338,107 @@ strong { font-weight: 680; color: var(--text); }
 
 /* --- Hero ----------------------------------------------------------------- */
 
-.hero { position: relative; overflow: hidden; padding: 84px 0 64px; }
+.hero { position: relative; overflow: hidden; padding: 96px 0 76px; }
+
+/* Three stacked layers make the sky. Each is a pseudo-element or a gradient, so
+   the whole thing is still zero requests and zero layout shift.
+
+   ::before  nebula and the moon
+   ::after   the star field and the grid
+
+   The stars are two tiles at different sizes rather than one: a single tile
+   reads as a repeating pattern the moment you notice it, and two sizes at
+   different opacities read as depth. */
 .hero::before {
-  content: ""; position: absolute; inset: -46% 0 auto; height: 680px; z-index: -2;
+  content: ""; position: absolute; inset: -50% 0 auto; height: 760px; z-index: -2;
   background:
-    radial-gradient(50% 58% at 20% 10%, var(--accent-soft), transparent 70%),
-    radial-gradient(44% 54% at 84% 2%, var(--accent-2-soft), transparent 70%);
+    /* The moon: a lit disc with a second disc punched out of it, which is the
+       only way to get a crescent without shipping an image. */
+    radial-gradient(circle 88px at 78% 26%,
+      var(--moon-lit) 0%, var(--moon-lit) 62%, transparent 63%),
+    /* Its halo, wider and much fainter, so it sits in the sky rather than on it. */
+    radial-gradient(circle 250px at 78% 26%,
+      var(--moon-halo) 0%, transparent 68%),
+    radial-gradient(46% 52% at 16% 6%, var(--accent-soft), transparent 70%),
+    radial-gradient(40% 48% at 62% 0%, var(--accent-2-soft), transparent 72%);
   pointer-events: none;
 }
-/* A faint grid under the glow: reads as "engineered" without costing anything. */
+
+/* The crescent itself: the dark limb that eats the lit disc. Positioned over
+   ::before, and it inherits the theme so the moon is lit from the same side in
+   both themes. */
+.hero__moon {
+  position: absolute; z-index: -2; pointer-events: none;
+  top: 118px; right: 9%;
+  width: 176px; height: 176px; border-radius: 50%;
+  box-shadow: 0 0 90px 30px var(--moon-halo);
+}
+.hero__moon::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  /* The bite out of the disc. Offset up and left so the crescent opens to the
+     lower right, where the hero's own glow already is. */
+  background: var(--bg);
+  transform: translate(-34%, -30%);
+}
+
 .hero::after {
   content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background-image:
+    /* Near stars: small, bright, sparse. */
+    radial-gradient(1.4px 1.4px at 18% 22%, var(--star) 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 62% 12%, var(--star) 50%, transparent 51%),
+    radial-gradient(1.6px 1.6px at 88% 44%, var(--star) 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 34% 58%, var(--star) 50%, transparent 51%),
+    radial-gradient(1.4px 1.4px at 74% 70%, var(--star) 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 8% 76%, var(--star) 50%, transparent 51%),
+    radial-gradient(1.3px 1.3px at 46% 34%, var(--star) 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 92% 82%, var(--star) 50%, transparent 51%),
+    /* Far stars: dimmer, and on a different tile so the two never line up. */
+    radial-gradient(1px 1px at 28% 12%, var(--star-dim) 50%, transparent 51%),
+    radial-gradient(1px 1px at 52% 66%, var(--star-dim) 50%, transparent 51%),
+    radial-gradient(1px 1px at 82% 18%, var(--star-dim) 50%, transparent 51%),
+    radial-gradient(1px 1px at 12% 44%, var(--star-dim) 50%, transparent 51%),
+    /* The grid, far enough down to read as a floor rather than as graph paper. */
     linear-gradient(to right, var(--border) 1px, transparent 1px),
     linear-gradient(to bottom, var(--border) 1px, transparent 1px);
-  background-size: 46px 46px;
-  -webkit-mask-image: radial-gradient(64% 52% at 50% 0%, #000 0%, transparent 78%);
-  mask-image: radial-gradient(64% 52% at 50% 0%, #000 0%, transparent 78%);
-  opacity: 0.5;
+  background-size:
+    100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
+    100% 100%, 100% 100%,
+    173px 149px, 211px 187px, 191px 223px, 157px 179px,
+    52px 52px, 52px 52px;
+  -webkit-mask-image: radial-gradient(72% 62% at 50% 0%, #000 0%, transparent 80%);
+  mask-image: radial-gradient(72% 62% at 50% 0%, #000 0%, transparent 80%);
+  opacity: 0.85;
 }
-.hero p.lead { font-size: clamp(1.02rem, 2.2vw, 1.18rem); max-width: 60ch; }
-.hero-cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+
+.hero-grid { position: relative; }
+
+/* The headline is the one place the brand gradient is used as text. It stops at
+   the last full line rather than fading mid-word, which is why the colour is on
+   the element and not on a background clip. */
+.hero h1 {
+  font-size: clamp(2.1rem, 5.4vw, 3.5rem);
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  max-width: 15ch;
+}
+.hero h1 em {
+  font-style: normal;
+  background: var(--brand-grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.hero p.lead { font-size: clamp(1.02rem, 2.2vw, 1.18rem); max-width: 58ch; color: var(--text-soft); }
+.hero-cta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+
+/* On a narrow phone the moon would sit on top of the headline, so it is only
+   drawn from tablet width up. */
+@media (max-width: 900px) { .hero__moon { display: none; } }
+@media (max-width: 560px) {
+  .hero { padding: 60px 0 52px; }
+  .hero h1 { max-width: none; }
+}
 
 .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
 .pill {
@@ -453,21 +576,36 @@ strong { font-weight: 680; color: var(--text); }
 
 /* --- Sections ------------------------------------------------------------- */
 
-.section { padding: 52px 0; scroll-margin-top: calc(var(--topbar-h) + 20px); }
+.section { padding: 64px 0; scroll-margin-top: calc(var(--topbar-h) + 20px); }
 .section + .section { border-top: 1px solid var(--border); }
-.section-head { margin-bottom: 26px; max-width: 72ch; }
-.section-head p { margin-bottom: 0; }
+.section-head { margin-bottom: 30px; max-width: 72ch; }
+/* A hairline that runs out to the right of the kicker, so the label reads as a
+   ruled heading rather than as loose small caps. */
 .kicker {
-  display: inline-block; font-size: 0.72rem; font-weight: 700;
-  letter-spacing: 0.13em; text-transform: uppercase; color: var(--accent-ink);
-  margin-bottom: 9px;
+  position: relative;
+  display: inline-flex; align-items: center; gap: 9px;
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-ink);
+  margin-bottom: 12px;
+}
+.kicker::before {
+  content: ""; width: 18px; height: 18px; flex: none; border-radius: 50%;
+  /* A crescent at 14px, the same shape as the logo. */
+  background: var(--accent);
+  -webkit-mask-image: radial-gradient(circle at 68% 50%, transparent 56%, #000 57%);
+  mask-image: radial-gradient(circle at 68% 50%, transparent 56%, #000 57%);
+}
+.kicker::after {
+  content: ""; width: 34px; height: 1px; flex: none;
+  background: linear-gradient(to right, var(--accent), transparent);
 }
 
 /* --- Cards & grids -------------------------------------------------------- */
 
 .card {
   background: var(--panel); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow-sm);
+  border-radius: var(--radius); padding: 22px;
+  box-shadow: var(--lift), inset 0 1px 0 var(--edge-light);
 }
 .card h3:first-child, .card h2:first-child { margin-top: 0; }
 .card > :last-child { margin-bottom: 0; }
@@ -481,12 +619,24 @@ strong { font-weight: 680; color: var(--text); }
 
 /* Feature tiles with an icon. */
 .feature {
-  position: relative;
+  position: relative; overflow: hidden;
   background: var(--panel); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 22px;
+  box-shadow: var(--lift), inset 0 1px 0 var(--edge-light);
   transition: border-color .18s, transform .18s, box-shadow .18s;
 }
-.feature:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+/* A wash of brand colour that follows the pointer, faded right out at rest.
+   It is a pseudo-element rather than a background gradient so the card's own
+   background stays a flat colour underneath it. */
+.feature::after {
+  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  opacity: 0; transition: opacity .22s ease;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 0%),
+    var(--accent-soft), transparent 68%);
+}
+.feature > * { position: relative; z-index: 1; }
+.feature:hover { border-color: var(--border-strong); transform: translateY(-3px); box-shadow: var(--lift-hi), inset 0 1px 0 var(--edge-light); }
+.feature:hover::after { opacity: 1; }
 .feature-ico {
   width: 38px; height: 38px; border-radius: 11px; margin-bottom: 14px;
   display: grid; place-items: center;
@@ -505,9 +655,11 @@ strong { font-weight: 680; color: var(--text); }
   display: flex; align-items: flex-start; gap: 13px;
   background: var(--panel); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 16px 18px;
-  color: var(--text); transition: border-color .16s, transform .16s, box-shadow .16s;
+  color: var(--text);
+  box-shadow: var(--lift), inset 0 1px 0 var(--edge-light);
+  transition: border-color .16s, transform .16s, box-shadow .16s;
 }
-.linkcard:hover { text-decoration: none; border-color: var(--accent-2); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.linkcard:hover { text-decoration: none; border-color: var(--accent-2); transform: translateY(-2px); box-shadow: var(--lift-hi), inset 0 1px 0 var(--edge-light); }
 .linkcard-ico {
   width: 32px; height: 32px; border-radius: 9px; flex: none;
   display: grid; place-items: center;
@@ -521,9 +673,10 @@ strong { font-weight: 680; color: var(--text); }
 .ep {
   background: var(--panel); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 17px 19px;
+  box-shadow: var(--lift), inset 0 1px 0 var(--edge-light);
   transition: border-color .16s, transform .16s, box-shadow .16s;
 }
-.ep:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.ep:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: var(--lift-hi), inset 0 1px 0 var(--edge-light); }
 .ep-top { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
 .ep-path { font-family: var(--mono); font-size: 0.86rem; font-weight: 600; color: var(--text); word-break: break-all; line-height: 1.4; }
 .ep p { font-size: 0.89rem; margin: 0; color: var(--muted); }
@@ -585,14 +738,19 @@ code:not(pre code) {
   font-size: 0.86em; color: var(--text); word-break: break-word;
 }
 
-.codeblock { position: relative; margin: 16px 0; }
+.codeblock { position: relative; margin: 18px 0; }
 .codeblock > pre { margin: 0; }
 pre {
-  background: var(--code-bg); border: 1px solid var(--code-border);
-  border-radius: var(--radius); padding: 16px 18px; margin: 0;
-  overflow-x: auto; font-size: 0.845rem; line-height: 1.6;
+  /* A very slight vertical gradient, so the block has a top and a bottom rather
+     than reading as one flat rectangle of colour. */
+  background: linear-gradient(180deg, var(--code-bg), var(--code-bg) 120px, var(--code-bg-2));
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius); padding: 18px 20px; margin: 0;
+  overflow-x: auto; font-size: 0.845rem; line-height: 1.65;
   color: var(--code-text);
+  box-shadow: var(--lift), inset 0 1px 0 var(--edge-light);
   -webkit-overflow-scrolling: touch;
+  tab-size: 2;
 }
 pre code { background: none; border: 0; padding: 0; font-size: inherit; color: inherit; }
 .codeblock .copy {
@@ -682,6 +840,7 @@ textarea { font-family: var(--mono); font-size: 0.84rem; resize: vertical; width
   border: 1px solid var(--border); border-left: 3px solid var(--warn);
   background: var(--panel); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   padding: 14px 17px; margin: 14px 0; font-size: 0.92rem;
+  box-shadow: inset 0 1px 0 var(--edge-light);
 }
 .note::before {
   content: "!"; flex: none;
@@ -720,11 +879,37 @@ textarea { font-family: var(--mono); font-size: 0.84rem; resize: vertical; width
 
 .statrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
 .statrow > div {
+  position: relative; overflow: hidden;
   background: var(--panel); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 17px 19px;
+  box-shadow: var(--lift), inset 0 1px 0 var(--edge-light);
 }
-.statrow b { display: block; font-size: 1.6rem; font-weight: 760; letter-spacing: -0.03em; }
-.statrow span { font-size: 0.8rem; color: var(--muted); }
+/* A hairline of brand colour down the left edge, so four separate boxes read as
+   one set rather than as four unrelated tiles. */
+.statrow > div::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--brand-grad);
+}
+.statrow > div:nth-child(2)::before { background: linear-gradient(180deg, var(--ok), var(--accent-2)); }
+.statrow > div:nth-child(3)::before { background: linear-gradient(180deg, var(--accent-2), var(--accent)); }
+.statrow > div:nth-child(4)::before { background: linear-gradient(180deg, var(--accent), var(--warn)); }
+.statrow b {
+  display: block;
+  font-size: 1.72rem; font-weight: 780; letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  color: var(--text);
+}
+.statrow span {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.72rem; font-weight: 650;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--muted);
+}
 
 /* --- Pricing -------------------------------------------------------------- */
 
@@ -732,12 +917,13 @@ textarea { font-family: var(--mono); font-size: 0.84rem; resize: vertical; width
   position: relative; display: flex; flex-direction: column;
   background: var(--panel); border: 1px solid var(--border);
   border-radius: var(--radius-lg); padding: 26px 24px;
+  box-shadow: var(--lift), inset 0 1px 0 var(--edge-light);
   transition: border-color .18s, transform .18s, box-shadow .18s;
 }
-.price:hover { border-color: var(--border-strong); box-shadow: var(--shadow-md); }
+.price:hover { border-color: var(--border-strong); transform: translateY(-3px); box-shadow: var(--lift-hi), inset 0 1px 0 var(--edge-light); }
 .price.featured {
   border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent), var(--shadow-md);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent), var(--lift-hi);
 }
 .price-flag {
   position: absolute; top: -11px; left: 24px;
