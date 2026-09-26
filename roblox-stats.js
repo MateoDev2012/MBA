@@ -347,7 +347,16 @@
   function fill(scope, game) {
     console.log('[roblox-stats] fill called, scope:', scope.tagName, 'game:', game ? game.name : 'none');
     var problems = [];
-    var ownsNode = function (node) { return scopeOf(node) === scope; };
+    
+    // When scope is document.body without data-rbx-game, it owns all descendant nodes.
+    // Otherwise, a node is owned by the nearest ancestor with data-rbx-game.
+    var ownsNode;
+    if (scope === document.body && !scope.getAttribute('data-rbx-game')) {
+      ownsNode = function (node) { return scope.contains(node); };
+    } else {
+      ownsNode = function (node) { return scopeOf(node) === scope; };
+    }
+    
     console.log('[roblox-stats] fill: seenInlineIds will be tracked');
 
     // Track which inline game IDs we've seen and need to load
