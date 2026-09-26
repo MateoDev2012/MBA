@@ -103,14 +103,14 @@
 
           <div class="codeblock-label">index.html <span class="lang">html</span></div>
           <div class="codeblock">
-            <pre><code><script>
+            <pre><code>&lt;script&gt;
   window.RBX_GAME_ID = '994732206';  // Your game's universeId
-</script>
-<script src="https://ms-mba.up.railway.app/roblox-stats.js"></script>
+&lt;/script&gt;
+&lt;script src="https://ms-mba.up.railway.app/roblox-stats.js"&gt;&lt;/script&gt;
 
-<h1>{{name}}</h1>
-<p>{{playing}} players right now &middot; {{likes}} likes</p>
-<img data-rbx-set="src=thumbnail:url" alt="Game logo"></code></pre>
+&lt;h1&gt;{{name}}&lt;/h1&gt;
+&lt;p&gt;{{playing}} players right now &amp;middot; {{likes}} likes&lt;/p&gt;
+&lt;img data-rbx-set="src=thumbnail:url" alt="Game logo"&gt;</code></pre>
           </div>
 
           <div class="note info">
@@ -121,12 +121,12 @@
           <p>Put <code>data-rbx-game</code> on any container to scope placeholders inside it.</p>
 
           <div class="codeblock">
-            <pre><code><div data-rbx-game="994732206">
-  <h2>{{name}}: {{playing}} players</h2>
-</div>
-<div data-rbx-game="1686885941">
-  <h2>{{name}}: {{playing}} players</h2>
-</div></code></pre>
+            <pre><code>&lt;div data-rbx-game="994732206"&gt;
+  &lt;h2&gt;{{name}}: {{playing}} players&lt;/h2&gt;
+&lt;/div&gt;
+&lt;div data-rbx-game="1686885941"&gt;
+  &lt;h2&gt;{{name}}: {{playing}} players&lt;/h2&gt;
+&lt;/div&gt;</code></pre>
           </div>
         </div>
       </section>
@@ -217,8 +217,8 @@ curl -X POST https://ms-mba.up.railway.app/api/v1/render \
           <p>No layout needed. Put an ID in an empty <code><div></code> and get a complete card with banner, logo, and stats.</p>
 
           <div class="codeblock">
-            <pre><code><div data-roblox-game="994732206"></div>
-<script src="https://ms-mba.up.railway.app/roblox-stats.js"></script></code></pre>
+            <pre><code>&lt;div data-roblox-game="994732206"&gt;&lt;/div&gt;
+&lt;script src="https://ms-mba.up.railway.app/roblox-stats.js"&gt;&lt;/script&gt;</code></pre>
           </div>
 
           <h3 class="mt-3">Options</h3>

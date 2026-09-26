@@ -220,21 +220,21 @@
 
         <h3 class="mt-3">Global config (set BEFORE script loads)</h3>
         <div class="codeblock">
-          <pre><code><script>
+          <pre><code>&lt;script&gt;
   window.RBX_GAME_ID = '994732206';  // Default game for all placeholders
-</script>
-<script src="https://ms-mba.up.railway.app/roblox-stats.js"></script></code></pre>
+&lt;/script&gt;
+&lt;script src="https://ms-mba.up.railway.app/roblox-stats.js"&gt;&lt;/script&gt;</code></pre>
         </div>
 
         <p>Or use the config object:</p>
         <div class="codeblock">
-          <pre><code><script>
+          <pre><code>&lt;script&gt;
   window.RobloxStatsConfig = {
     gameId: '994732206',
     apiBase: 'https://your-domain.com'  // Optional: custom API endpoint
   };
-</script>
-<script src="https://ms-mba.up.railway.app/roblox-stats.js"></script></code></pre>
+&lt;/script&gt;
+&lt;script src="https://ms-mba.up.railway.app/roblox-stats.js"&gt;&lt;/script&gt;</code></pre>
         </div>
 
         <div class="note warn">

@@ -121,8 +121,6 @@
 (function () {
   'use strict';
 
-  console.error('[roblox-stats] SCRIPT START');
-
   // ==========================================================================
   // Moonlight Studios — attribution
   // ==========================================================================
@@ -298,36 +296,156 @@
 
   // Matches: {{field}}, {{field:raw}}, {{12345:field}}, {{12345:field:raw}}
   // Group 1 = optional gameId (digits), Group 2 = field name, Group 3 = optional mode
-  var PLACEHOLDER = /\{\{\s*(?:(\d+):)?([a-zA-Z][a-zA-Z0-9_]*)\s*(?::\s*(raw|short|url|text)\s*)?\}\}/g;
+  var PLACEHOLDER = /\{\{\s*(?:(\d+):)?([a-zA-Z][a-zA-Z0-9_]*)\s*(?::\s*(raw|short|full|url|text)\s*)?\}\}/g;
 
   // Cache for inline game IDs so we don't fetch the same game twice
   var inlineGameCache = {};
+  var inlineGamePromises = {};
 
-  function getInlineGame(id) {
+  // Request an inline game once, even when several placeholders use it. A failed
+  // lookup resolves to null so one bad id cannot block every other game.
+  function ensureInlineGame(id) {
     if (inlineGameCache[id]) return Promise.resolve(inlineGameCache[id]);
-    return loadGame(id).then(function (g) {
-      inlineGameCache[id] = g;
-      return g;
-    });
+    if (!inlineGamePromises[id]) {
+      inlineGamePromises[id] = loadGame(id).then(
+        function (game) {
+          inlineGameCache[id] = game;
+          return game;
+        },
+        function () {
+          return null;
+        }
+      );
+    }
+    return inlineGamePromises[id];
   }
 
-  function fillPlaceholdersIn(text, defaultGame, problems) {
+  // Nodes inside pre/code/script/style are examples, not content to fill.
+  function isCodeElement(el) {
+    var node = el;
+    while (node && node !== document.documentElement) {
+      var tag = node.tagName ? node.tagName.toLowerCase() : '';
+      if (tag === 'pre' || tag === 'code' || tag === 'script' || tag === 'style') return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function noteInlineIds(text, ids) {
     PLACEHOLDER.lastIndex = 0;
-    return text.replace(PLACEHOLDER, function (whole, inlineId, name, mode) {
-      if (!KNOWN.has(name)) {
-        problems.push(name);
-        return whole;
+    var match;
+    while ((match = PLACEHOLDER.exec(text)) !== null) {
+      if (match[1]) ids[match[1]] = true;
+    }
+  }
+
+  // data-rbx-bind="playing", "playing:raw", "12345:playing", "12345:playing:raw"
+  function parseBinding(spec) {
+    var parts = String(spec || '').split(':').map(function (part) { return part.trim(); });
+    var inlineId = null;
+    var name = parts[0] || '';
+    var mode = 'text';
+
+    if (parts.length === 2) {
+      if (/^\d+$/.test(parts[0])) {
+        inlineId = parts[0];
+        name = parts[1] || '';
+      } else {
+        mode = parts[1] || 'text';
       }
-      // If inline gameId specified, use that game; otherwise use scope's game
-      var targetGame = inlineId
-        ? inlineGameCache[inlineId]  // may be undefined if not loaded yet
-        : defaultGame;
-      if (inlineId && !targetGame) {
-        // Game not loaded yet — leave placeholder, will retry after load
-        return whole;
+    } else if (parts.length === 3) {
+      inlineId = parts[0];
+      name = parts[1] || '';
+      mode = parts[2] || 'text';
+    }
+
+    return { inlineId: inlineId, name: name, mode: mode };
+  }
+
+  // Find every {{12345:field}} used outside examples, in text, attributes,
+  // bindings and setters. Fetching them before the first fill lets a page use
+  // inline ids without a global game or an ancestor scope.
+  function collectInlineIds(root) {
+    var ids = {};
+    var walker = document.createTreeWalker(
+      root,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: function (node) {
+          return isCodeElement(node.parentElement)
+            ? NodeFilter.FILTER_REJECT
+            : NodeFilter.FILTER_ACCEPT;
+        }
       }
-      return render(name, read(targetGame, name), mode || 'text');
+    );
+    var textNode;
+    while ((textNode = walker.nextNode())) {
+      noteInlineIds(textNode.nodeValue, ids);
+    }
+
+    var elements = [root].concat(Array.prototype.slice.call(root.querySelectorAll('*')));
+    elements.forEach(function (el) {
+      if (isCodeElement(el)) return;
+      var i, attr, pair, eq, raw, parsed;
+
+      for (i = 0; i < el.attributes.length; i++) {
+        attr = el.attributes[i];
+        if (attr.value.indexOf('{{') !== -1) noteInlineIds(attr.value, ids);
+      }
+
+      if (el.hasAttribute('data-rbx-bind')) {
+        parsed = parseBinding(el.getAttribute('data-rbx-bind'));
+        if (parsed.inlineId) ids[parsed.inlineId] = true;
+      }
+
+      if (el.hasAttribute('data-rbx-set')) {
+        el.getAttribute('data-rbx-set').split('|').forEach(function (candidate) {
+          eq = candidate.indexOf('=');
+          if (eq === -1) return;
+          raw = candidate.slice(eq + 1).trim();
+          noteInlineIds(/^\{\{/.test(raw) ? raw : '{{' + raw + '}}', ids);
+        });
+      }
     });
+
+    return Object.keys(ids);
+  }
+
+  function preloadInlineGames(root) {
+    var ids = collectInlineIds(root);
+    return Promise.all(
+      ids.map(function (id) { return ensureInlineGame(id); })
+    ).then(function () { return ids; });
+  }
+
+  // Placeholders shown in <pre>/<code> are documentation, not content to fill.
+  function hasVisiblePlaceholders(root) {
+    var walker = document.createTreeWalker(
+      root,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: function (node) {
+          return isCodeElement(node.parentElement)
+            ? NodeFilter.FILTER_REJECT
+            : NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
+    var textNode;
+    while ((textNode = walker.nextNode())) {
+      if (textNode.nodeValue.indexOf('{{') !== -1) return true;
+    }
+
+    var elements = [root].concat(Array.prototype.slice.call(root.querySelectorAll('*')));
+    for (var i = 0; i < elements.length; i++) {
+      var el = elements[i];
+      if (isCodeElement(el)) continue;
+      if (el.hasAttribute('data-rbx-bind') || el.hasAttribute('data-rbx-set')) return true;
+      for (var j = 0; j < el.attributes.length; j++) {
+        if (el.attributes[j].value.indexOf('{{') !== -1) return true;
+      }
+    }
+    return false;
   }
 
   // Second pass: fill any placeholders that had inline IDs not yet loaded
@@ -347,7 +465,6 @@
    * Also supports inline game IDs: {{12345:playing}} uses game 12345 regardless of scope.
    */
   function fill(scope, game) {
-    console.error('[roblox-stats] fill called, scope:', scope.tagName, 'game:', game ? game.name : 'none');
     var problems = [];
     
     // When scope is document.body without data-rbx-game, it owns all descendant nodes.
@@ -359,9 +476,6 @@
       ownsNode = function (node) { return scopeOf(node) === scope; };
     }
     
-    console.error('[roblox-stats] fill: ownsNode test for body:', ownsNode(document.body));
-    console.error('[roblox-stats] fill: ownsNode test for p:', ownsNode(document.querySelector('p')));
-
     // Track which inline game IDs we've seen and need to load
     var seenInlineIds = {};
 
@@ -375,7 +489,7 @@
           return whole;
         }
         var targetGame = inlineId ? inlineGameCache[inlineId] : defaultGame;
-        if (inlineId && !targetGame) return whole; // will fill in second pass
+        if (!targetGame) return whole; // missing game, or inline game not loaded yet
         return render(name, read(targetGame, name), mode || 'text');
       });
     }
@@ -406,7 +520,6 @@
     nodes.forEach(function (node) {
       if (!ownsNode(node)) return;
       var replaced = fillAndTrack(node.nodeValue, game);
-      console.log('[roblox-stats] text node:', node.nodeValue.slice(0, 50), '->', replaced.slice(0, 50));
       if (replaced !== node.nodeValue) node.nodeValue = replaced;
     });
 
@@ -429,36 +542,17 @@
     var bound = Array.prototype.slice.call(scope.querySelectorAll('[data-rbx-bind]'));
     bound.forEach(function (el) {
       if (!ownsNode(el)) return;
-      var spec = (el.getAttribute('data-rbx-bind') || '').trim();
-      if (!spec) return;
-      // Parse: [gameId:]field[:mode]
-      var parts = spec.split(':');
-      var name = parts[0].trim();
-      var inlineId = null;
-      var mode = 'text';
-      if (parts.length === 2) {
-        // Could be field:mode OR gameId:field
-        if (/^\d+$/.test(parts[0])) {
-          inlineId = parts[0];
-          name = parts[1];
-        } else {
-          mode = parts[1];
-        }
-      } else if (parts.length === 3) {
-        // gameId:field:mode
-        inlineId = parts[0];
-        name = parts[1];
-        mode = parts[2];
-      }
-      if (inlineId) seenInlineIds[inlineId] = true;
-      if (!KNOWN.has(name)) {
-        problems.push(name);
-        el.setAttribute('data-rbx-error', 'unknown field: ' + name);
+      var parsed = parseBinding(el.getAttribute('data-rbx-bind'));
+      if (!parsed.name) return;
+      if (parsed.inlineId) seenInlineIds[parsed.inlineId] = true;
+      if (!KNOWN.has(parsed.name)) {
+        problems.push(parsed.name);
+        el.setAttribute('data-rbx-error', 'unknown field: ' + parsed.name);
         return;
       }
-      var targetGame = inlineId ? inlineGameCache[inlineId] : game;
-      if (inlineId && !targetGame) return; // second pass
-      el.textContent = render(name, read(targetGame, name), mode);
+      var targetGame = parsed.inlineId ? inlineGameCache[parsed.inlineId] : game;
+      if (!targetGame) return; // missing game, or inline game not loaded yet
+      el.textContent = render(parsed.name, read(targetGame, parsed.name), parsed.mode);
     });
 
     // 4. data-rbx-set="src=thumbnail:url|href=url" — FIRST PASS
@@ -485,10 +579,8 @@
     });
 
     if (inlineIdsToLoad.length) {
-      console.log('[roblox-stats] loading inline games:', inlineIdsToLoad);
-      Promise.all(inlineIdsToLoad.map(function (id) { return getInlineGame(id); }))
+      Promise.all(inlineIdsToLoad.map(function (id) { return ensureInlineGame(id); }))
         .then(function () {
-          console.log('[roblox-stats] inline games loaded, doing second pass');
           // Re-fill text nodes for pending inline IDs
           nodes.forEach(function (node) {
             if (!ownsNode(node)) return;
@@ -509,24 +601,11 @@
           // Re-fill data-rbx-bind for pending inline IDs
           bound.forEach(function (el) {
             if (!ownsNode(el)) return;
-            var spec = (el.getAttribute('data-rbx-bind') || '').trim();
-            if (!spec) return;
-            var parts = spec.split(':');
-            var name = parts[0].trim();
-            var inlineId = null;
-            var mode = 'text';
-            if (parts.length === 2) {
-              if (/^\d+$/.test(parts[0])) {
-                inlineId = parts[0];
-                name = parts[1];
-              } else {
-                mode = parts[1];
-              }
-            } else if (parts.length === 3) {
-              inlineId = parts[0];
-              name = parts[1];
-              mode = parts[2];
-            }
+            var parsed = parseBinding(el.getAttribute('data-rbx-bind'));
+            if (!parsed.name) return;
+            var inlineId = parsed.inlineId;
+            var name = parsed.name;
+            var mode = parsed.mode;
             if (!inlineId || !KNOWN.has(name)) return;
             var game = inlineGameCache[inlineId];
             if (!game) return;
@@ -596,54 +675,58 @@
 
   function runBindings() {
     var scopes = allScopes();
-    console.log('[roblox-stats] runBindings, scopes found:', scopes.length, scopes.map(function(s) { return s.getAttribute('data-rbx-game'); }));
+    // Global game, if any. No-scope pages can also work purely from
+    // {{12345:field}} placeholders.
+    var globalId = (window.RBX_GAME_ID || (window.RobloxStatsConfig && window.RobloxStatsConfig.gameId) || '').trim();
+    var fallback = globalId || new URLSearchParams(location.search).get('game');
 
-    // No scope anywhere: check for global config, then ?game= URL param.
-    if (scopes.length === 0) {
-      // Global config: window.RBX_GAME_ID or window.RobloxStatsConfig.gameId
-      var globalId = (window.RBX_GAME_ID || (window.RobloxStatsConfig && window.RobloxStatsConfig.gameId) || '').trim();
-      var fallback = globalId || new URLSearchParams(location.search).get('game');
-      console.log('[roblox-stats] no scopes, globalId:', globalId, 'fallback:', fallback);
-      if (!fallback) {
-        if (document.body.querySelector('[data-rbx-bind]') ||
-            /\{\{\s*[a-zA-Z]/.test(document.body.innerHTML)) {
-          console.warn('[roblox-stats] found placeholders but no game id. ' +
-            'Set window.RBX_GAME_ID, add data-rbx-game="<universeId>" to an element, or use ?game=<universeId> in the URL.');
+    // Fetch inline ids first, so inline placeholders can fill on the first pass.
+    return preloadInlineGames(document.body).then(function (inlineIds) {
+      if (scopes.length === 0) {
+        if (!fallback && !inlineIds.length) {
+          if (hasVisiblePlaceholders(document.body)) {
+            console.warn('[roblox-stats] found placeholders but no game id. ' +
+              'Use {{12345:field}}, set window.RBX_GAME_ID, add data-rbx-game="<universeId>" to an element, or use ?game=<universeId> in the URL.');
+          }
+          return Promise.resolve();
         }
-        return Promise.resolve();
+        if (!fallback) {
+          fill(document.body, null);
+          return Promise.resolve();
+        }
+        return loadGame(fallback)
+          .then(function (g) { fill(document.body, g); })
+          .catch(reportFailure);
       }
-      return loadGame(fallback)
-        .then(function (g) { fill(document.body, g); })
+
+      // One request per distinct game, however many scopes mention it.
+      var byId = {};
+      var jobs = [];
+      scopes.forEach(function (scope, index) {
+        var id = scope.getAttribute('data-rbx-game');
+        if (!id || byId[id]) return;
+        byId[id] = index;
+        jobs.push(loadGame(id).then(function (g) {
+          document.dispatchEvent(new CustomEvent('rbx-bindings-loaded', { detail: { id: id, game: g } }));
+          return g;
+        }));
+      });
+
+      return Promise.all(jobs)
+        .then(function (games) {
+          // Deepest scopes first: a child fills its own nodes, and the parent
+          // then skips everything the child already owns.
+          var ordered = scopes.slice().sort(function (a, b) {
+            return b.contains(a) ? -1 : a.contains(b) ? 1 : 0;
+          });
+          var byIdGame = {};
+          Object.keys(byId).forEach(function (id, i) { byIdGame[id] = games[i]; });
+          ordered.forEach(function (scope) {
+            fill(scope, byIdGame[scope.getAttribute('data-rbx-game')]);
+          });
+        })
         .catch(reportFailure);
-    }
-
-    // One request per distinct game, however many scopes mention it.
-    var byId = {};
-    var jobs = [];
-    scopes.forEach(function (scope, index) {
-      var id = scope.getAttribute('data-rbx-game');
-      if (!id || byId[id]) return;
-      byId[id] = index;
-      jobs.push(loadGame(id).then(function (g) {
-        document.dispatchEvent(new CustomEvent('rbx-bindings-loaded', { detail: { id: id, game: g } }));
-        return g;
-      }));
     });
-
-    return Promise.all(jobs)
-      .then(function (games) {
-        // Deepest scopes first: a child fills its own nodes, and the parent
-        // then skips everything the child already owns.
-        var ordered = scopes.slice().sort(function (a, b) {
-          return b.contains(a) ? -1 : a.contains(b) ? 1 : 0;
-        });
-        var byIdGame = {};
-        Object.keys(byId).forEach(function (id, i) { byIdGame[id] = games[i]; });
-        ordered.forEach(function (scope) {
-          fill(scope, byIdGame[scope.getAttribute('data-rbx-game')]);
-        });
-      })
-      .catch(reportFailure);
   }
 
   function reportFailure(err) {
@@ -1112,13 +1195,7 @@
   function start() {
     renderCredit();
     watchCredit();
-    console.error('[roblox-stats] START: about to call runBindings');
-    try {
-      runBindings();
-      console.error('[roblox-stats] runBindings completed successfully');
-    } catch (e) {
-      console.error('[roblox-stats] runBindings threw:', e && e.message, e && e.stack);
-    }
+    runBindings();
     runWidgets();
 
     // data-rbx-refresh="60" on any scope re-reads the data every 60 seconds.

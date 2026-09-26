@@ -27,6 +27,7 @@ import { config } from '../config.js';
 import { asyncHandler, badRequest, notFound } from '../errors.js';
 import { setCacheControl } from './headers.js';
 import { normalizeGame } from '../normalize.js';
+import { fetchTrending } from './template.js';
 
 export const router = express.Router();
 
@@ -271,7 +272,14 @@ router.get(
   })
 );
 
-/** Searches for games by name. GET /api/v1/search?q=blox+fruits&limit=10 */
+/**
+ * Searches for games by name. GET /api/v1/search?q=blox+fruits&limit=10
+ *
+ * q=* (or q=anything) is treated as "no filter" and answered from /trending,
+ * so a front end with an empty search box has one URL to call instead of
+ * special-casing an empty string. Roblox has no browse-everything endpoint, so
+ * "no filter" can only ever mean "the current popular list".
+ */
 router.get(
   '/search',
   asyncHandler(async (req, res) => {
@@ -280,6 +288,21 @@ router.get(
 
     const limit = Math.min(Number(req.query.limit) || 10, 50);
     const query = String(q).trim();
+
+    if (query === '*') {
+      const games = await cached(`trending:${limit}`, config.ttl.stats, () =>
+        fetchTrending(limit, { signal: req.signal })
+      );
+      setCacheControl(res, config.ttl.stats);
+      res.json({
+        ok: true,
+        query,
+        count: games.length,
+        meta: { total: games.length, totalPages: 1, page: 1, limit, sort: 'playing' },
+        data: games.map((g) => ({ ...g, url: gameUrl(g.universeId) })),
+      });
+      return;
+    }
 
     const data = await cached(`search:${query}:${limit}`, config.ttl.votes, () =>
       searchGames(query, limit, { signal: req.signal })
@@ -290,6 +313,7 @@ router.get(
       ok: true,
       query,
       count: data.length,
+      meta: { total: data.length, totalPages: 1, page: 1, limit, sort: 'relevance' },
       data: data.map((g) => ({ ...g, url: gameUrl(g.universeId) })),
     });
   })

@@ -236,7 +236,18 @@ router.get(
     }
 
     setCacheControl(res, config.ttl.stats);
-    res.json({ ok: true, count: data.length, data });
+    res.json({
+      ok: true,
+      count: data.length,
+      meta: {
+        total: data.length,
+        totalPages: 1,
+        page: 1,
+        limit,
+        sort: 'playing',
+      },
+      data,
+    });
   })
 );
 
@@ -368,7 +379,7 @@ async function fetchCreatorGames(kind, id, limit, includeStats, opts) {
  * Taking the first group silently yields a single game, so everything is
  * flattened first.
  */
-async function fetchTrending(limit, opts) {
+export async function fetchTrending(limit, opts) {
   const sessionId = randomUUID();
   const data = await robloxFetch(
     `https://apis.roblox.com/search-api/omni-search?searchQuery=Popular&vertical=games` +
