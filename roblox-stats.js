@@ -348,6 +348,7 @@
     console.log('[roblox-stats] fill called, scope:', scope.tagName, 'game:', game ? game.name : 'none');
     var problems = [];
     var ownsNode = function (node) { return scopeOf(node) === scope; };
+    console.log('[roblox-stats] fill: seenInlineIds will be tracked');
 
     // Track which inline game IDs we've seen and need to load
     var seenInlineIds = {};
@@ -471,8 +472,10 @@
     });
 
     if (inlineIdsToLoad.length) {
+      console.log('[roblox-stats] loading inline games:', inlineIdsToLoad);
       Promise.all(inlineIdsToLoad.map(function (id) { return getInlineGame(id); }))
         .then(function () {
+          console.log('[roblox-stats] inline games loaded, doing second pass');
           // Re-fill text nodes for pending inline IDs
           nodes.forEach(function (node) {
             if (!ownsNode(node)) return;
