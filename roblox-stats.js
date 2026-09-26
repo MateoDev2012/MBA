@@ -403,6 +403,7 @@
     nodes.forEach(function (node) {
       if (!ownsNode(node)) return;
       var replaced = fillAndTrack(node.nodeValue, game);
+      console.log('[roblox-stats] text node:', node.nodeValue.slice(0, 50), '->', replaced.slice(0, 50));
       if (replaced !== node.nodeValue) node.nodeValue = replaced;
     });
 
