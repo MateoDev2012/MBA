@@ -294,15 +294,47 @@
     return Array.prototype.slice.call(document.querySelectorAll('[data-rbx-game]'));
   }
 
-  var PLACEHOLDER = /\{\{\s*([a-zA-Z][a-zA-Z0-9_]*)\s*(?::\s*(raw|short|url|text)\s*)?\}\}/g;
+  // Matches: {{field}}, {{field:raw}}, {{12345:field}}, {{12345:field:raw}}
+  // Group 1 = optional gameId (digits), Group 2 = field name, Group 3 = optional mode
+  var PLACEHOLDER = /\{\{\s*(?:(\d+):)?([a-zA-Z][a-zA-Z0-9_]*)\s*(?::\s*(raw|short|url|text)\s*)?\}\}/g;
 
-  function fillPlaceholdersIn(text, game, problems) {
+  // Cache for inline game IDs so we don't fetch the same game twice
+  var inlineGameCache = {};
+
+  function getInlineGame(id) {
+    if (inlineGameCache[id]) return Promise.resolve(inlineGameCache[id]);
+    return loadGame(id).then(function (g) {
+      inlineGameCache[id] = g;
+      return g;
+    });
+  }
+
+  function fillPlaceholdersIn(text, defaultGame, problems) {
     PLACEHOLDER.lastIndex = 0;
-    return text.replace(PLACEHOLDER, function (whole, name, mode) {
+    return text.replace(PLACEHOLDER, function (whole, inlineId, name, mode) {
       if (!KNOWN.has(name)) {
         problems.push(name);
         return whole;
       }
+      // If inline gameId specified, use that game; otherwise use scope's game
+      var targetGame = inlineId
+        ? inlineGameCache[inlineId]  // may be undefined if not loaded yet
+        : defaultGame;
+      if (inlineId && !targetGame) {
+        // Game not loaded yet — leave placeholder, will retry after load
+        return whole;
+      }
+      return render(name, read(targetGame, name), mode || 'text');
+    });
+  }
+
+  // Second pass: fill any placeholders that had inline IDs not yet loaded
+  function fillPendingInline(text, problems) {
+    PLACEHOLDER.lastIndex = 0;
+    return text.replace(PLACEHOLDER, function (whole, inlineId, name, mode) {
+      if (!inlineId || !KNOWN.has(name)) return whole;
+      var game = inlineGameCache[inlineId];
+      if (!game) return whole; // still not loaded
       return render(name, read(game, name), mode || 'text');
     });
   }
@@ -310,12 +342,31 @@
   /**
    * Fills every node owned by `scope` with data from `game`.
    * Passing scope = document.body with no data-rbx-game fills the whole page.
+   * Also supports inline game IDs: {{12345:playing}} uses game 12345 regardless of scope.
    */
   function fill(scope, game) {
     var problems = [];
     var ownsNode = function (node) { return scopeOf(node) === scope; };
 
-    // 1. {{placeholders}} inside text nodes.
+    // Track which inline game IDs we've seen and need to load
+    var seenInlineIds = {};
+
+    // Helper: run fillPlaceholdersIn and collect seen inline IDs
+    function fillAndTrack(text, defaultGame) {
+      PLACEHOLDER.lastIndex = 0;
+      return text.replace(PLACEHOLDER, function (whole, inlineId, name, mode) {
+        if (inlineId) seenInlineIds[inlineId] = true;
+        if (!KNOWN.has(name)) {
+          problems.push(name);
+          return whole;
+        }
+        var targetGame = inlineId ? inlineGameCache[inlineId] : defaultGame;
+        if (inlineId && !targetGame) return whole; // will fill in second pass
+        return render(name, read(targetGame, name), mode || 'text');
+      });
+    }
+
+    // 1. {{placeholders}} inside text nodes — FIRST PASS
     var walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, null);
     var nodes = [];
     var n;
@@ -323,12 +374,11 @@
 
     nodes.forEach(function (node) {
       if (!ownsNode(node)) return;
-      var replaced = fillPlaceholdersIn(node.nodeValue, game, problems);
+      var replaced = fillAndTrack(node.nodeValue, game);
       if (replaced !== node.nodeValue) node.nodeValue = replaced;
     });
 
-    // 2. {{placeholders}} inside attribute values (src, href, alt, ...).
-    // Without this, <img src="{{thumbnail:url}}"> would silently stay broken.
+    // 2. {{placeholders}} inside attribute values — FIRST PASS
     var elements = [scope].concat(
       Array.prototype.slice.call(scope.querySelectorAll('*'))
     );
@@ -338,30 +388,48 @@
       for (var i = 0; i < attrs.length; i++) {
         var attr = attrs[i];
         if (attr.value.indexOf('{{') === -1) continue;
-        var next = fillPlaceholdersIn(attr.value, game, problems);
+        var next = fillAndTrack(attr.value, game);
         if (next !== attr.value) el.setAttribute(attr.name, next);
       }
     });
 
-    // 3. data-rbx-bind="field" sets the element's text.
+    // 3. data-rbx-bind="field" — FIRST PASS (supports inline ID: {{12345:field}})
     var bound = Array.prototype.slice.call(scope.querySelectorAll('[data-rbx-bind]'));
     bound.forEach(function (el) {
       if (!ownsNode(el)) return;
       var spec = (el.getAttribute('data-rbx-bind') || '').trim();
       if (!spec) return;
+      // Parse: [gameId:]field[:mode]
       var parts = spec.split(':');
       var name = parts[0].trim();
-      var mode = (parts[1] || 'text').trim();
+      var inlineId = null;
+      var mode = 'text';
+      if (parts.length === 2) {
+        // Could be field:mode OR gameId:field
+        if (/^\d+$/.test(parts[0])) {
+          inlineId = parts[0];
+          name = parts[1];
+        } else {
+          mode = parts[1];
+        }
+      } else if (parts.length === 3) {
+        // gameId:field:mode
+        inlineId = parts[0];
+        name = parts[1];
+        mode = parts[2];
+      }
+      if (inlineId) seenInlineIds[inlineId] = true;
       if (!KNOWN.has(name)) {
         problems.push(name);
         el.setAttribute('data-rbx-error', 'unknown field: ' + name);
         return;
       }
-      el.textContent = render(name, read(game, name), mode);
+      var targetGame = inlineId ? inlineGameCache[inlineId] : game;
+      if (inlineId && !targetGame) return; // second pass
+      el.textContent = render(name, read(targetGame, name), mode);
     });
 
-    // 4. data-rbx-set="src=thumbnail:url|href=url" assigns attributes.
-    // Applied after the placeholders above so the two can be mixed.
+    // 4. data-rbx-set="src=thumbnail:url|href=url" — FIRST PASS
     var setters = Array.prototype.slice.call(scope.querySelectorAll('[data-rbx-set]'));
     setters.forEach(function (el) {
       if (!ownsNode(el)) return;
@@ -371,15 +439,83 @@
         if (eq === -1) return;
         var attr = pair.slice(0, eq).trim();
         var raw = pair.slice(eq + 1).trim();
-        // Accepts both "thumbnail:url" and the braced "{{thumbnail:url}}".
-        var value = fillPlaceholdersIn(
+        var value = fillAndTrack(
           /^\{\{/.test(raw) ? raw : '{{' + raw + '}}',
-          game,
-          problems
+          game
         );
         if (attr) el.setAttribute(attr, value);
       });
     });
+
+    // SECOND PASS: load any inline games we saw, then fill pending placeholders
+    var inlineIdsToLoad = Object.keys(seenInlineIds).filter(function (id) {
+      return !inlineGameCache[id];
+    });
+
+    if (inlineIdsToLoad.length) {
+      Promise.all(inlineIdsToLoad.map(function (id) { return getInlineGame(id); }))
+        .then(function () {
+          // Re-fill text nodes for pending inline IDs
+          nodes.forEach(function (node) {
+            if (!ownsNode(node)) return;
+            var replaced = fillPendingInline(node.nodeValue, problems);
+            if (replaced !== node.nodeValue) node.nodeValue = replaced;
+          });
+          // Re-fill attribute values
+          elements.forEach(function (el) {
+            if (!ownsNode(el)) return;
+            var attrs = el.attributes;
+            for (var i = 0; i < attrs.length; i++) {
+              var attr = attrs[i];
+              if (attr.value.indexOf('{{') === -1) continue;
+              var next = fillPendingInline(attr.value, problems);
+              if (next !== attr.value) el.setAttribute(attr.name, next);
+            }
+          });
+          // Re-fill data-rbx-bind for pending inline IDs
+          bound.forEach(function (el) {
+            if (!ownsNode(el)) return;
+            var spec = (el.getAttribute('data-rbx-bind') || '').trim();
+            if (!spec) return;
+            var parts = spec.split(':');
+            var name = parts[0].trim();
+            var inlineId = null;
+            var mode = 'text';
+            if (parts.length === 2) {
+              if (/^\d+$/.test(parts[0])) {
+                inlineId = parts[0];
+                name = parts[1];
+              } else {
+                mode = parts[1];
+              }
+            } else if (parts.length === 3) {
+              inlineId = parts[0];
+              name = parts[1];
+              mode = parts[2];
+            }
+            if (!inlineId || !KNOWN.has(name)) return;
+            var game = inlineGameCache[inlineId];
+            if (!game) return;
+            el.textContent = render(name, read(game, name), mode);
+          });
+          // Re-fill data-rbx-set
+          setters.forEach(function (el) {
+            if (!ownsNode(el)) return;
+            var spec = el.getAttribute('data-rbx-set') || '';
+            spec.split('|').forEach(function (pair) {
+              var eq = pair.indexOf('=');
+              if (eq === -1) return;
+              var attr = pair.slice(0, eq).trim();
+              var raw = pair.slice(eq + 1).trim();
+              var value = fillPendingInline(
+                /^\{\{/.test(raw) ? raw : '{{' + raw + '}}',
+                problems
+              );
+              if (attr) el.setAttribute(attr, value);
+            });
+          });
+        });
+    }
 
     if (problems.length) {
       var unique = uniqueOf(problems);
