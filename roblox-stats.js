@@ -345,6 +345,7 @@
    * Also supports inline game IDs: {{12345:playing}} uses game 12345 regardless of scope.
    */
   function fill(scope, game) {
+    console.log('[roblox-stats] fill called, scope:', scope.tagName, 'game:', game ? game.name : 'none');
     var problems = [];
     var ownsNode = function (node) { return scopeOf(node) === scope; };
 
@@ -579,12 +580,14 @@
 
   function runBindings() {
     var scopes = allScopes();
+    console.log('[roblox-stats] runBindings, scopes found:', scopes.length, scopes.map(function(s) { return s.getAttribute('data-rbx-game'); }));
 
     // No scope anywhere: check for global config, then ?game= URL param.
     if (scopes.length === 0) {
       // Global config: window.RBX_GAME_ID or window.RobloxStatsConfig.gameId
       var globalId = (window.RBX_GAME_ID || (window.RobloxStatsConfig && window.RobloxStatsConfig.gameId) || '').trim();
       var fallback = globalId || new URLSearchParams(location.search).get('game');
+      console.log('[roblox-stats] no scopes, globalId:', globalId, 'fallback:', fallback);
       if (!fallback) {
         if (document.body.querySelector('[data-rbx-bind]') ||
             /\{\{\s*[a-zA-Z]/.test(document.body.innerHTML)) {
