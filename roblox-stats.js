@@ -114,7 +114,7 @@
   // ------------------------------------------------------------------
   // Your two settings. These are the only lines you need to touch.
   // ------------------------------------------------------------------
-  var SITE_URL = 'https://TU-PROYECTO.up.railway.app'; // where the credit badge links to — CAMBIA ESTO por tu URL de Railway
+  var SITE_URL = 'https://ms-mba.up.railway.app'; // where the credit badge links to
 
   var API_KEY = 'Made by MoonlightStudios'; // sent as X-API-Key on every request
 
