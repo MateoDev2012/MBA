@@ -367,7 +367,24 @@
     }
 
     // 1. {{placeholders}} inside text nodes — FIRST PASS
-    var walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, null);
+    // Skip text nodes inside <pre>, <code>, <script>, <style> (code blocks)
+    var walker = document.createTreeWalker(
+      scope,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: function (node) {
+          var parent = node.parentElement;
+          while (parent && parent !== scope) {
+            var tag = parent.tagName.toLowerCase();
+            if (tag === 'pre' || tag === 'code' || tag === 'script' || tag === 'style') {
+              return NodeFilter.FILTER_REJECT;
+            }
+            parent = parent.parentElement;
+          }
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
     var nodes = [];
     var n;
     while ((n = walker.nextNode())) nodes.push(n);
