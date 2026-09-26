@@ -1107,6 +1107,9 @@
       console.error('[roblox-stats] runBindings threw:', e && e.message, e && e.stack);
     }
     runWidgets();
+  }
+  // Force an error to see if console works
+  console.error('[roblox-stats] SCRIPT LOADED');
 
     // data-rbx-refresh="60" on any scope re-reads the data every 60 seconds.
     var timers = document.querySelectorAll('[data-rbx-refresh]');
