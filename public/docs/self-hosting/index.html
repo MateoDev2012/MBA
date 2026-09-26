@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Self-hosting — Roblox Stats API Docs</title>
+<meta name="description" content="Deploy your own copy: Render, Railway, VPS, environment variables, and the credit badge." />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23e8384f'/><text x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'>R</text></svg>" />
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('rbx-theme');
+      if (!saved) saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+    } catch (_) {}
+  })();
+</script>
+<link rel="stylesheet" href="/theme.css" />
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="progress"><i data-progress></i></div>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <span class="brand-mark">R</span>
+      Roblox Stats API
+    </a>
+    <nav class="nav">
+      <a href="/">Home</a>
+      <a href="/docs" class="active">Docs</a>
+      <a href="/explorer">Explorer</a>
+      <a href="/demo">Demo</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/legal">Legal</a>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn btn-sm topbar-cta" href="/roblox-stats.js?download=1">Download script</a>
+      <button class="icon-btn" data-theme-toggle type="button" aria-label="Switch theme">
+        <svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" data-menu-toggle type="button" aria-expanded="false" aria-controls="mobileNav" aria-label="Menu">
+        <svg class="menux" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="menubar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="mobilenav" id="mobileNav" aria-label="Main" hidden>
+    <a href="/">Home</a>
+    <a href="/docs">Documentation</a>
+    <a href="/explorer">Explorer</a>
+    <a href="/demo">Demo</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/legal">Legal</a>
+    <a class="btn" href="/roblox-stats.js?download=1">Download script</a>
+  </nav>
+</header>
+
+<main id="main">
+<div class="wrap wrap-wide">
+  <div class="docs">
+    <nav class="toc" data-toc aria-label="On this page">
+      <p class="toc-title">Self-hosting</p>
+      <a href="#quick">Quick start</a>
+      <a href="#files">Required files</a>
+      <a href="#env">Environment variables</a>
+      <a href="#badge">Credit badge</a>
+      <a href="#deploy">Deploy targets</a>
+      <a href="#verify">Verify deployment</a>
+    </nav>
+
+    <details class="toc-inline">
+      <summary>Self-hosting</summary>
+      <nav class="toc" data-toc aria-label="Self-hosting sections">
+        <a href="#quick">Quick start</a>
+        <a href="#files">Required files</a>
+        <a href="#env">Environment variables</a>
+        <a href="#badge">Credit badge</a>
+        <a href="#deploy">Deploy targets</a>
+        <a href="#verify">Verify deployment</a>
+      </nav>
+    </details>
+
+    <div class="docs-main">
+      <div class="pagehead">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="/">Home</a><span class="sep">/</span><a href="/docs">Docs</a><span class="sep">/</span><span>Self-hosting</span>
+        </nav>
+        <h1>Run your own copy</h1>
+        <p class="lead">
+          Only for people who want their own deployment. If you don't, just point the script tag at a
+          public instance and skip all of this.
+        </p>
+      </div>
+
+      <section class="section" id="quick">
+        <div class="section-head">
+          <span class="kicker">3 steps</span>
+          <h2>Quick start</h2>
+        </div>
+
+        <ol class="steps">
+          <li><b>Clone & install</b> <code>git clone <repo> && npm install</code></li>
+          <li><b>Run locally</b> <code>npm start</code> (or <code>npm run dev</code> for auto-reload). Runs on <code>http://localhost:3000</code>.</li>
+          <li><b>Set <code>SITE_URL</code></b> In <code>roblox-stats.js</code> (line ~117) set your domain so the credit badge links somewhere real.</li>
+        </ol>
+
+        <div class="note warn">
+          <p><strong>Set <code>SITE_URL</code> before you publish.</strong> It ships empty on purpose — with it empty the badge still renders and enforces itself, it just isn't a link yet.</p>
+        </div>
+      </section>
+
+      <section class="section" id="files">
+        <div class="section-head">
+          <span class="kicker">Files</span>
+          <h2>What you actually need</h2>
+        </div>
+
+        <div class="note info">
+          <p><strong>To <em>use</em> the API you need <strong>one</strong> file:</strong> <code>roblox-stats.js</code> (or zero, if you use a hosted instance).
+            The other files in this repository are the server — the part you deploy once so other people can call it.</p>
+        </div>
+
+        <h3 class="mt-3">Project structure</h3>
+        <div class="codeblock">
+          <pre><code>roblox-api/
+├── roblox-stats.js        ← the one file users copy
+├── package.json
+├── .env.example
+├── public/                ← served as static pages
+│   ├── index.html         ← home
+│   ├── docs/              ← documentation sub-pages
+│   ├── demo.html          ← live demo
+│   ├── pricing.html
+│   ├── legal.html
+│   ├── 404.html
+│   ├── theme.css
+│   ├── site.js
+│   └── api.js
+├── src/                   ← server
+│   ├── server.js          ← entry point
+│   ├── apikey.js          ← key parsing, 3 modes, domain locks
+│   ├── ratelimit.js       ← per-key + per-IP buckets
+│   ├── cache.js           ← in-memory TTL cache
+│   ├── roblox.js          ← all Roblox API calls
+│   ├── fields.js          ← 20 stat definitions
+│   ├── normalize.js       ← normalizes Roblox responses
+│   ├── template.js        ← {{placeholder}} renderer
+│   └── routes/
+│       ├── games.js       ← /games, /search, /trending, /resolve
+│       └── template.js    ← /render, /render/multi, /fields
+└── extras/
+    ├── sdk/index.js       ← Node SDK
+    ├── mcp/server.js      ← MCP server
+    └── tests/             ← 125 automated tests</code></pre>
+        </div>
+      </section>
+
+      <section class="section" id="env">
+        <div class="section-head">
+          <span class="kicker">Config</span>
+          <h2>Environment variables</h2>
+        </div>
+
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Name</th><th class="num">Default</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>PORT</code></td><td class="num">3000</td><td>Port to listen on</td></tr>
+              <tr><td><code>CORS_ORIGIN</code></td><td><code>*</code></td><td>Comma-separated allow-list, or <code>*</code></td></tr>
+              <tr><td><code>RATE_LIMIT_MAX</code></td><td class="num">120</td><td>Req/min per IP when no keys configured</td></tr>
+              <tr><td><code>API_KEYS</code></td><td><em>empty</code></td><td>Keys separated by <code>;</code>, optionally <code>key:Name:domain</code></td></tr>
+              <tr><td><code>API_KEY_MODE</code></td><td><code>optional</code></td><td><code>off</code>, <code>optional</code>, or <code>required</code></td></tr>
+              <tr><td><code>RATE_LIMIT_ANON_MAX</code></td><td class="num">30</td><td>Per-minute limit for caller without key</td></tr>
+              <tr><td><code>RATE_LIMIT_KEYED_MAX</code></td><td class="num">600</td><td>Per-minute limit for caller with valid key</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="hint">Cache TTLs and remaining variables are documented in <code>.env.example</code> (authoritative list).</p>
+
+        <h3 class="mt-3">API keys, if you want them</h3>
+        <p>Out of the box no key is needed. Set <code>API_KEYS</code> in <code>.env</code> to enable three modes:</p>
+
+        <div class="codeblock-label">.env <span class="lang">dotenv</span></div>
+        <div class="codeblock">
+          <pre><code># a public key, readable by anyone who has the file
+API_KEYS=Made by MoonlightStudios
+
+# off        no key at all (only possible with no keys configured)
+# optional   no key works, but a valid key gets a higher limit   <- default
+# required   every endpoint answers 401 without a valid key
+API_KEY_MODE=optional
+
+RATE_LIMIT_ANON_MAX=30
+RATE_LIMIT_KEYED_MAX=600</code></pre>
+        </div>
+
+        <p>Callers send it in a header, never in the URL:</p>
+
+        <div class="codeblock">
+          <pre><code>fetch('https://your-domain.com/api/v1/games/994732206', {
+  headers: { 'X-API-Key': 'Made by MoonlightStudios' }
+})</code></pre>
+        </div>
+
+        <p>Each key can carry a name and optional domain lock:</p>
+
+        <div class="codeblock">
+          <pre><code>API_KEYS=Made by MoonlightStudios;partner-key:AcmeSite:yoursite.com,acme.dev</code></pre>
+        </div>
+
+        <p>The bundled SDK and MCP server read <code>ROBLOX_API_KEY</code> from the environment automatically:</p>
+
+        <div class="codeblock">
+          <pre><code>ROBLOX_API_KEY=Made by MoonlightStudios</code></pre>
+        </div>
+
+        <div class="note warn">
+          <p><strong>A key here is not a secret, and pretending otherwise would be worse than saying so.</strong>
+            It sits in plain text inside a file every visitor downloads, so anyone can read it with
+            view-source. What it actually buys you is a rate limit you control, the ability to revoke one
+            caller without restarting anything, and an optional domain lock
+            (<code>API_KEYS=key:Name:yoursite.com</code>). It does not make the data private, and it is not
+            what keeps this API free to use — the credit badge in <code>roblox-stats.js</code> is.
+            <a href="/api/v1/keys/me">Check what a key can do</a>.</p>
+        </div>
+      </section>
+
+      <section class="section" id="badge">
+        <div class="section-head">
+          <span class="kicker">Required</span>
+          <h2>Credit badge</h2>
+        </div>
+
+        <div class="banner">
+          <div style="flex:1 1 320px">
+            <h3>Set <code>SITE_URL</code> in <code>roblox-stats.js</code></h3>
+            <p>The badge links <strong>Moonlight Studios</strong> to this URL. It ships empty so you must set it.</p>
+            <div class="codeblock">
+              <pre><code>// In roblox-stats.js (line ~117)
+var SITE_URL = 'https://your-domain.com';</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="note warn">
+          <p><strong>With <code>SITE_URL</code> empty the badge still enforces itself</strong> (deleting/hiding it still stops the script),
+            but it won't be a clickable link. Set it before you publish.</p>
+        </div>
+      </section>
+
+      <section class="section" id="deploy">
+        <div class="section-head">
+          <span class="kicker">Deploy</span>
+          <h2>Deploy targets</h2>
+        </div>
+
+        <div class="grid grid-3">
+          <div class="card">
+            <h3 class="mt-0">Render</h3>
+            <p>Connect GitHub repo → Auto-detects Node → <code>npm start</code> → Free tier available.</p>
+            <a class="btn btn-ghost mt-2" href="https://render.com" target="_blank">Deploy on Render →</a>
+          </div>
+          <div class="card">
+            <h3 class="mt-0">Railway</h3>
+            <p>Connect GitHub → Auto-detects Node → <code>npm start</code> → $5/month credit.</p>
+            <a class="btn btn-ghost mt-2" href="https://railway.app" target="_blank">Deploy on Railway →</a>
+          </div>
+          <div class="card">
+            <h3 class="mt-0">VPS (DigitalOcean, Hetzner, etc.)</h3>
+            <p>Full control. Use PM2 or systemd. Reverse proxy with Nginx/Caddy for HTTPS.</p>
+            <a class="btn btn-ghost mt-2" href="https://caddyserver.com" target="_blank">Caddy reverse proxy →</a>
+          </div>
+        </div>
+
+        <h3 class="mt-3">Reverse proxy (Caddy example)</h3>
+        <div class="codeblock-label">Caddyfile <span class="lang">caddyfile</span></div>
+        <div class="codeblock">
+          <pre><code>your-domain.com {
+  reverse_proxy localhost:3000
+}</code></pre>
+        </div>
+
+        <p>Caddy handles HTTPS automatically. For Nginx, proxy_pass to <code>http://localhost:3000</code> and add SSL certs.</p>
+      </section>
+
+      <section class="section" id="verify">
+        <div class="section-head">
+          <span class="kicker">Verify</span>
+          <h2>Verify your deployment</h2>
+        </div>
+
+        <div class="codeblock">
+          <pre><code># Health check (always works, no key needed)
+curl https://your-domain.com/health
+
+# JSON index
+curl https://your-domain.com/api
+
+# Live game data
+curl https://your-domain.com/api/v1/games/994732206
+
+# Script download (forces download)
+curl https://your-domain.com/roblox-stats.js?download=1
+
+# Test the script in browser
+open https://your-domain.com/test-fix.html</code></pre>
+        </div>
+
+        <div class="note info">
+          <p>If <code>/health</code> returns <code>{"ok":true}</code> and <code>/api/v1/games/994732206</code> returns Blox Fruits data, you're live.</p>
+        </div>
+
+        <div class="chips mt-3">
+          <a class="btn btn-ghost" href="/docs/quickstart">Quick start →</a>
+          <a class="btn btn-ghost" href="/docs/errors">Errors & limits →</a>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <a class="footer-brand" href="/">
+          <span class="brand-mark">R</span>
+          Roblox Stats API
+        </a>
+        <p class="footer-about">
+          Live Roblox game statistics over plain HTTP, free to use. Data comes from Roblox's public
+          APIs; this project is not affiliated with Roblox Corporation.
+        </p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="/docs">Documentation</a>
+        <a href="/explorer">Explorer</a>
+        <a href="/demo">Demo</a>
+        <a href="/pricing">Pricing & limits</a>
+      </div>
+      <div class="footer-col">
+        <h4>Reference</h4>
+        <a href="/docs/endpoints">Endpoints</a>
+        <a href="/docs/fields">Stat names</a>
+        <a href="/roblox-stats.js">roblox-stats.js</a>
+        <a href="/health">Health</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="/legal">Terms of use</a>
+        <a href="/legal#privacy">Privacy</a>
+        <a href="/legal#license">License</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© <span data-year>2026</span> · Data provided by Roblox's public APIs. Not affiliated with Roblox Corporation.</p>
+      <p class="push studio-credit"><span class="tag">MBA</span> Made by Moonlight Studios</p>
+    </div>
+  </div>
+</footer>
+
+<script src="/site.js"></script>
+</body>
+</html>

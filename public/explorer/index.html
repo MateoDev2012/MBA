@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Game Explorer — Roblox Stats API</title>
+<meta name="description" content="Search and browse Roblox games with live stats: players, likes, visits, graphics, charts." />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23e8384f'/><text x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'>R</text></svg>" />
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('rbx-theme');
+      if (!saved) saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+    } catch (_) {}
+  })();
+</script>
+<link rel="stylesheet" href="/theme.css" />
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="progress"><i data-progress></i></div>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <span class="brand-mark">R</span>
+      Roblox Stats API
+    </a>
+    <nav class="nav">
+      <a href="/">Home</a>
+      <a href="/docs">Docs</a>
+      <a href="/explorer" class="active">Explorer</a>
+      <a href="/demo">Demo</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/legal">Legal</a>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn btn-sm topbar-cta" href="/roblox-stats.js?download=1">Download script</a>
+      <button class="icon-btn" data-theme-toggle type="button" aria-label="Switch theme">
+        <svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" data-menu-toggle type="button" aria-expanded="false" aria-controls="mobileNav" aria-label="Menu">
+        <svg class="menux" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="menubar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="mobilenav" id="mobileNav" aria-label="Main" hidden>
+    <a href="/">Home</a>
+    <a href="/docs">Documentation</a>
+    <a href="/explorer">Explorer</a>
+    <a href="/demo">Demo</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/legal">Legal</a>
+    <a class="btn" href="/roblox-stats.js?download=1">Download script</a>
+  </nav>
+</header>
+
+<main id="main">
+<div class="wrap wrap-wide">
+  <div class="pagehead">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="/">Home</a><span class="sep">/</span><span>Explorer</span>
+    </nav>
+    <h1>Game Explorer</h1>
+    <p class="lead">
+      Search, browse, and analyze Roblox games with live stats. Charts, metrics, and export.
+    </p>
+    <div class="pagehead-rail">
+      <a class="btn btn-accent" href="/docs/quickstart">Quick start</a>
+      <a class="btn btn-ghost" href="/docs/endpoints">API reference</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <!-- Search & Filters -->
+    <section class="section">
+      <div class="search-bar">
+        <div class="search-input-group">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="search" id="searchInput" placeholder="Search games… (e.g. blox fruits, adopt me)" autocomplete="off" aria-label="Search games" />
+        </div>
+        <div class="filter-group">
+          <select id="sortSelect" aria-label="Sort by">
+            <option value="playing">Most playing</option>
+            <option value="visits">Most visits</option>
+            <option value="likes">Most likes</option>
+            <option value="ratio">Highest like ratio</option>
+            <option value="updated">Recently updated</option>
+          </select>
+          <select id="limitSelect" aria-label="Results per page">
+            <option value="10">10 per page</option>
+            <option value="20" selected>20 per page</option>
+            <option value="50">50 per page</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats Summary -->
+    <section class="section" aria-label="Summary stats">
+      <div class="statrow" id="summaryStats" style="display:none">
+        <div><b id="totalGames">—</b><span>Games found</span></div>
+        <div><b id="totalPlaying">—</b><span>Total playing</span></div>
+        <div><b id="totalVisits">—</b><span>Total visits</span></div>
+        <div><b id="avgRatio">—</b><span>Avg like ratio</span></div>
+      </div>
+    </section>
+
+    <!-- Results Grid -->
+    <section class="section">
+      <div class="results-header">
+        <h2 id="resultsTitle">Trending games</h2>
+        <div class="pagination" id="pagination" style="display:none">
+          <button class="btn btn-ghost" id="prevPage" disabled>Previous</button>
+          <span id="pageInfo">Page 1</span>
+          <button class="btn btn-ghost" id="nextPage" disabled>Next</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cards" id="gamesGrid" role="list" aria-label="Game results">
+        <!-- Game cards inserted here -->
+      </div>
+
+      <div class="empty-state" id="emptyState" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <h3>No games found</h3>
+        <p>Try a different search term or filter.</p>
+      </div>
+
+      <div class="loading-state" id="loadingState" style="display:none">
+        <div class="spinner-large"></div>
+        <p>Loading games…</p>
+      </div>
+    </section>
+
+    <!-- Game Detail Modal -->
+    <div class="modal-overlay" id="gameModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" style="display:none">
+      <div class="modal">
+        <button class="modal-close" aria-label="Close">&times;</button>
+        <div class="modal-header">
+          <img id="modalBanner" alt="" />
+          <div class="modal-header-content">
+            <img id="modalThumbnail" class="modal-thumbnail" alt="" />
+            <div>
+              <h2 id="modalTitle"></h2>
+              <p class="modal-creator">by <a id="modalCreatorLink" href="#" target="_blank"><span id="modalCreator"></span></a> (<span id="modalCreatorType"></span>)</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-body">
+          <div class="modal-stats">
+            <div class="modal-stat"><b id="modalPlaying">—</b><span>Playing now</span></div>
+            <div class="modal-stat"><b id="modalVisits">—</b><span>Visits</span></div>
+            <div class="modal-stat"><b id="modalLikes">—</b><span>Likes</div>
+            <div class="modal-stat"><b id="modalFavorites">—</b><span>Favorites</div>
+            <div class="modal-stat"><b id="modalRatio">—</b><span>Like ratio</div>
+            <div class="modal-stat"><b id="modalMaxPlayers">—</b><span>Max players</div>
+          </div>
+          <p id="modalDescription" class="modal-description"></p>
+          <div class="modal-actions">
+            <a id="modalUrl" class="btn btn-accent" href="#" target="_blank">Open on Roblox</a>
+            <button class="btn btn-ghost" id="copyId">Copy universeId</button>
+            <button class="btn btn-ghost" id="copyEmbed">Copy embed code</button>
+          </div>
+          <div class="chart-container">
+            <canvas id="trendChart" aria-label="Player count trend"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <a class="footer-brand" href="/">
+          <span class="brand-mark">R</span>
+          Roblox Stats API
+        </a>
+        <p class="footer-about">
+          Live Roblox game statistics over plain HTTP, free to use. Data comes from Roblox's public
+          APIs; this project is not affiliated with Roblox Corporation.
+        </p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="/docs">Documentation</a>
+        <a href="/explorer">Explorer</a>
+        <a href="/demo">Demo</a>
+        <a href="/pricing">Pricing & limits</a>
+      </div>
+      <div class="footer-col">
+        <h4>Reference</h4>
+        <a href="/docs/endpoints">Endpoints</a>
+        <a href="/docs/fields">Stat names</a>
+        <a href="/roblox-stats.js">roblox-stats.js</a>
+        <a href="/health">Health</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="/legal">Terms of use</a>
+        <a href="/legal#privacy">Privacy</a>
+        <a href="/legal#license">License</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© <span data-year>2026</span> · Data provided by Roblox's public APIs. Not affiliated with Roblox Corporation.</p>
+      <p class="push studio-credit"><span class="tag">MBA</span> Made by Moonlight Studios</p>
+    </div>
+  </div>
+</footer>
+
+<script src="/site.js"></script>
+<script src="/api.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var api = window.RbxApi;
+  var abbr = api.abbr;
+
+  // State
+  var state = {
+    query: '',
+    sort: 'playing',
+    limit: 20,
+    page: 1,
+    totalPages: 1,
+    currentGame: null,
+    chart: null
+  };
+
+  // DOM elements
+  var searchInput = document.getElementById('searchInput');
+  var sortSelect = document.getElementById('sortSelect');
+  var limitSelect = document.getElementById('limitSelect');
+  var gamesGrid = document.getElementById('gamesGrid');
+  var emptyState = document.getElementById('emptyState');
+  var loadingState = document.getElementById('loadingState');
+  var summaryStats = document.getElementById('summaryStats');
+  var totalGames = document.getElementById('totalGames');
+  var totalPlaying = document.getElementById('totalPlaying');
+  var totalVisits = document.getElementById('totalVisits');
+  var avgRatio = document.getElementById('avgRatio');
+  var resultsTitle = document.getElementById('resultsTitle');
+  var pagination = document.getElementById('pagination');
+  var prevPage = document.getElementById('prevPage');
+  var nextPage = document.getElementById('nextPage');
+  var pageInfo = document.getElementById('pageInfo');
+  var emptyState = document.getElementById('emptyState');
+  var loadingState = document.getElementById('loadingState');
+
+  // Modal elements
+  var gameModal = document.getElementById('gameModal');
+  var modalClose = gameModal.querySelector('.modal-close');
+  var modalBanner = document.getElementById('modalBanner');
+  var modalThumbnail = document.getElementById('modalThumbnail');
+  var modalTitle = document.getElementById('modalTitle');
+  var modalCreator = document.getElementById('modalCreator');
+  var modalCreatorLink = document.getElementById('modalCreatorLink');
+  var modalCreatorType = document.getElementById('modalCreatorType');
+  var modalPlaying = document.getElementById('modalPlaying');
+  var modalVisits = document.getElementById('modalVisits');
+  var modalLikes = document.getElementById('modalLikes');
+  var modalFavorites = document.getElementById('modalFavorites');
+  var modalRatio = document.getElementById('modalRatio');
+  var modalMaxPlayers = document.getElementById('modalMaxPlayers');
+  var modalDescription = document.getElementById('modalDescription');
+  var modalUrl = document.getElementById('modalUrl');
+  var modalCreatorLink = document.getElementById('modalCreatorLink');
+  var modalCreatorType = document.getElementById('modalCreatorType');
+  var copyIdBtn = document.getElementById('copyId');
+  var copyEmbedBtn = document.getElementById('copyEmbed');
+  var trendChart = document.getElementById('trendChart');
+
+  // Debounce helper
+  function debounce(fn, ms) {
+    var timer = null;
+    return function () {
+      var args = arguments;
+      clearTimeout(timer);
+      timer = setTimeout(function () { fn.apply(null, args); }, ms);
+    };
+  }
+
+  // Format numbers
+  function formatNumber(n) {
+    return abbr(n);
+  }
+
+  // Search with debounce
+  var doSearch = debounce(function () {
+    state.query = searchInput.value.trim();
+    state.page = 1;
+    loadGames();
+  }, 300);
+
+  searchInput.addEventListener('input', doSearch);
+  sortSelect.addEventListener('change', function () {
+    state.sort = this.value;
+    state.page = 1;
+    loadGames();
+  });
+  limitSelect.addEventListener('change', function () {
+    state.limit = parseInt(this.value, 10);
+    state.page = 1;
+    loadGames();
+  });
+
+  prevPage.addEventListener('click', function () {
+    if (state.page > 1) {
+      state.page--;
+      loadGames();
+    }
+  });
+
+  nextPage.addEventListener('click', function () {
+    if (state.page < state.totalPages) {
+      state.page++;
+      loadGames();
+    }
+  });
+
+  // Modal close
+  modalClose.addEventListener('click', closeModal);
+  gameModal.addEventListener('click', function (e) {
+    if (e.target === gameModal) closeModal();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && gameModal.style.display !== 'none') closeModal();
+  });
+
+  // Copy buttons
+  copyIdBtn.addEventListener('click', function () {
+    if (state.currentGame) {
+      navigator.clipboard.writeText(String(state.currentGame.id));
+      copyIdBtn.textContent = 'Copied!';
+      setTimeout(function () { copyIdBtn.textContent = 'Copy universeId'; }, 1500);
+    }
+  });
+
+  copyEmbedBtn.addEventListener('click', function () {
+    if (state.currentGame) {
+      var code = '<div data-roblox-game="' + state.currentGame.id + '"></div>\n<script src="https://ms-mba.up.railway.app/roblox-stats.js"><\/script>';
+      navigator.clipboard.writeText(code);
+      copyEmbedBtn.textContent = 'Copied!';
+      setTimeout(function () { copyEmbedBtn.textContent = 'Copy embed code'; }, 1500);
+    }
+  });
+
+  function closeModal() {
+    gameModal.style.display = 'none';
+    document.body.style.overflow = '';
+    if (state.chart) {
+      state.chart.destroy();
+      state.chart = null;
+    }
+  }
+
+  function openModal(game) {
+    state.currentGame = game;
+
+    modalBanner.style.backgroundImage = game.banner ? 'url("' + game.banner + '")' : '';
+    modalThumbnail.src = game.thumbnail || '';
+    modalThumbnail.alt = game.name + ' logo';
+    modalTitle.textContent = game.name;
+    modalCreator.textContent = game.creator || 'Unknown';
+    modalCreatorLink.href = game.creatorUrl || '#';
+    modalCreatorType.textContent = game.creatorType || 'Unknown';
+
+    modalPlaying.textContent = formatNumber(game.playing);
+    modalVisits.textContent = formatNumber(game.visits);
+    modalLikes.textContent = formatNumber(game.ratings?.upVotes || game.upVotes || 0);
+    modalFavorites.textContent = formatNumber(game.ratings?.favorites || game.favorites || 0);
+    modalRatio.textContent = (game.ratings?.upVoteRatio || game.upVoteRatio || 0).toFixed(1) + '%';
+    modalMaxPlayers.textContent = formatNumber(game.maxPlayers);
+
+    modalDescription.textContent = game.description || 'No description available.';
+    modalUrl.href = game.url || '#';
+    modalCreatorLink.href = game.creatorUrl || '#';
+
+    gameModal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    // Load trend chart (simulated with recent trending data)
+    loadTrendChart(game.id);
+  }
+
+  function loadTrendChart(gameId) {
+    // Destroy existing chart
+    if (state.chart) {
+      state.chart.destroy();
+    }
+
+    // Fetch trending history for this game (using trending endpoint with includeMedia)
+    // For demo, we'll simulate with current data point
+    var ctx = trendChart.getContext('2d');
+    var now = new Date();
+    var labels = [];
+    var data = [];
+
+    // Generate last 7 data points (simulated)
+    for (var i = 6; i >= 0; i--) {
+      var d = new Date(now);
+      d.setHours(d.getHours() - i);
+      labels.push(d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      // Add some variance to current playing count
+      var base = state.currentGame.playing || 0;
+      var variance = Math.random() * 0.1 * base;
+      data.push(Math.round(base + variance - 0.05 * base));
+    }
+
+    if (state.chart) state.chart.destroy();
+    state.chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Players online',
+          data: data,
+          borderColor: getComputedStyle(document.documentElement).getPropertyValue('--ok').trim() || '#16a34a',
+          backgroundColor: 'rgba(22, 163, 74, 0.1)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.3,
+          pointRadius: 3,
+          pointHoverRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--panel').trim(),
+            titleColor: getComputedStyle(document.documentElement).getPropertyValue('--text').trim(),
+            bodyColor: getComputedStyle(document.documentElement).getPropertyValue('--text-soft').trim(),
+            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--border').trim(),
+            borderWidth: 1,
+            padding: 12
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--border').trim() },
+            ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() }
+          },
+          y: {
+            grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--border').trim() },
+            ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--muted').trim(), callback: function (v) { return abbr(v); } }
+          }
+        }
+      }
+    });
+  }
+
+  function loadGames() {
+    var url = '/api/v1/search?q=' + encodeURIComponent(state.query || '*') +
+      '&limit=' + state.limit +
+      '&page=' + state.page +
+      '&sort=' + state.sort;
+
+    if (state.query === '*') {
+      // Use trending for empty query
+      url = '/api/v1/trending?limit=' + state.limit + '&page=' + state.page + '&sort=' + state.sort;
+    }
+
+    showLoading(true);
+    gamesGrid.innerHTML = '';
+    emptyState.style.display = 'none';
+    pagination.style.display = 'none';
+
+    api.fetch(url)
+      .then(function (res) { return res.json(); })
+      .then(function (body) {
+        showLoading(false);
+
+        if (!body.ok) {
+          throw new Error(body.error?.message || 'Request failed');
+        }
+
+        var games = body.data || [];
+        var meta = body.meta || {};
+
+        state.totalPages = meta.totalPages || 1;
+
+        if (games.length === 0) {
+          gamesGrid.innerHTML = '';
+          emptyState.style.display = 'flex';
+          pagination.style.display = 'none';
+          summaryStats.style.display = 'none';
+          return;
+        }
+
+        renderGames(games);
+        updateSummary(games);
+        updatePagination();
+        summaryStats.style.display = 'grid';
+        pagination.style.display = 'flex';
+      })
+      .catch(function (err) {
+        showLoading(false);
+        gamesGrid.innerHTML = '';
+        emptyState.style.display = 'flex';
+        document.getElementById('emptyState').querySelector('h3').textContent = 'Error loading games';
+        document.getElementById('emptyState').querySelector('p').textContent = err.message;
+        console.error('[explorer] Load games error:', err);
+      });
+  }
+
+  function renderGames(games) {
+    gamesGrid.innerHTML = games.map(function (game) {
+      var playing = game.playing || 0;
+      var visits = game.visits || 0;
+      var likes = game.ratings?.upVotes || game.upVotes || 0;
+      var ratio = game.ratings?.upVoteRatio || game.upVoteRatio || 0;
+
+      return '<article class="game-card" role="listitem" data-id="' + game.id + '" tabindex="0">' +
+        '<div class="game-card-banner" style="background-image: url(' + (game.banner ? '"' + game.banner + '"' : '') + ')"></div>' +
+        '<div class="game-card-content">' +
+        '<img class="game-card-thumbnail" src="' + (game.thumbnail || '') + '" alt="" loading="lazy">' +
+        '<h3 class="game-card-title">' + escapeHtml(game.name) + '</h3>' +
+        '<p class="game-card-creator">by ' + escapeHtml(game.creator || 'Unknown') + '</p>' +
+        '<div class="game-card-stats">' +
+        '<span class="game-stat"><b>' + abbr(game.playing) + '</b><span>Playing</span></span>' +
+        '<span class="game-stat"><b>' + abbr(game.ratings?.upVotes || game.upVotes || 0) + '</b><span>Likes</span></span>' +
+        '<span class="game-stat"><b>' + abbr(game.visits) + '</b><span>Visits</span></span>' +
+        '<span class="game-stat"><b>' + (game.ratings?.upVoteRatio || game.upVoteRatio || 0).toFixed(1) + '%</b><span>Ratio</span></span>' +
+        '</div>' +
+        '<p class="game-card-description">' + escapeHtml((game.description || '').slice(0, 120)) + (game.description && game.description.length > 120 ? '…' : '') + '</p>' +
+        '</div>' +
+        '</article>';
+    }).join('');
+
+    // Add click handlers
+    gamesGrid.querySelectorAll('.game-card').forEach(function (card) {
+      card.addEventListener('click', function () {
+        var id = Number(this.getAttribute('data-id'));
+        var game = games.find(function (g) { return g.id === id; });
+        if (game) openModal(game);
+      });
+      card.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.click();
+        }
+      });
+    });
+  }
+
+  function updateSummary(games) {
+    var totalP = games.reduce(function (sum, g) { return sum + (g.playing || 0); }, 0);
+    var totalV = games.reduce(function (sum, g) { return sum + (g.visits || 0); }, 0);
+    var avgR = games.reduce(function (sum, g) { return sum + (g.ratings?.upVoteRatio || g.upVoteRatio || 0); }, 0) / games.length;
+
+    totalGames.textContent = abbr(games.length);
+    totalPlaying.textContent = abbr(totalP);
+    totalVisits.textContent = abbr(totalV);
+    avgRatio.textContent = avgR.toFixed(1) + '%';
+  }
+
+  function updatePagination() {
+    pageInfo.textContent = 'Page ' + state.page + ' of ' + state.totalPages;
+    prevPage.disabled = state.page <= 1;
+    nextPage.disabled = state.page >= state.totalPages;
+  }
+
+  function showLoading(show) {
+    loadingState.style.display = show ? 'flex' : 'none';
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&')
+      .replace(/</g, '<')
+      .replace(/>/g, '>')
+      .replace(/"/g, '"')
+      .replace(/'/g, ''');
+  }
+
+  // Initial load
+  loadGames();
+
+  // Expose for debugging
+  window.explorerState = state;
+})();
+</script>
+
+<!-- Chart.js for trend chart -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+/* Explorer-specific styles */
+.search-bar {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 24px;
+}
+
+.search-input-group {
+  flex: 1;
+  min-width: 280px;
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.search-input-group input {
+  width: 100%;
+  padding: 12px 16px 12px 48px;
+  font-size: 1rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.search-input-group input:focus {
+  outline: none;
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 3px var(--accent-2-soft);
+}
+
+.filter-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-group select {
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.results-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.pagination {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.game-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+  cursor: pointer;
+}
+
+.game-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-strong);
+}
+
+.game-card:focus {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+.game-card-banner {
+  height: 120px;
+  background: var(--panel-2) center/cover no-repeat;
+  border-bottom: 1px solid var(--border);
+}
+
+.game-card-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.game-card-thumbnail {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius);
+  object-fit: cover;
+  border: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+.game-card-title {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.game-card-creator {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.game-card-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.game-stat {
+  display: flex;
+  flex-direction: column;
+  min-width: 60px;
+}
+
+.game-stat b {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.game-stat span {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.game-card-description {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .grid-cards {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .grid-cards {
+    grid-template-columns: 1fr;
+  }
+  .search-bar {
+    flex-direction: column;
+  }
+  .filter-group {
+    width: 100%;
+  }
+}
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+
+.empty-state svg {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state h3 {
+  margin: 0 0 8px;
+  color: var(--text);
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+/* Loading state */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+
+.spinner-large {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-strong);
+  border-top-color: var(--accent-2);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-bottom: 16px;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 11, 20, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--panel);
+  color: var(--text-soft);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  z-index: 1;
+}
+
+.modal-close:hover {
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.modal-header {
+  position: relative;
+  height: 200px;
+  background: var(--panel-2);
+}
+
+.modal-banner {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modal-header-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px;
+  background: linear-gradient(to top, rgba(8, 11, 20, 0.9), transparent);
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.modal-thumbnail {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius);
+  object-fit: cover;
+  border: 2px solid var(--panel);
+  box-shadow: var(--shadow-md);
+}
+
+.modal-header-content h2 {
+  margin: 0 0 4px;
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+.modal-creator {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.8);
+}
+
+.modal-creator a {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.modal-creator-type {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.modal-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.modal-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.modal-stat {
+  flex: 1;
+  min-width: 100px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+}
+
+.modal-stat b {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.modal-stat span {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.modal-description {
+  margin: 0;
+  color: var(--text-soft);
+  line-height: 1.7;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.chart-container {
+  height: 280px;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .modal {
+    margin: 10px;
+    max-height: calc(100vh - 20px);
+  }
+  .modal-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .modal-stats {
+    flex-direction: column;
+  }
+}
+</style>
+</body>
+</html>

@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Auto-fill rules — Roblox Stats API Docs</title>
+<meta name="description" content="How the auto-fill works: placeholders, bindings, attributes, scopes, and inline game IDs." />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23e8384f'/><text x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'>R</text></svg>" />
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('rbx-theme');
+      if (!saved) saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+    } catch (_) {}
+  })();
+</script>
+<link rel="stylesheet" href="/theme.css" />
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="progress"><i data-progress></i></div>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <span class="brand-mark">R</span>
+      Roblox&nbsp;Stats&nbsp;API
+    </a>
+    <nav class="nav">
+      <a href="/">Home</a>
+      <a href="/docs" class="active">Docs</a>
+      <a href="/explorer">Explorer</a>
+      <a href="/demo">Demo</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/legal">Legal</a>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn btn-sm topbar-cta" href="/roblox-stats.js?download=1">Download script</a>
+      <button class="icon-btn" data-theme-toggle type="button" aria-label="Switch theme">
+        <svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" data-menu-toggle type="button" aria-expanded="false" aria-controls="mobileNav" aria-label="Menu">
+        <svg class="menux" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="menubar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="mobilenav" id="mobileNav" aria-label="Main" hidden>
+    <a href="/">Home</a>
+    <a href="/docs">Documentation</a>
+    <a href="/explorer">Explorer</a>
+    <a href="/demo">Demo</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/legal">Legal</a>
+    <a class="btn" href="/roblox-stats.js?download=1">Download script</a>
+  </nav>
+</header>
+
+<main id="main">
+<div class="wrap wrap-wide">
+  <div class="docs">
+    <nav class="toc" data-toc aria-label="On this page">
+      <p class="toc-title">Auto-fill rules</p>
+      <a href="#placeholders">Placeholders</a>
+      <a href="#attributes">Attributes</a>
+      <a href="#scopes">Scopes</a>
+      <a href="#inline">Inline game IDs</a>
+      <a href="#options">Auto-fill options</a>
+    </nav>
+
+    <details class="toc-inline">
+      <summary>Auto-fill rules</summary>
+      <nav class="toc" data-toc aria-label="Auto-fill sections">
+        <a href="#placeholders">Placeholders</a>
+        <a href="#attributes">Attributes</a>
+        <a href="#scopes">Scopes</a>
+        <a href="#inline">Inline game IDs</a>
+        <a href="#options">Auto-fill options</a>
+      </nav>
+    </details>
+
+    <div class="docs-main">
+      <div class="pagehead">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="/">Home</a><span class="sep">/</span><a href="/docs">Docs</a><span class="sep">/</span><span>Auto-fill rules</span>
+        </nav>
+        <h1>Auto-fill rules</h1>
+        <p class="lead">
+          The script finds placeholder names, fetches data once per game, and writes values into your page.
+          No framework, no build step, works on any host including GitHub Pages.
+        </p>
+      </div>
+
+      <section class="section" id="placeholders">
+        <div class="section-head">
+          <span class="kicker">Syntax</span>
+          <h2>Placeholder syntax</h2>
+        </div>
+
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>You write</th><th>You get</th></tr></thead>
+            <tbody>
+              <tr><td><code>{{playing}}</code></td><td>Auto-abbreviated when it reads better: <code>245.4K</code></td></tr>
+              <tr><td><code>{{playing:raw}}</code></td><td>Exact number: <code>245412</code></td></tr>
+              <tr><td><code>{{playing:short}}</code></td><td>Always abbreviated: <code>245.4K</code></td></tr>
+              <tr><td><code>{{playing:full}}</code></td><td>Never abbreviated: <code>245,412</code></td></tr>
+              <tr><td><code>{{thumbnail:url}}</code></td><td>Escaped for <code>src="…"</code></td></tr>
+              <tr><td><code>{{994732206:playing}}</code></td><td>Inline game ID — uses specific game</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note warn">
+          <p><strong>For images use <code>data-rbx-set</code>, not <code>src="{{thumbnail:url}}"</code>.</strong>
+            A literal <code>src</code> makes the browser request the placeholder text before the script runs,
+            leaving a 404 in the console on every page load.</p>
+        </div>
+      </section>
+
+      <section class="section" id="attributes">
+        <div class="section-head">
+          <span class="kicker">Attributes</span>
+          <h2>Binding & Attribute syntax</h2>
+        </div>
+
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Attribute</th><th>Purpose</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td><code>data-rbx-bind="playing"</code></td><td>Sets element's text content</td><td><code><span data-rbx-bind="playing"></span></code></td></tr>
+              <tr><td><code>data-rbx-bind="994732206:playing"</code></td><td>Sets text from specific game</td><td><code><span data-rbx-bind="994732206:playing"></span></code></td></tr>
+              <tr><td><code>data-rbx-set="src=thumbnail:url"</code></td><td>Sets attribute when URL is real</td><td><code><img data-rbx-set="src=thumbnail:url"></code></td></tr>
+              <tr><td><code>data-rbx-set="src=994732206:thumbnail:url"</code></td><td>Sets attribute from specific game</td><td><code><img data-rbx-set="src=994732206:thumbnail:url"></code></td></tr>
+              <tr><td><code>data-rbx-set="href=url|title=name"</code></td><td>Multiple attributes at once</td><td><code><a data-rbx-set="href=url|title=name"></code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note warn">
+          <p><strong>For images always use <code>data-rbx-set</code>, not <code>src="{{thumbnail:url}}"</code>.</strong>
+            A literal <code>src</code> makes the browser request the placeholder text before the script runs,
+            leaving a 404 in the console on every page load.</p>
+        </div>
+      </section>
+
+      <section class="section" id="scopes">
+        <div class="section-head">
+          <span class="kicker">Scopes</span>
+          <h2>Multiple games on one page</h2>
+          <p>Put <code>data-rbx-game</code> on any element — it owns the placeholders inside it.
+            Nested scopes work: a card for game B inside a page about game A keeps its own numbers.</p>
+        </div>
+
+        <div class="codeblock">
+          <pre><code><div data-rbx-game="994732206">
+  <h2>{{name}}</h2>
+  <p>{{playing}} players</p>
+  <div data-rbx-game="1686885941">
+    <h3>{{name}}: {{playing}}</h3>  <!-- This uses 1686885941 -->
+  </div>
+</div></code></pre>
+        </div>
+
+        <p><strong>Global fallback:</strong> Set <code>window.RBX_GAME_ID = '994732206'</code> before the script loads,
+          and placeholders work globally without any <code>data-rbx-game</code> on the body.</p>
+
+        <div class="note info">
+          <p><strong>A binding with no <code>data-rbx-game</code> ancestor is intentionally never filled.</strong>
+            Otherwise an element outside every scope would still get filled, and you'd have no way to
+            write the literal text <code>{{playing}}</code> in a tutorial or example.</p>
+        </div>
+      </section>
+
+      <section class="section" id="inline">
+        <div class="section-head">
+          <span class="kicker">Inline IDs</span>
+          <h2>Inline game IDs</h2>
+          <p>Reference a specific game's field directly in any placeholder, bind, or set attribute —
+            no scope needed. Format: <code>{{gameId:field}}</code> or <code>{{gameId:field:mode}}</code>.</p>
+        </div>
+
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Syntax</th><th>Meaning</th></tr>
+            <tbody>
+              <tr><td><code>{{994732206:playing}}</code></td><td>Blox Fruits player count</td></tr>
+              <tr><td><code>{{1686885941:visits:raw}}</code></td><td>Brookhaven exact visits</td></tr>
+              <tr><td><code>{{994732206:thumbnail:url}}</code></td><td>Blox Fruits logo URL (escaped)</td></tr>
+              <tr><td><code>data-rbx-bind="994732206:playing"</code></td><td>Bind specific game's field</td></tr>
+              <tr><td><code>data-rbx-set="src=1686885941:thumbnail:url"</code></td><td>Set attribute from specific game</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Each inline game ID triggers one request, cached and shared. Perfect for comparison tables,
+          leaderboards, or showing related games without wrapper scopes.</p>
+      </section>
+
+      <section class="section" id="options">
+        <div class="section-head">
+          <span class="kicker">Options</span>
+          <h2>Auto-fill options</h2>
+        </div>
+
+        <p>Set on any element with <code>data-rbx-game</code> (including <code>body</code> or a wrapper).</p>
+
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Attribute</th><th>Values</th><th>Default</th></tr></thead>
+            <tbody>
+              <tr><td><code>data-rbx-refresh</code></td><td>Seconds between updates</td><td><code>0</code> (never)</td></tr>
+              <tr><td><code>data-rbx-game</code></td><td>Universe ID</td><td>Required if no global</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="mt-3">Global config (set BEFORE script loads)</h3>
+        <div class="codeblock">
+          <pre><code><script>
+  window.RBX_GAME_ID = '994732206';  // Default game for all placeholders
+</script>
+<script src="https://ms-mba.up.railway.app/roblox-stats.js"></script></code></pre>
+        </div>
+
+        <p>Or use the config object:</p>
+        <div class="codeblock">
+          <pre><code><script>
+  window.RobloxStatsConfig = {
+    gameId: '994732206',
+    apiBase: 'https://your-domain.com'  // Optional: custom API endpoint
+  };
+</script>
+<script src="https://ms-mba.up.railway.app/roblox-stats.js"></script></code></pre>
+        </div>
+
+        <div class="note warn">
+          <p><strong>Typos are reported, not hidden.</strong> Write <code>{{playng}}</code> by mistake and you get
+            a warning in the console naming the bad field, rather than a blank box. The authoritative list is
+            <a href="/api/v1/fields"><code>/api/v1/fields</code></a>.</p>
+        </div>
+      </section>
+
+      <div class="chips mt-3">
+        <a class="btn btn-ghost" href="/docs/fields">All 20 stat names →</a>
+        <a class="btn btn-ghost" href="/demo">Live demo →</a>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <a class="footer-brand" href="/">
+          <span class="brand-mark">R</span>
+          Roblox&nbsp;Stats&nbsp;API
+        </a>
+        <p class="footer-about">
+          Live Roblox game statistics over plain HTTP, free to use. Data comes from Roblox's public
+          APIs; this project is not affiliated with Roblox Corporation.
+        </p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="/docs">Documentation</a>
+        <a href="/explorer">Explorer</a>
+        <a href="/demo">Demo</a>
+        <a href="/pricing">Pricing & limits</a>
+      </div>
+      <div class="footer-col">
+        <h4>Reference</h4>
+        <a href="/docs/endpoints">Endpoints</a>
+        <a href="/docs/fields">Stat names</a>
+        <a href="/roblox-stats.js">roblox-stats.js</a>
+        <a href="/health">Health</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="/legal">Terms of use</a>
+        <a href="/legal#privacy">Privacy</a>
+        <a href="/legal#license">License</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© <span data-year>2026</span> · Data provided by Roblox's public APIs. Not affiliated with Roblox Corporation.</p>
+      <p class="push studio-credit"><span class="tag">MBA</span> Made by Moonlight Studios</p>
+    </div>
+  </div>
+</footer>
+
+<script src="/site.js"></script>
+</body>
+</html>

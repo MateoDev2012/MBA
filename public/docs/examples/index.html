@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Code examples — Roblox Stats API Docs</title>
+<meta name="description" content="Copy-paste examples in JavaScript, Node.js, Python, PHP, and cURL." />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23e8384f'/><text x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'>R</text></svg>" />
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('rbx-theme');
+      if (!saved) saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+    } catch (_) {}
+  })();
+</script>
+<link rel="stylesheet" href="/theme.css" />
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="progress"><i data-progress></i></div>
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="/">
+      <span class="brand-mark">R</span>
+      Roblox&nbsp;Stats&nbsp;API
+    </a>
+    <nav class="nav">
+      <a href="/">Home</a>
+      <a href="/docs" class="active">Docs</a>
+      <a href="/explorer">Explorer</a>
+      <a href="/demo">Demo</a>
+      <a href="/pricing">Pricing</a>
+      <a href="/legal">Legal</a>
+    </nav>
+    <div class="topbar-actions">
+      <a class="btn btn-sm topbar-cta" href="/roblox-stats.js?download=1">Download script</a>
+      <button class="icon-btn" data-theme-toggle type="button" aria-label="Switch theme">
+        <svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" data-menu-toggle type="button" aria-expanded="false" aria-controls="mobileNav" aria-label="Menu">
+        <svg class="menux" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="menubar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="mobilenav" id="mobileNav" aria-label="Main" hidden>
+    <a href="/">Home</a>
+    <a href="/docs">Documentation</a>
+    <a href="/explorer">Explorer</a>
+    <a href="/demo">Demo</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/legal">Legal</a>
+    <a class="btn" href="/roblox-stats.js?download=1">Download script</a>
+  </nav>
+</header>
+
+<main id="main">
+<div class="wrap wrap-wide">
+  <div class="docs">
+    <nav class="toc" data-toc aria-label="On this page">
+      <p class="toc-title">Code examples</p>
+      <a href="#js">JavaScript</a>
+      <a href="#node">Node.js SDK</a>
+      <a href="#python">Python</a>
+      <a href="#php">PHP</a>
+      <a href="#curl">cURL</a>
+    </nav>
+
+    <details class="toc-inline">
+      <summary>Code examples</summary>
+      <nav class="toc" data-toc aria-label="Languages">
+        <a href="#js">JavaScript</a>
+        <a href="#node">Node.js SDK</a>
+        <a href="#python">Python</a>
+        <a href="#php">PHP</a>
+        <a href="#curl">cURL</a>
+      </nav>
+    </details>
+
+    <div class="docs-main">
+      <div class="pagehead">
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <a href="/">Home</a><span class="sep">/</span><a href="/docs">Docs</a><span class="sep">/</span><span>Code examples</span>
+        </nav>
+        <h1>Code examples</h1>
+        <p class="lead">
+          Replace <code>ms-mba.up.railway.app</code> with your own deployment URL.
+        </p>
+      </div>
+
+      <section class="section" id="js">
+        <div class="section-head">
+          <span class="kicker">Vanilla</span>
+          <h2>JavaScript (browser)</h2>
+        </div>
+
+        <div data-tabs="lang">
+          <div class="tabs" role="tablist" aria-label="Language">
+            <button class="tab" role="tab" data-tab="js" aria-selected="true">JavaScript</button>
+            <button class="tab" role="tab" data-tab="node" aria-selected="false">Node.js SDK</button>
+            <button class="tab" role="tab" data-tab="py" aria-selected="false">Python</button>
+            <button class="tab" role="tab" data-tab="php" aria-selected="false">PHP</button>
+            <button class="tab" role="tab" data-tab="curl" aria-selected="false">cURL</button>
+          </div>
+
+          <div class="tabpanel" role="tabpanel" data-tab="js" aria-hidden="false">
+            <div class="codeblock">
+              <pre><code>// Single game
+const res = await fetch('https://ms-mba.up.railway.app/api/v1/games/994732206');
+const { data } = await res.json();
+
+console.log(data.name);                 // "Blox Fruits"
+console.log(data.playing);              // players online right now
+console.log(data.ratings.upVotes);      // likes
+console.log(data.creator.name);         // owner
+console.log(data.thumbnail);            // logo URL
+document.querySelector('#logo').src = data.thumbnail;</code></pre>
+            </div>
+
+            <h3 class="mt-3">Batch — up to 50 games</h3>
+            <div class="codeblock">
+              <pre><code>const ids = [994732206, 1686885941, 4924922332];
+const res = await fetch('https://ms-mba.up.railway.app/api/v1/games/batch?ids=' + ids.join(','));
+const { data } = await res.json();
+data.forEach(g => console.log(g.name, g.playing));</code></pre>
+            </div>
+
+            <h3 class="mt-3">Search</h3>
+            <div class="codeblock">
+              <pre><code>const res = await fetch('https://ms-mba.up.railway.app/api/v1/search?q=blox+fruits&limit=5');
+const { data } = await res.json();
+data.forEach(g => console.log(g.name, g.id, g.playing));</code></pre>
+            </div>
+
+            <h3 class="mt-3">Resolve URL to universeId</h3>
+            <div class="codeblock">
+              <pre><code>const url = 'https://www.roblox.com/games/994732206/Blox-Fruits';
+const res = await fetch('https://ms-mba.up.railway.app/api/v1/resolve?url=' + encodeURIComponent(url));
+const { data } = await res.json();
+console.log(data.universeId);  // 994732206</code></pre>
+            </div>
+          </div>
+
+          <div class="tabpanel" role="tabpanel" data-tab="node" aria-hidden="true">
+            <div class="codeblock">
+              <pre><code>npm install roblox-stats-sdk</code></pre>
+            </div>
+            <p class="hint">Set <code>ROBLOX_BASE_URL</code> env var for custom deployments.</p>
+
+            <h3 class="mt-3">Usage</h3>
+            <div class="codeblock">
+              <pre><code>import { getGame, getGameQuick, batch, search, resolveUrl, trending, getGamePasses, getBadges, getDeveloper } from 'roblox-stats-sdk';
+
+const game = await getGame(994732206);
+console.log(game.name, game.playing, game.ratings.upVotes);
+
+const quick = await getGameQuick(994732206);
+console.log(quick.thumbnail, quick.ratings.upVoteRatio);
+
+const games = await batch([994732206, 1686885941]);
+const results = await search('Blox Fruits', { limit: 5 });
+const id = await resolveUrl('https://www.roblox.com/games/994732206/Blox-Fruits');
+const trendingGames = await trending({ limit: 10 });
+const passes = await getGamePasses(994732206, { includePrices: true });
+const badges = await getBadges(994732206);
+const dev = await getDeveloper(994732206);</code></pre>
+            </div>
+            <p class="hint">SDK unwraps <code>{ ok, data }</code> — methods return data directly. Full docs in <code>extras/sdk/</code>.</p>
+          </div>
+
+          <div class="tabpanel" role="tabpanel" data-tab="py" aria-hidden="true">
+            <h3 class="mt-3">Python (requests)</h3>
+            <div class="codeblock">
+              <pre><code>import requests
+
+BASE = "https://ms-mba.up.railway.app"
+
+# Single game
+data = requests.get(f"{BASE}/api/v1/games/994732206").json()["data"]
+print(data["name"], data["playing"], data["ratings"]["upVotes"])
+
+# Batch
+data = requests.get(f"{BASE}/api/v1/games/batch?ids=994732206,1686885941").json()["data"]
+for g in data: print(g["name"], g["playing"])
+
+# Search
+data = requests.get(f"{BASE}/api/v1/search?q=blox+fruits&limit=5").json()["data"]
+for g in data: print(g["name"], g["id"], g["playing"])
+
+# Resolve
+data = requests.get(f"{BASE}/api/v1/resolve?url=https://www.roblox.com/games/994732206/Blox-Fruits").json()["data"]
+print(data["universeId"])</code></pre>
+            </div>
+          </div>
+
+          <div class="tabpanel" role="tabpanel" data-tab="php" aria-hidden="true">
+            <h3 class="mt-3">PHP</h3>
+            <div class="codeblock">
+              <pre><code>$base = "https://ms-mba.up.railway.app";
+
+$json = file_get_contents("$base/api/v1/games/994732206");
+$data = json_decode($json, true)["data"];
+echo $data["name"] . " — " . number_format($data["playing"]) . " playing";
+
+// Batch
+$json = file_get_contents("$base/api/v1/games/batch?ids=994732206,1686885941");
+$data = json_decode($json, true)["data"];
+foreach ($data as $g) echo $g["name"] . " — " . number_format($g["playing"]) . "\n";
+
+// Search
+$json = file_get_contents("$base/api/v1/search?q=blox+fruits&limit=5");
+$data = json_decode($json, true)["data"];
+foreach ($data as $g) echo $g["name"] . " — " . $g["playing"] . "\n";</code></pre>
+            </div>
+          </div>
+
+          <div class="tabpanel" role="tabpanel" data-tab="curl" aria-hidden="true">
+            <h3 class="mt-3">cURL</h3>
+            <div class="codeblock">
+              <pre><code>curl https://ms-mba.up.railway.app/api/v1/games/994732206
+
+# Many at once:
+curl "https://ms-mba.up.railway.app/api/v1/games/batch?ids=994732206,1686885941"
+
+# Search
+curl "https://ms-mba.up.railway.app/api/v1/search?q=blox+fruits&limit=10"
+
+# Resolve URL
+curl "https://ms-mba.up.railway.app/api/v1/resolve?url=https://www.roblox.com/games/994732206/Blox-Fruits"
+
+# Fill template with live values
+curl -X POST https://ms-mba.up.railway.app/api/v1/render \
+  -H "Content-Type: application/json" \
+  -d '{"universeId":994732206,"html":"{{playing}} players in {{name}} by {{creator}}"}'</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="chips mt-3">
+        <a class="btn btn-ghost" href="/docs/quickstart">Quick start →</a>
+        <a class="btn btn-ghost" href="/docs/sdks">SDK & MCP →</a>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <a class="footer-brand" href="/">
+          <span class="brand-mark">R</span>
+          Roblox&nbsp;Stats&nbsp;API
+        </a>
+        <p class="footer-about">
+          Live Roblox game statistics over plain HTTP, free to use. Data comes from Roblox's public
+          APIs; this project is not affiliated with Roblox Corporation.
+        </p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="/docs">Documentation</a>
+        <a href="/explorer">Explorer</a>
+        <a href="/demo">Demo</a>
+        <a href="/pricing">Pricing & limits</a>
+      </div>
+      <div class="footer-col">
+        <h4>Reference</h4>
+        <a href="/docs/endpoints">Endpoints</a>
+        <a href="/docs/fields">Stat names</a>
+        <a href="/roblox-stats.js">roblox-stats.js</a>
+        <a href="/health">Health</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="/legal">Terms of use</a>
+        <a href="/legal#privacy">Privacy</a>
+        <a href="/legal#license">License</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© <span data-year>2026</span> · Data provided by Roblox's public APIs. Not affiliated with Roblox Corporation.</p>
+      <p class="push studio-credit"><span class="tag">MBA</span> Made by Moonlight Studios</p>
+    </div>
+  </div>
+</footer>
+
+<script src="/site.js"></script>
+<script>
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const tab = this.dataset.tab;
+    document.querySelectorAll('.tab').forEach(t => { t.setAttribute('aria-selected', 'false'); t.removeAttribute('aria-selected'); });
+    this.setAttribute('aria-selected', 'true');
+    document.querySelectorAll('.tabpanel').forEach(p => { p.hidden = p.dataset.tab !== tab; });
+  });
+});
+</script>
+</body>
+</html>
