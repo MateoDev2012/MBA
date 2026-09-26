@@ -345,7 +345,7 @@
    * Also supports inline game IDs: {{12345:playing}} uses game 12345 regardless of scope.
    */
   function fill(scope, game) {
-    console.log('[roblox-stats] fill called, scope:', scope.tagName, 'game:', game ? game.name : 'none');
+    console.error('[roblox-stats] fill called, scope:', scope.tagName, 'game:', game ? game.name : 'none');
     var problems = [];
     
     // When scope is document.body without data-rbx-game, it owns all descendant nodes.
@@ -357,7 +357,8 @@
       ownsNode = function (node) { return scopeOf(node) === scope; };
     }
     
-    console.log('[roblox-stats] fill: seenInlineIds will be tracked');
+    console.error('[roblox-stats] fill: ownsNode test for body:', ownsNode(document.body));
+    console.error('[roblox-stats] fill: ownsNode test for p:', ownsNode(document.querySelector('p')));
 
     // Track which inline game IDs we've seen and need to load
     var seenInlineIds = {};
