@@ -1,6 +1,6 @@
 <div align="center">
 
-# Roblox Stats API
+# MoonBlox API
 
 **Estadísticas en vivo de juegos de Roblox en una API REST simple.**
 

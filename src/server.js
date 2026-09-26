@@ -1,5 +1,5 @@
 /**
- * Roblox Stats API server.
+ * MoonBlox API server.
  *
  * Design decision: open CORS and no API key. The point is that anyone can drop
  * the URL into a <script> tag or a fetch() call and have it just work. Abuse
@@ -60,13 +60,20 @@ app.use(
 // served first, ahead of both guards.
 
 /** The one file consumers copy. It lives at the project root, not in public/,
- *  so that "which file do I need?" has a one-word answer. */
+ *  so that "which file do I need?" has a one-word answer.
+ *
+ *  Revalidate rather than cache blind. This file is what every embed loads, so a
+ *  long max-age means a fixed script outlives the deploy that should have
+ *  replaced it: people keep running last month's build with no way to notice.
+ *  must-revalidate still costs a conditional request, and a 304 is cheap. */
+const SCRIPT_CACHE = 'public, max-age=0, must-revalidate';
+
 app.get('/roblox-stats.js', (req, res) => {
   const file = path.join(rootDir, 'roblox-stats.js');
   if (req.query.download) {
-    res.download(file, 'roblox-stats.js', { headers: { 'Cache-Control': 'public, max-age=3600' } });
+    res.download(file, 'roblox-stats.js', { headers: { 'Cache-Control': SCRIPT_CACHE } });
   } else {
-    res.sendFile(file, { headers: { 'Cache-Control': 'public, max-age=3600' } });
+    res.sendFile(file, { headers: { 'Cache-Control': SCRIPT_CACHE } });
   }
 });
 
@@ -131,7 +138,7 @@ app.use(express.json({ limit: '300kb' }));
 app.get('/api', (req, res) => {
   res.json({
     ok: true,
-    name: 'Roblox Stats API',
+    name: 'MoonBlox API',
     version: '1.0.0',
     description: 'Live Roblox game statistics, ready to drop into your site.',
     docs: '/docs',
@@ -210,10 +217,48 @@ app.use((err, req, res, _next) => {
 });
 
 const server = app.listen(config.port, () => {
-  console.log(`Roblox Stats API listening on http://localhost:${config.port}`);
+  console.log(`MoonBlox API listening on http://localhost:${config.port}`);
   console.log(`Docs:   http://localhost:${config.port}/`);
   console.log(`Try:    http://localhost:${config.port}/api/v1/games/994732206  (Blox Fruits)`);
+  warmCache();
 });
+
+/**
+ * Fills the cache in the background once the port is open, so the first visitor
+ * does not pay for it.
+ *
+ * The cache lives in memory, so every deploy starts empty. The front page asks
+ * for trending with images, which is three chained calls to Roblox, and that
+ * cold path took long enough that the hero sat on "loading" for many seconds
+ * after each release. Doing it here moves that wait into the deploy instead of
+ * onto whoever opens the site first. Failures are ignored on purpose: this is
+ * an optimisation, and a cold cache is exactly what it was already going to be.
+ */
+async function warmCache() {
+  const jobs = [
+    ['/api/v1/trending?limit=20&includeMedia=true', 20000],
+    ['/api/v1/games/994732206/quick', 15000],
+  ];
+
+  await Promise.all(
+    jobs.map(async ([path, timeoutMs]) => {
+      const started = Date.now();
+      try {
+        const res = await fetch(`http://127.0.0.1:${config.port}${path}`, {
+          signal: AbortSignal.timeout(timeoutMs),
+        });
+        const took = Date.now() - started;
+        if (res.ok) {
+          console.log(`[warm] ${path} -> ${res.status} in ${took}ms`);
+        } else {
+          console.warn(`[warm] ${path} -> ${res.status} in ${took}ms`);
+        }
+      } catch (err) {
+        console.warn(`[warm] ${path} failed: ${err.message}`);
+      }
+    })
+  );
+}
 
 const shutdown = (signal) => () => {
   console.log(`\n${signal} received, shutting down...`);

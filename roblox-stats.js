@@ -1,5 +1,5 @@
 /**
- * Roblox Stats API — the one file you need.
+ * MoonBlox API — the one file you need.
  *
  * Copy this single file into your project, add one <script> tag, and write the
  * name of the stat wherever you want it. No build step, no framework, no
@@ -740,10 +740,19 @@
 
   var PREFIX = 'rbxw-';
 
+  // Bumped whenever the rules below change, so a page that somehow runs this
+  // file twice gets the new stylesheet instead of keeping the first one.
+  var STYLE_BUILD = '2';
+
   // Injects the stylesheet once. Every rule is prefixed with .rbxw- so it
   // cannot leak into the page that embeds the widget.
   function injectStyles() {
-    if (document.getElementById(PREFIX + 'styles')) return;
+    // Re-written rather than skipped when it is already there. A page that
+    // includes the file twice, or a soft navigation that re-runs it, would
+    // otherwise keep the first version's rules forever, because the id is the
+    // only thing that says "already injected".
+    var existing = document.getElementById(PREFIX + 'styles');
+    if (existing && existing.getAttribute('data-rbxw-build') === STYLE_BUILD) return;
     // The card is built from ordinary <p>, <div> and <b> elements, so a plain
     // `p { color: ... }` on the host page reaches inside the card and can turn
     // the title into dark grey on a dark background. Prefixing our own rules
@@ -751,48 +760,155 @@
     // own colour, font and line height, so it outranks a bare element selector
     // and inherits only from us.
     var css =
-      '.' + PREFIX + 'card{display:flex;overflow:hidden;border-radius:16px;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;max-width:520px;line-height:1.4;transition:transform .16s ease,box-shadow .16s ease}' +
+      // The card is a COLUMN. As a row the banner became a zero-width strip and
+      // simply vanished, because a background image gives a flex item no width.
+      // `width:100%` with `max-width` means the card fills whatever box the host
+      // gave it instead of hugging its content inside a wide column.
+      '.' + PREFIX + 'card{display:flex;flex-direction:column;position:relative;overflow:hidden;width:100%;max-width:520px;border-radius:18px;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.4;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}' +
       '.' + PREFIX + 'card:hover{transform:translateY(-2px)}' +
       '.' + PREFIX + 'card *{box-sizing:border-box}' +
-      '.' + PREFIX + 'body{flex:1;min-width:0;padding:16px 18px}' +
+      '.' + PREFIX + 'body{flex:1;min-width:0;padding:16px 18px 18px}' +
       // --rbxw-fg is the main text, --rbxw-dim the label grey and --rbxw-live
       // the green of the player count. Every pair clears 4.5:1 against the
       // tile it sits on, which is why the dim colour is a real colour and not
       // opacity: opacity on the tile also fades the number below WCAG AA.
-      '.' + PREFIX + 'dark .' + PREFIX + 'body{--rbxw-fg:#e9eefb;--rbxw-dim:#aab4cc;--rbxw-live:#34d399;background:#111828;color:var(--rbxw-fg);border:1px solid #202a42;box-shadow:0 10px 30px rgba(0,0,0,.45)}' +
-      '.' + PREFIX + 'light .' + PREFIX + 'body{--rbxw-fg:#101728;--rbxw-dim:#55607a;--rbxw-live:#166534;background:#fff;color:var(--rbxw-fg);border:1px solid #e0e5f0;box-shadow:0 10px 30px rgba(16,23,40,.1)}' +
-      '.' + PREFIX + 'dark .' + PREFIX + 'card:hover{box-shadow:0 16px 40px rgba(0,0,0,.55)}' +
-      '.' + PREFIX + 'light .' + PREFIX + 'card:hover{box-shadow:0 16px 40px rgba(16,23,40,.14)}' +
-      '.' + PREFIX + 'banner{height:110px;background-size:cover;background-position:center;flex-shrink:0}' +
-      '.' + PREFIX + 'head{display:flex;align-items:center;gap:12px;margin-bottom:2px}' +
-      '.' + PREFIX + 'logo{width:56px;height:56px;border-radius:12px;background-size:cover;background-position:center;flex-shrink:0}' +
-      '.' + PREFIX + 'logo.lg{width:68px;height:68px;border-radius:15px}' +
-      '.' + PREFIX + 'title{margin:0;font-size:17px;font-weight:700;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--rbxw-fg)}' +
-      '.' + PREFIX + 'creator{font-size:13px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--rbxw-dim)}' +
-      '.' + PREFIX + 'stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}' +
-      '.' + PREFIX + 'stat{flex:1 1 0;min-width:64px;font-size:12px;background:rgba(127,140,170,.12);border-radius:10px;padding:8px 10px;color:var(--rbxw-dim)}' +
-      '.' + PREFIX + 'stat b{display:block;font-size:16px;font-weight:750;letter-spacing:-.01em;font-variant-numeric:tabular-nums}' +
+      // The theme colours now live on the card itself, not on the body, so the
+      // banner and the head inherit them too. Indigo and violet rather than
+      // blue-grey, so the card still reads as MoonBlox on somebody's page.
+      '.' + PREFIX + 'dark{--rbxw-fg:#edeaff;--rbxw-dim:#a49dd0;--rbxw-live:#34d399;--rbxw-tile:rgba(167,139,250,.10);--rbxw-line:rgba(167,139,250,.20);--rbxw-shadow:0 12px 34px rgba(3,2,12,.55);--rbxw-shadow-hi:0 20px 48px rgba(3,2,12,.68);background:#14112b;color:var(--rbxw-fg);border:1px solid #2a2350;box-shadow:var(--rbxw-shadow)}' +
+      '.' + PREFIX + 'light{--rbxw-fg:#1a1436;--rbxw-dim:#5b5480;--rbxw-live:#0f6b33;--rbxw-tile:rgba(124,58,237,.05);--rbxw-line:rgba(26,20,54,.11);--rbxw-shadow:0 10px 28px rgba(26,20,54,.11);--rbxw-shadow-hi:0 18px 40px rgba(26,20,54,.17);background:#fff;color:var(--rbxw-fg);border:1px solid #e3e0f0;box-shadow:var(--rbxw-shadow)}' +
+      '.' + PREFIX + 'dark:hover{box-shadow:var(--rbxw-shadow-hi);border-color:#3d3470}' +
+      '.' + PREFIX + 'light:hover{box-shadow:var(--rbxw-shadow-hi);border-color:#cdc8e2}' +
+      // A gradient scrim under the banner, so the logo that overlaps it and any
+      // pale artwork both keep their contrast. Dark enough at the bottom to keep
+      // white text legible over a light banner: game banners are frequently pale
+      // and the title sits right on the seam.
+      '.' + PREFIX + 'banner{position:relative;height:124px;flex-shrink:0;background-size:cover;background-position:center;background-color:#0d0b22}' +
+      '.' + PREFIX + 'banner::after{content:"";position:absolute;left:0;right:0;bottom:0;height:96px;background:linear-gradient(to bottom,rgba(5,4,15,0),rgba(5,4,15,.55) 55%,rgba(5,4,15,.82))}' +
+      // Pulled up over the banner's bottom edge, the way game cards do it - but
+      // only on the dark theme. On a light card the strip below the banner is
+      // white, so a title hanging over that seam in white is invisible, and
+      // game banners are often pale enough that dark text over the artwork is
+      // no better. The light card simply puts the head under the banner.
+      '.' + PREFIX + 'head{position:relative;display:flex;align-items:flex-end;gap:13px}' +
+      '.' + PREFIX + 'padbanner .' + PREFIX + 'head{margin-top:-34px;padding:0 18px}' +
+      // Both of these classes sit on the card itself, so they have to be joined
+      // with a dot. Written as descendants they matched nothing at all, which is
+      // why the light card kept the pull-up and hung an unreadable title across
+      // the seam.
+      '.rbxw-light.rbxw-padbanner .rbxw-head{margin-top:0;padding:16px 18px 0}' +
+      '.rbxw-light.rbxw-padbanner .rbxw-titles{padding-bottom:3px;text-shadow:none}' +
+      '.' + PREFIX + 'logo{width:58px;height:58px;border-radius:14px;background-size:cover;background-position:center;flex-shrink:0;background-color:var(--rbxw-tile);transition:transform .18s ease}' +
+      '.rbxw-dark .rbxw-logo{box-shadow:0 0 0 3px #14112b,0 6px 16px rgba(0,0,0,.45)}' +
+      '.rbxw-light .rbxw-logo{box-shadow:0 0 0 3px #fff,0 6px 16px rgba(26,20,54,.18)}' +
+      '.' + PREFIX + 'a:hover .rbxw-logo{transform:scale(1.04)}' +
+      '.' + PREFIX + 'titles{flex:1;min-width:0;padding-bottom:3px}' +
+      '.' + PREFIX + 'title{margin:0;font-size:17.5px;font-weight:750;letter-spacing:-.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--rbxw-fg)}' +
+      '.' + PREFIX + 'creator{margin-top:3px;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--rbxw-dim)}' +
+      // On top of artwork the title is white, not the theme foreground: the dark
+      // card's own background is nearly black and would swallow the name. The
+      // light card keeps its normal colours because it does not overlap.
+      '.rbxw-dark.rbxw-padbanner .rbxw-title{color:#fff}' +
+      '.rbxw-dark.rbxw-padbanner .rbxw-creator{color:rgba(255,255,255,.9)}' +
+      '.rbxw-dark.rbxw-padbanner .rbxw-titles{text-shadow:0 1px 14px rgba(0,0,0,.6)}' +
+      // An equal-width grid, so the tiles line up across every card on the page
+      // instead of each one sizing itself to its own numbers.
+      '.' + PREFIX + 'stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px;margin-top:16px}' +
+      '.' + PREFIX + 'stat{min-width:0;padding:10px 11px;border-radius:12px;background:var(--rbxw-tile);border:1px solid var(--rbxw-line);color:var(--rbxw-dim);font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;line-height:1.3}' +
+      // The label is its own block, so it can never end up on the same line as
+      // the number, and the number keeps tabular figures so a card that refreshes
+      // does not shuffle sideways while it counts.
+      '.' + PREFIX + 'cap{display:block;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
+      '.' + PREFIX + 'val{display:block;font-size:17px;font-weight:780;letter-spacing:-.02em;font-variant-numeric:tabular-nums;text-transform:none;color:var(--rbxw-fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}' +
       // The value carries its own class so that .rbxw-live, declared after it
       // and with the same weight, is what decides the colour of the player
       // count. That keeps the descendant selector on `b` out of the way and
       // leaves .rbxw-live free to be restyled from the host's stylesheet.
-      '.' + PREFIX + 'value{color:var(--rbxw-fg)}' +
       '.' + PREFIX + 'live{color:var(--rbxw-live)}' +
+      // A breathing dot next to the player count, so "live" is visible without
+      // reading the number. Suppressed for visitors who asked for less motion.
+      '.' + PREFIX + 'livewrap{display:flex;align-items:center;gap:6px;min-width:0}' +
+      '.' + PREFIX + 'livewrap .rbxw-val{min-width:0}' +
+      '.' + PREFIX + 'dot{width:6px;height:6px;border-radius:50%;background:var(--rbxw-live);flex-shrink:0;animation:rbxw-pulse 2s ease-out infinite}' +
+      '@keyframes rbxw-pulse{0%{box-shadow:0 0 0 0 rgba(52,211,153,.5)}70%{box-shadow:0 0 0 7px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}' +
       '.' + PREFIX + 'a{color:inherit;text-decoration:none;display:block;font-family:inherit}' +
-      '.' + PREFIX + 'a:hover .' + PREFIX + 'title{text-decoration:underline}' +
+      '.' + PREFIX + 'a:hover .' + PREFIX + 'title{text-decoration:underline;text-underline-offset:2px}' +
       // The text properties a host page is most likely to set on bare
       // elements, restated so the card looks the same wherever it is pasted.
-      '.' + PREFIX + 'title,.' + PREFIX + 'creator,.' + PREFIX + 'stat,.' + PREFIX + 'stat b,.' + PREFIX + 'value,.' + PREFIX + 'err{font-family:inherit;line-height:1.4;font-style:normal}' +
-      '.' + PREFIX + 'err{padding:16px;font-size:13px;color:#fca5a5}';
+      '.' + PREFIX + 'title,.' + PREFIX + 'creator,.' + PREFIX + 'stat,.' + PREFIX + 'val,.' + PREFIX + 'cap,.' + PREFIX + 'live,.' + PREFIX + 'err,.' + PREFIX + 'foot{font-family:inherit;line-height:1.4;font-style:normal}' +
+      '.' + PREFIX + 'foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--rbxw-line);font-size:12px;font-weight:600;color:var(--rbxw-dim)}' +
+      '.' + PREFIX + 'go{display:inline-flex;align-items:center;gap:5px;color:var(--rbxw-fg)}' +
+      '.' + PREFIX + 'go svg{width:13px;height:13px;flex-shrink:0;transition:transform .18s ease}' +
+      '.' + PREFIX + 'a:hover .rbxw-go svg{transform:translateX(3px)}' +
+      '.' + PREFIX + 'err{padding:18px;font-size:13px;line-height:1.55;color:#fca5a5}' +
+      '.' + PREFIX + 'err b{display:block;margin-bottom:5px;font-size:14px;font-weight:700;color:#fff}' +
+      // Painted between the script tag running and the answer arriving, so the
+      // space the card will take is already reserved and nothing jumps.
+      '.' + PREFIX + 'sk{width:100%;max-width:520px;border-radius:18px;overflow:hidden;background:var(--rbxw-tile);border:1px solid var(--rbxw-line)}' +
+      '.' + PREFIX + 'skbar{height:124px;background:var(--rbxw-line)}' +
+      '.' + PREFIX + 'skbody{padding:16px 18px 18px}' +
+      '.' + PREFIX + 'skrow{height:13px;border-radius:7px;background:var(--rbxw-line);margin-bottom:10px;animation:rbxw-fade 1.4s ease-in-out infinite}' +
+      '.' + PREFIX + 'skrow.w70{width:70%}' +
+      '.' + PREFIX + 'skrow.w40{width:40%}' +
+      '.' + PREFIX + 'sktiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px;margin-top:16px}' +
+      '.' + PREFIX + 'sktile{height:56px;border-radius:12px;background:var(--rbxw-line);animation:rbxw-fade 1.4s ease-in-out infinite}' +
+      '@keyframes rbxw-fade{0%,100%{opacity:1}50%{opacity:.4}}' +
+      '@media (prefers-reduced-motion:reduce){' +
+      '.' + PREFIX + 'dot,' + '.' + PREFIX + 'skrow,' + '.' + PREFIX + 'sktile{animation:none}' +
+      '.' + PREFIX + 'card{transition:none}' +
+      '.' + PREFIX + 'card:hover{transform:none}' +
+      '}';
 
-    var style = document.createElement('style');
+    var style = existing || document.createElement('style');
     style.id = PREFIX + 'styles';
+    style.setAttribute('data-rbxw-build', STYLE_BUILD);
     style.textContent = css;
-    // First, not last. Every rule above is a class selector, so it still beats
-    // a bare `p { ... }` on the host page no matter where it sits. Putting it
-    // at the top of the head means a page that wants `.rbxw-live { color: … }`
-    // in its own stylesheet actually wins, which is what the docs promise.
-    document.head.insertBefore(style, document.head.firstChild);
+    if (!existing) {
+      // First, not last. Every rule above is a class selector, so it still beats
+      // a bare `p { ... }` on the host page no matter where it sits. Putting it
+      // at the top of the head means a page that wants `.rbxw-live { color: … }`
+      // in its own stylesheet actually wins, which is what the docs promise.
+      document.head.insertBefore(style, document.head.firstChild);
+    }
+  }
+
+  /** Paints the placeholder shape, so the layout does not jump on arrival. */
+  function buildSkeleton(host, theme, compact) {
+    host.textContent = '';
+    host.className = host.className.replace(/\brbxw-\S+/g, '').trim();
+
+    var sk = document.createElement('div');
+    sk.className = PREFIX + 'sk ' + PREFIX + (theme === 'light' ? 'light' : 'dark');
+    sk.setAttribute('aria-hidden', 'true');
+
+    if (!compact) {
+      var bar = document.createElement('div');
+      bar.className = PREFIX + 'skbar';
+      sk.appendChild(bar);
+    }
+
+    var body = document.createElement('div');
+    body.className = PREFIX + 'skbody';
+
+    var r1 = document.createElement('div');
+    r1.className = PREFIX + 'skrow w70';
+    var r2 = document.createElement('div');
+    r2.className = PREFIX + 'skrow w40';
+    body.appendChild(r1);
+    body.appendChild(r2);
+
+    var tiles = document.createElement('div');
+    tiles.className = PREFIX + 'sktiles';
+    var n = compact ? 2 : 3;
+    for (var i = 0; i < n; i++) {
+      var t = document.createElement('div');
+      t.className = PREFIX + 'sktile';
+      tiles.appendChild(t);
+    }
+    body.appendChild(tiles);
+
+    sk.appendChild(body);
+    host.appendChild(sk);
   }
 
   function buildCard(host, data, opts) {
@@ -811,11 +927,15 @@
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
 
-    if (!compact && data.banner) {
+    // The logo only overlaps the banner when there is a banner to overlap, and
+    // only when the card is wide enough for the pull-up to read as intentional.
+    var hasBanner = !compact && !!data.banner;
+    if (hasBanner) {
       var banner = document.createElement('div');
       banner.className = PREFIX + 'banner';
       banner.style.backgroundImage = 'url("' + data.banner + '")';
       card.appendChild(banner);
+      card.className += ' ' + PREFIX + 'padbanner';
     }
 
     var body = document.createElement('div');
@@ -826,13 +946,18 @@
 
     if (data.thumbnail) {
       var logo = document.createElement('div');
-      logo.className = PREFIX + 'logo' + (compact ? '' : ' lg');
+      logo.className = PREFIX + 'logo';
       logo.style.backgroundImage = 'url("' + data.thumbnail + '")';
+      logo.setAttribute('role', 'img');
+      logo.setAttribute('aria-label', (data.name || 'Game') + ' logo');
       head.appendChild(logo);
+    } else if (!hasBanner) {
+      // Without a banner to sit against, the head needs its own top spacing.
+      head.className += ' ' + PREFIX + 'headnoimg';
     }
 
     var titles = document.createElement('div');
-    titles.style.minWidth = '0';
+    titles.className = PREFIX + 'titles';
 
     var title = document.createElement('p');
     title.className = PREFIX + 'title';
@@ -855,25 +980,81 @@
     var stats = document.createElement('div');
     stats.className = PREFIX + 'stats';
 
-    function addStat(label, value, valueClass) {
+    function addStat(label, value, opts) {
+      opts = opts || {};
       var stat = document.createElement('div');
       stat.className = PREFIX + 'stat';
-      var b = document.createElement('b');
-      // rbxw-value carries the number's own colour; rbxw-live, when present,
-      // is declared after it and wins on source order.
-      b.className = PREFIX + 'value' + (valueClass ? ' ' + valueClass : '');
-      b.textContent = value;
-      b.title = value; // the exact value in the tooltip
-      stat.appendChild(b);
-      stat.appendChild(document.createTextNode(label));
+
+      // The value and the label are separate block-level elements. As a bare
+      // text node the label landed on the same line as the number, because
+      // anything inside the inline-flex live wrapper is a flex item and stops
+      // being a block.
+      var val = document.createElement(opts.live ? 'span' : 'b');
+      val.className = PREFIX + 'val' + (opts.live ? ' ' + PREFIX + 'live' : '');
+
+      if (opts.live) {
+        // The dot is a sibling of the number rather than a background on it, so
+        // it keeps its size whatever font-size the host page gives the value.
+        var wrap = document.createElement('span');
+        wrap.className = PREFIX + 'livewrap';
+        var dot = document.createElement('span');
+        dot.className = PREFIX + 'dot';
+        dot.setAttribute('aria-hidden', 'true');
+        wrap.appendChild(dot);
+        val.textContent = value;
+        wrap.appendChild(val);
+        stat.appendChild(wrap);
+      } else {
+        val.textContent = value;
+        stat.appendChild(val);
+      }
+
+      val.title = value; // the exact value in the tooltip
+
+      var cap = document.createElement('span');
+      cap.className = PREFIX + 'cap';
+      cap.textContent = label;
+      stat.appendChild(cap);
+
       stats.appendChild(stat);
     }
 
-    addStat('playing', short(playing), PREFIX + 'live');
+    addStat('playing', short(playing), { live: true });
     addStat('likes', short(upVotes));
     if (!compact) addStat('visits', short(visits));
 
     body.appendChild(stats);
+
+    var foot = document.createElement('div');
+    foot.className = PREFIX + 'foot';
+
+    var tag = document.createElement('span');
+    tag.textContent = compact ? 'Live from Roblox' : 'Stats update live';
+    foot.appendChild(tag);
+
+    var go = document.createElement('span');
+    go.className = PREFIX + 'go';
+    go.appendChild(document.createTextNode('Open on Roblox'));
+    // An inline arrow, so the card needs no icon font and no extra request.
+    var arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    arrow.setAttribute('viewBox', '0 0 24 24');
+    arrow.setAttribute('fill', 'none');
+    arrow.setAttribute('stroke', 'currentColor');
+    arrow.setAttribute('stroke-width', '2.5');
+    arrow.setAttribute('stroke-linecap', 'round');
+    arrow.setAttribute('stroke-linejoin', 'round');
+    arrow.setAttribute('aria-hidden', 'true');
+    var p1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p1.setAttribute('d', 'M5 12h14');
+    var p2 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p2.setAttribute('d', 'M13 6l6 6-6 6');
+    arrow.appendChild(p1);
+    arrow.appendChild(p2);
+    go.appendChild(arrow);
+    foot.appendChild(go);
+
+    body.appendChild(foot);
+
     link.appendChild(body);
     card.appendChild(link);
     host.appendChild(card);
@@ -885,7 +1066,10 @@
     box.className = PREFIX + 'card ' + PREFIX + 'dark';
     var err = document.createElement('div');
     err.className = PREFIX + 'err';
-    err.textContent = 'Could not load this game: ' + message;
+    var b = document.createElement('b');
+    b.textContent = 'Could not load this game';
+    err.appendChild(b);
+    err.appendChild(document.createTextNode(message));
     box.appendChild(err);
     host.appendChild(box);
   }
@@ -913,6 +1097,12 @@
         });
       })
       .then(function (data) {
+        // A refresh that arrives after the credit was pulled must not wipe the
+        // card that is already on screen and replace it with an error.
+        if (creditBlocked) {
+          renderError(host, CREDIT_OFF_MESSAGE);
+          return;
+        }
         buildCard(host, data, opts);
       })
       .catch(function (err) {
@@ -933,6 +1123,9 @@
         renderError(host, 'missing the data-roblox-game attribute');
         return;
       }
+      // Reserve the card's footprint before the request goes out, so the page
+      // does not jump once the numbers land.
+      buildSkeleton(host, opts.theme, opts.fields === 'compact');
       loadCard(host, opts);
       var refresh = parseInt(host.getAttribute('data-roblox-refresh'), 10);
       if (refresh > 0) {
@@ -967,23 +1160,31 @@
   // can still win if they genuinely need to reposition it.
   var CREDIT_CSS =
     '#' + CREDIT_ID + '{' +
-    'position:fixed;left:12px;bottom:12px;z-index:2147483000;' +
-    'display:inline-flex;align-items:center;gap:7px;' +
-    'max-width:calc(100vw - 24px);box-sizing:border-box;' +
-    'padding:6px 12px;border-radius:999px;' +
+    'position:fixed;left:14px;bottom:14px;z-index:2147483000;' +
+    'display:inline-flex;align-items:center;gap:8px;' +
+    'max-width:calc(100vw - 28px);box-sizing:border-box;' +
+    'padding:7px 14px 7px 8px;border-radius:999px;' +
     'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;' +
-    'font-size:12px;font-weight:600;line-height:1.25;letter-spacing:.01em;' +
-    'text-decoration:none;' +
-    'background:rgba(15,18,28,.9);color:#e8ecf6;border:1px solid rgba(255,255,255,.14);' +
-    'box-shadow:0 2px 10px rgba(0,0,0,.28);' +
+    'font-size:12.5px;font-weight:600;line-height:1.25;letter-spacing:.005em;' +
+    'text-decoration:none;cursor:pointer;' +
+    // A blurred backdrop rather than a flat fill: the badge floats over somebody
+    // else's photography, and a solid block over artwork reads as a mistake.
+    'background:rgba(13,11,34,.82);color:#edeaff;border:1px solid rgba(167,139,250,.28);' +
+    'box-shadow:0 4px 16px rgba(3,2,12,.4),0 1px 2px rgba(3,2,12,.24);' +
+    'backdrop-filter:blur(10px) saturate(1.3);-webkit-backdrop-filter:blur(10px) saturate(1.3);' +
+    'transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;' +
     '}' +
+    '#' + CREDIT_ID + ':hover{transform:translateY(-1px);color:#fff;border-color:rgba(255,255,255,.32);' +
+    'box-shadow:0 8px 22px rgba(0,0,0,.4),0 1px 2px rgba(0,0,0,.2);}' +
+    '#' + CREDIT_ID + ':active{transform:translateY(0)}' +
+    // The tag doubles as the badge's icon, so the badge reads as branded even
+    // when the text next to it has been truncated away on a narrow phone.
     '#' + CREDIT_ID + ' .' + PREFIX + 'credit-tag{' +
-    'font-size:10px;font-weight:800;line-height:1;letter-spacing:.06em;' +
+    'font-size:10px;font-weight:800;line-height:1;letter-spacing:.07em;' +
     /* White on amber is 1.9:1; this brown on amber is 5.4:1, so the tag stays
        readable on both a light and a dark host page. */
-    'color:#6b3f00;background:#fbbf24;border-radius:999px;padding:3px 6px;' +
-    '}' +
-    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-text{color:#e8ecf6;white-space:nowrap;' +
+    'color:#6b3f00;background:#fbbf24;border-radius:999px;padding:4px 7px;flex-shrink:0;}' +
+    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-text{color:#edeaff;white-space:nowrap;' +
     'overflow:hidden;text-overflow:ellipsis;}' +
     // Only the name is a link, and it carries its own colour so a host rule
     // like `a { color: inherit }` cannot flatten it into the surrounding text
@@ -993,11 +1194,10 @@
     '#' + CREDIT_ID + ' .' + PREFIX + 'credit-link:hover{color:#fcd34d;text-decoration:underline;}' +
     '#' + CREDIT_ID + ' .' + PREFIX + 'credit-link:focus-visible{outline:2px solid #fbbf24;' +
     'outline-offset:2px;border-radius:3px;}' +
-    '#' + CREDIT_ID + ':hover{color:#fff;border-color:rgba(255,255,255,.3);}' +
     '@media (prefers-color-scheme:light){' +
-    '#' + CREDIT_ID + '{background:rgba(255,255,255,.94);color:#1f2430;border-color:rgba(0,0,0,.14);' +
-    'box-shadow:0 2px 10px rgba(0,0,0,.14);}' +
-    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-text{color:#1f2430;}' +
+    '#' + CREDIT_ID + '{background:rgba(255,255,255,.88);color:#1a1436;border-color:rgba(124,58,237,.24);' +
+    'box-shadow:0 4px 16px rgba(26,20,54,.16),0 1px 2px rgba(26,20,54,.08);}' +
+    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-text{color:#1a1436;}' +
     // Amber reads as a washed-out link on a white badge; this brown is 5.4:1.
     '#' + CREDIT_ID + ' .' + PREFIX + 'credit-link{color:#6b3f00;}' +
     '#' + CREDIT_ID + ' .' + PREFIX + 'credit-link:hover{color:#4a2b00;}' +
@@ -1006,20 +1206,22 @@
 
   var NOTICE_CSS =
     '#' + PREFIX + 'credit-notice{' +
-    'position:fixed;left:12px;bottom:12px;z-index:2147483001;' +
-    'max-width:min(420px,calc(100vw - 24px));box-sizing:border-box;' +
-    'padding:14px 16px;border-radius:12px;' +
+    'position:fixed;left:14px;bottom:14px;z-index:2147483001;' +
+    'max-width:min(420px,calc(100vw - 28px));box-sizing:border-box;' +
+    'padding:16px 18px;border-radius:14px;' +
     'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;' +
-    'font-size:13px;font-weight:400;line-height:1.5;color:#fde8e8;' +
-    'background:#2a1215;border:1px solid #7f1d1d;box-shadow:0 4px 16px rgba(0,0,0,.3);' +
+    'font-size:13px;font-weight:400;line-height:1.55;color:#fde8e8;' +
+    'background:#2a1215;border:1px solid #7f1d1d;box-shadow:0 10px 30px rgba(0,0,0,.42);' +
     '}' +
-    '#' + PREFIX + 'credit-notice b{display:block;margin-bottom:6px;font-size:13px;' +
-    'font-weight:700;line-height:1.4;color:#fff;}' +
-    '#' + PREFIX + 'credit-notice .' + PREFIX + 'notice-why{display:block;margin-bottom:10px;}' +
+    '#' + PREFIX + 'credit-notice b{display:block;margin-bottom:6px;font-size:14px;' +
+    'font-weight:700;line-height:1.4;color:#fff;letter-spacing:-.01em;}' +
+    '#' + PREFIX + 'credit-notice .' + PREFIX + 'notice-why{display:block;margin-bottom:14px;}' +
     '#' + PREFIX + 'credit-notice button{' +
-    'font:inherit;font-size:12px;font-weight:600;line-height:1.4;cursor:pointer;' +
-    'color:#2a1215;background:#fbbf24;border:0;border-radius:7px;padding:7px 12px;' +
-    '}';
+    'font:inherit;font-size:12.5px;font-weight:700;line-height:1.4;cursor:pointer;' +
+    'color:#2a1215;background:#fbbf24;border:0;border-radius:9px;padding:9px 16px;' +
+    'box-shadow:0 1px 2px rgba(0,0,0,.2);}' +
+    '#' + PREFIX + 'credit-notice button:hover{background:#fcd34d;}' +
+    '#' + PREFIX + 'credit-notice button:focus-visible{outline:2px solid #fbbf24;outline-offset:2px;}';
 
   function injectCreditStyles() {
     if (document.getElementById(PREFIX + 'credit-styles')) return;
@@ -1086,7 +1288,7 @@
     box.id = PREFIX + 'credit-notice';
 
     var head = document.createElement('b');
-    head.textContent = 'Roblox Stats is turned off on this page';
+    head.textContent = 'MoonBlox is turned off on this page';
     var why = document.createElement('span');
     why.className = PREFIX + 'notice-why';
     why.textContent =

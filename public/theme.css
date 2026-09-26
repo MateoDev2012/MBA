@@ -1,9 +1,16 @@
 /* ==========================================================================
-   Roblox Stats API — shared design system
+   MoonBlox API — shared design system
    ==========================================================================
 
    One stylesheet for every page of the site (home, docs, demo, pricing,
-   legal, 404) so they look like one product instead of six different ones.
+   legal, 404, explorer) so they look like one product instead of nine
+   different ones.
+
+   The palette is lunar: deep indigo and violet for the night side, cold cyan
+   for moonlight, and a pale lavender dawn for the light side. Every text and
+   background pair below was picked to clear WCAG AA (4.5:1) rather than to
+   look nice on its own, which is why the muted greys are real colours and not
+   opacity - opacity on a tile also fades the number sitting on it.
 
    Themes: the pages set <html data-theme="dark|light"> before first paint with
    a tiny inline script, so there is no flash of the wrong colours. Without
@@ -17,39 +24,43 @@
 /* --- Tokens ---------------------------------------------------------------- */
 
 :root {
-  --bg: #f7f8fc;
-  --bg-soft: #eef1f8;
+  /* Dawn: a pale lavender sky rather than a neutral grey, so the light theme
+     still reads as the same product as the night one. */
+  --bg: #f6f5fc;
+  --bg-soft: #eeecf8;
   --panel: #ffffff;
-  --panel-2: #f2f4fa;
-  --border: #e2e6f0;
-  --border-strong: #cbd3e3;
-  --text: #0f1626;
-  --text-soft: #3b4560;
-  --muted: #5f6b85;
-  --code-text: #26304a;
-  --code-bg: #f2f5fb;
-  --code-border: #dce2ef;
+  --panel-2: #f3f1fb;
+  --border: #e3e0f0;
+  --border-strong: #cdc8e2;
+  --text: #1a1436;
+  --text-soft: #3b3463;
+  --muted: #5b5480;
+  --code-text: #2e2760;
+  --code-bg: #f2f0fb;
+  --code-border: #ddd8ef;
 
-  --accent: #e8384f;
-  --accent-ink: #c01c36;
-  --accent-soft: rgba(232, 56, 79, 0.1);
-  --accent-2: #2563eb;
-  --accent-2-ink: #1d4fd0;
-  --accent-2-soft: rgba(37, 99, 235, 0.1);
-  --ok: #16a34a;
-  --ok-ink: #0f7a39;
-  --ok-soft: rgba(22, 163, 74, 0.12);
+  /* Violet is the brand: it is what the logo, the buttons and the focus ring
+     are, so the accent and the accent-2 must never read as the same colour. */
+  --accent: #7c3aed;
+  --accent-ink: #6d28d9;
+  --accent-soft: rgba(124, 58, 237, 0.1);
+  --accent-2: #0e7490;
+  --accent-2-ink: #0b5f76;
+  --accent-2-soft: rgba(14, 116, 144, 0.1);
+  --ok: #15803d;
+  --ok-ink: #0f6b33;
+  --ok-soft: rgba(21, 128, 61, 0.12);
   --warn: #b45309;
   --warn-soft: rgba(217, 119, 6, 0.1);
-  --info-soft: rgba(37, 99, 235, 0.08);
+  --info-soft: rgba(124, 58, 237, 0.08);
 
-  --brand-grad: linear-gradient(150deg, #ff5a6e 0%, #e8384f 42%, #a81229 100%);
-  --blue-grad: linear-gradient(180deg, #3b7bfa, #1d4fd0);
+  --brand-grad: linear-gradient(150deg, #8b5cf6 0%, #6d28d9 45%, #4c1d95 100%);
+  --glow-grad: linear-gradient(180deg, #22d3ee, #0e7490);
 
-  --shadow-sm: 0 1px 2px rgba(15, 22, 38, 0.06), 0 1px 3px rgba(15, 22, 38, 0.05);
-  --shadow-md: 0 4px 14px rgba(15, 22, 38, 0.08), 0 2px 4px rgba(15, 22, 38, 0.04);
-  --shadow-lg: 0 20px 48px rgba(15, 22, 38, 0.13);
-  --ring: 0 0 0 3px var(--accent-2-soft);
+  --shadow-sm: 0 1px 2px rgba(26, 20, 54, 0.06), 0 1px 3px rgba(26, 20, 54, 0.05);
+  --shadow-md: 0 4px 14px rgba(26, 20, 54, 0.08), 0 2px 4px rgba(26, 20, 54, 0.04);
+  --shadow-lg: 0 20px 48px rgba(26, 20, 54, 0.13);
+  --ring: 0 0 0 3px var(--accent-soft);
 
   --radius: 14px;
   --radius-sm: 9px;
@@ -64,38 +75,42 @@
 }
 
 :root[data-theme="dark"] {
-  --bg: #070a12;
-  --bg-soft: #0c1120;
-  --panel: #111828;
-  --panel-2: #182033;
-  --border: #202a42;
-  --border-strong: #2e3a56;
-  --text: #e9eefb;
-  --text-soft: #c2cbe2;
-  --muted: #9dabc9;
-  --code-text: #d7e0f5;
-  --code-bg: #05080f;
-  --code-border: #1b2338;
+  /* Night: not black. A blue-black reads as space; a flat black reads as a
+     screen that is switched off. */
+  --bg: #080716;
+  --bg-soft: #0d0b22;
+  --panel: #14112b;
+  --panel-2: #1c1839;
+  --border: #272148;
+  --border-strong: #3a3266;
+  --text: #edeaff;
+  --text-soft: #c9c3ee;
+  --muted: #a49dd0;
+  --code-text: #ded9ff;
+  --code-bg: #05040f;
+  --code-border: #1e1a3d;
 
-  --accent: #ff4d63;
-  --accent-ink: #ff8593;
-  --accent-soft: rgba(255, 77, 99, 0.14);
-  --accent-2: #5b93ff;
-  --accent-2-ink: #9bbdff;
-  --accent-2-soft: rgba(91, 147, 255, 0.14);
+  /* Lighter than the light theme's accent on purpose: the same hex that reads
+     as "moonlit violet" on white turns muddy on near-black. */
+  --accent: #a78bfa;
+  --accent-ink: #c4b5fd;
+  --accent-soft: rgba(167, 139, 250, 0.16);
+  --accent-2: #67e8f9;
+  --accent-2-ink: #a5f3fc;
+  --accent-2-soft: rgba(103, 232, 249, 0.14);
   --ok: #34d399;
-  --ok-ink: #4ade9f;
+  --ok-ink: #6ee7b7;
   --ok-soft: rgba(52, 211, 153, 0.13);
   --warn: #fbbf24;
   --warn-soft: rgba(251, 191, 36, 0.1);
-  --info-soft: rgba(91, 147, 255, 0.1);
+  --info-soft: rgba(167, 139, 250, 0.12);
 
-  --brand-grad: linear-gradient(150deg, #ff7183 0%, #ff4d63 42%, #c31d38 100%);
-  --blue-grad: linear-gradient(180deg, #6ea3ff, #3a72e8);
+  --brand-grad: linear-gradient(150deg, #c4b5fd 0%, #8b5cf6 45%, #5b21b6 100%);
+  --glow-grad: linear-gradient(180deg, #a5f3fc, #0891b2);
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
-  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 26px 64px rgba(0, 0, 0, 0.62);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 26px 64px rgba(0, 0, 0, 0.66);
 }
 
 * { box-sizing: border-box; }
@@ -171,8 +186,16 @@ strong { font-weight: 680; color: var(--text); }
   background: var(--brand-grad);
   display: grid; place-items: center;
   color: #fff; font-size: 12.5px; font-weight: 800;
-  box-shadow: 0 2px 10px rgba(232, 56, 79, 0.42);
+  box-shadow: 0 2px 10px rgba(124, 58, 237, 0.42);
+  /* A violet glow, so the mark reads as lit from behind rather than printed. */
+  position: relative;
 }
+.brand-mark::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  pointer-events: none;
+}
+.brand-mark svg { width: 16px; height: 16px; display: block; position: relative; z-index: 1; }
 .brand small { color: var(--muted); font-weight: 500; letter-spacing: 0; }
 
 .nav { display: flex; gap: 2px; margin-left: auto; align-items: center; }
@@ -231,14 +254,20 @@ strong { font-weight: 680; color: var(--text); }
   font: inherit; font-size: 0.92rem; font-weight: 620;
   padding: 10px 18px; border-radius: 10px; cursor: pointer;
   border: 1px solid transparent; color: #fff;
-  background: var(--blue-grad);
+  /* The brand gradient, not the cyan one. A cyan gradient starts at #22d3ee,
+     which is 1.8:1 against white text: the top of the button was effectively
+     invisible in the light theme. Every stop of the violet clears 5:1. */
+  background: var(--brand-grad);
   box-shadow: var(--shadow-sm);
   transition: filter .15s, transform .06s, box-shadow .15s;
   white-space: nowrap;
 }
 .btn:hover { filter: brightness(1.08); text-decoration: none; color: #fff; }
 .btn:active { transform: translateY(1px); }
-.btn-accent { background: var(--brand-grad); box-shadow: 0 2px 12px rgba(232, 56, 79, 0.32); }
+.btn-accent { background: var(--brand-grad); box-shadow: 0 2px 12px rgba(124, 58, 237, 0.32); }
+/* Cyan is for decoration and for dark text, never for white text on a light
+   stop. Used for the endpoint pills and the inline code accents. */
+.btn-glow { background: var(--glow-grad); color: #04222a; }
 .btn-ghost {
   background: var(--panel); color: var(--text); border-color: var(--border-strong);
   box-shadow: none;
@@ -341,7 +370,7 @@ strong { font-weight: 680; color: var(--text); }
   padding: 4px 9px; border-radius: 7px;
   /* Opaque enough to read over a bright banner and to be measurable: a 0.6
      alpha chip turned white text into white on white in the light theme. */
-  background: rgba(8, 11, 20, 0.88); color: #fff;
+  background: rgba(11, 8, 28, 0.88); color: #fff;
 }
 .livecard-body { padding: 0 20px 18px; }
 .livecard-head { display: flex; align-items: flex-end; gap: 13px; margin-top: -30px; }

@@ -221,11 +221,22 @@ router.get(
       ]);
       data = games.map((g) => {
         const d = details[g.id];
+        const upVotes = g.upVotes || 0;
+        const downVotes = g.downVotes || 0;
+        const totalVotes = upVotes + downVotes;
         const row = {
           ...g,
           // Search has an empty creatorName; games.roblox.com has the real one.
           creator: g.creator || d?.creator?.name || null,
           visits: d ? parseCount(d.visits) : null,
+          // The same derived numbers /games/{id} returns. Without them a caller
+          // has to recompute the ratio from two raw counts, and every front end
+          // that trusted upVoteRatio being there showed 0%.
+          likes: upVotes,
+          upVotes,
+          downVotes,
+          totalVotes,
+          upVoteRatio: totalVotes > 0 ? Math.round((upVotes / totalVotes) * 1000) / 10 : 0,
         };
         if (includeMedia) {
           row.thumbnail = icons?.[g.id] || null;

@@ -1,7 +1,7 @@
 /**
  * roblox-stats-sdk
  *
- * Node client for the Roblox Stats API. Zero dependencies.
+ * Node client for the MoonBlox API. Zero dependencies.
  *
  *   import { getGame, search } from 'roblox-stats-sdk';
  *   const game = await getGame(994732206);

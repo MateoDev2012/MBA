@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Game Explorer — Roblox Stats API</title>
+<title>Game Explorer — MoonBlox API</title>
 <meta name="description" content="Search and browse Roblox games with live stats: players, likes, visits, graphics, charts." />
 <meta name="color-scheme" content="light dark" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23e8384f'/><text x='16' y='23' font-size='19' font-family='sans-serif' font-weight='bold' fill='white' text-anchor='middle'>R</text></svg>" />
@@ -25,8 +25,8 @@
 <header class="topbar">
   <div class="wrap">
     <a class="brand" href="/">
-      <span class="brand-mark">R</span>
-      Roblox Stats API
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5 8.6 8.6 0 1 0 20.5 14.6z"/><path d="M17.4 4.2l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z" fill="currentColor" stroke="none"/></svg></span>
+      MoonBlox API
     </a>
     <nav class="nav">
       <a href="/">Home</a>
@@ -156,10 +156,10 @@
           <div class="modal-stats">
             <div class="modal-stat"><b id="modalPlaying">—</b><span>Playing now</span></div>
             <div class="modal-stat"><b id="modalVisits">—</b><span>Visits</span></div>
-            <div class="modal-stat"><b id="modalLikes">—</b><span>Likes</div>
-            <div class="modal-stat"><b id="modalFavorites">—</b><span>Favorites</div>
-            <div class="modal-stat"><b id="modalRatio">—</b><span>Like ratio</div>
-            <div class="modal-stat"><b id="modalMaxPlayers">—</b><span>Max players</div>
+            <div class="modal-stat"><b id="modalLikes">—</b><span>Likes</span></div>
+            <div class="modal-stat"><b id="modalFavorites">—</b><span>Favorites</span></div>
+            <div class="modal-stat"><b id="modalRatio">—</b><span>Like ratio</span></div>
+            <div class="modal-stat"><b id="modalMaxPlayers">—</b><span>Max players</span></div>
           </div>
           <p id="modalDescription" class="modal-description"></p>
           <div class="modal-actions">
@@ -181,8 +181,8 @@
     <div class="footer-grid">
       <div class="footer-col">
         <a class="footer-brand" href="/">
-          <span class="brand-mark">R</span>
-          Roblox Stats API
+          <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5 8.6 8.6 0 1 0 20.5 14.6z"/><path d="M17.4 4.2l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z" fill="currentColor" stroke="none"/></svg></span>
+          MoonBlox API
         </a>
         <p class="footer-about">
           Live Roblox game statistics over plain HTTP, free to use. Data comes from Roblox's public
@@ -384,12 +384,14 @@
     modalVisits.textContent = formatNumber(game.visits);
     modalLikes.textContent = formatNumber(game.ratings?.upVotes || game.upVotes || 0);
     modalFavorites.textContent = formatNumber(game.ratings?.favorites || game.favorites || 0);
-    modalRatio.textContent = (game.ratings?.upVoteRatio || game.upVoteRatio || 0).toFixed(1) + '%';
+    // voteRatio() is a hoisted function declaration, so it is already defined
+    // here even though it is written further down the file.
+    var ratio = voteRatio(game);
+    modalRatio.textContent = ratio === null ? '—' : ratio.toFixed(1) + '%';
     modalMaxPlayers.textContent = formatNumber(game.maxPlayers);
 
     modalDescription.textContent = game.description || 'No description available.';
     modalUrl.href = game.url || '#';
-    modalCreatorLink.href = game.creatorUrl || '#';
 
     gameModal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -542,26 +544,46 @@
       });
   }
 
+  // Trending returns upVotes and downVotes but no upVoteRatio, so every card
+  // used to read "0.0% ratio". Compute it when the field is not already there.
+  function voteRatio(game) {
+    var given = game.ratings?.upVoteRatio ?? game.upVoteRatio;
+    if (typeof given === 'number' && given > 0) return given;
+    var up = game.ratings?.upVotes ?? game.upVotes;
+    var down = game.ratings?.downVotes ?? game.downVotes;
+    if (typeof up !== 'number' || typeof down !== 'number') return null;
+    var total = up + down;
+    return total > 0 ? (up / total) * 100 : null;
+  }
+
   function renderGames(games) {
     gamesGrid.innerHTML = games.map(function (game) {
-      var playing = game.playing || 0;
-      var visits = game.visits || 0;
-      var likes = game.ratings?.upVotes || game.upVotes || 0;
-      var ratio = game.ratings?.upVoteRatio || game.upVoteRatio || 0;
+      var banner = game.banner
+        ? ' style="background-image:url(&quot;' + escapeHtml(game.banner) + '&quot;)"'
+        : '';
+
+      var ratio = voteRatio(game);
 
       return '<article class="game-card" role="listitem" data-id="' + game.id + '" tabindex="0">' +
-        '<div class="game-card-banner" style="background-image: url(' + (game.banner ? '"' + game.banner + '"' : '') + ')"></div>' +
+        // No banner means no 120px hole at the top of the card: the strip is
+        // only emitted when there is an image to put in it.
+        (game.banner ? '<div class="game-card-banner"' + banner + '></div>' : '') +
         '<div class="game-card-content">' +
-        '<img class="game-card-thumbnail" src="' + (game.thumbnail || '') + '" alt="" loading="lazy">' +
+        (game.thumbnail
+          ? '<img class="game-card-thumbnail" src="' + escapeHtml(game.thumbnail) + '" alt="" loading="lazy">'
+          : '') +
         '<h3 class="game-card-title">' + escapeHtml(game.name) + '</h3>' +
         '<p class="game-card-creator">by ' + escapeHtml(game.creator || 'Unknown') + '</p>' +
         '<div class="game-card-stats">' +
         '<span class="game-stat"><b>' + abbr(game.playing) + '</b><span>Playing</span></span>' +
         '<span class="game-stat"><b>' + abbr(game.ratings?.upVotes || game.upVotes || 0) + '</b><span>Likes</span></span>' +
         '<span class="game-stat"><b>' + abbr(game.visits) + '</b><span>Visits</span></span>' +
-        '<span class="game-stat"><b>' + (game.ratings?.upVoteRatio || game.upVoteRatio || 0).toFixed(1) + '%</b><span>Ratio</span></span>' +
+        '<span class="game-stat"><b>' + (ratio === null ? '—' : ratio.toFixed(1) + '%') + '</b><span>Ratio</span></span>' +
         '</div>' +
-        '<p class="game-card-description">' + escapeHtml((game.description || '').slice(0, 120)) + (game.description && game.description.length > 120 ? '…' : '') + '</p>' +
+        (game.description
+          ? '<p class="game-card-description">' + escapeHtml(game.description.slice(0, 120)) +
+            (game.description.length > 120 ? '…' : '') + '</p>'
+          : '') +
         '</div>' +
         '</article>';
     }).join('');
@@ -585,12 +607,19 @@
   function updateSummary(games) {
     var totalP = games.reduce(function (sum, g) { return sum + (g.playing || 0); }, 0);
     var totalV = games.reduce(function (sum, g) { return sum + (g.visits || 0); }, 0);
-    var avgR = games.reduce(function (sum, g) { return sum + (g.ratings?.upVoteRatio || g.upVoteRatio || 0); }, 0) / games.length;
+
+    // Averaged over the games that actually reported a ratio, not over all of
+    // them: a null folded in as 0 drags the mean down and reads as a real
+    // number, which is worse than showing nothing.
+    var ratios = games.map(voteRatio).filter(function (r) { return r !== null; });
+    var avgR = ratios.length
+      ? ratios.reduce(function (sum, r) { return sum + r; }, 0) / ratios.length
+      : null;
 
     totalGames.textContent = abbr(games.length);
     totalPlaying.textContent = abbr(totalP);
     totalVisits.textContent = abbr(totalV);
-    avgRatio.textContent = avgR.toFixed(1) + '%';
+    avgRatio.textContent = avgR === null ? '—' : avgR.toFixed(1) + '%';
   }
 
   function updatePagination() {
