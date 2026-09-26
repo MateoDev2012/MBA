@@ -50,11 +50,11 @@
   </div>
   <nav class="mobilenav" id="mobileNav" aria-label="Main" hidden>
     <a href="/">Home</a>
-    <a href="/docs">Documentation</a>
+    <a href="/docs" class="active">Documentation</a>
     <a href="/explorer">Explorer</a>
-    <a href="/demo">Demo</a>
-    <a href="/pricing">Pricing</a>
-    <a href="/legal">Legal</a>
+    <a href="/demo">Live demo</a>
+    <a href="/pricing">Pricing &amp; limits</a>
+    <a href="/legal">Legal notice</a>
     <a class="btn" href="/roblox-stats.js?download=1">Download script</a>
   </nav>
 </header>
@@ -141,73 +141,15 @@
             <pre><code>GET https://ms-mba.up.railway.app/api/v1/games/994732206</code></pre>
           </div>
 
-          <div data-tabs="lang">
-            <div class="tabs" role="tablist" aria-label="Language">
-              <button class="tab" role="tab" data-tab="js" aria-selected="true">JavaScript</button>
-              <button class="tab" role="tab" data-tab="node" aria-selected="false">Node.js SDK</button>
-              <button class="tab" role="tab" data-tab="py" aria-selected="false">Python</button>
-              <button class="tab" role="tab" data-tab="php" aria-selected="false">PHP</button>
-              <button class="tab" role="tab" data-tab="curl" aria-selected="false">cURL</button>
-            </div>
+          <p>That is the whole API: one <code>GET</code>, open CORS, JSON back. It
+            works the same from a browser, a server, Python, PHP or anything with an
+            HTTP client.</p>
 
-            <div class="tabpanel" role="tabpanel" data-tab="js" aria-hidden="false">
-              <div class="codeblock">
-                <pre><code>const res = await fetch('https://ms-mba.up.railway.app/api/v1/games/994732206');
-const { data } = await res.json();
-
-console.log(data.name);                 // "Blox Fruits"
-console.log(data.playing);              // players online right now
-console.log(data.ratings.upVotes);      // likes
-console.log(data.creator.name);         // owner
-console.log(data.thumbnail);            // logo URL</code></pre>
-              </div>
-            </div>
-
-            <div class="tabpanel" role="tabpanel" data-tab="node" aria-hidden="true">
-              <div class="codeblock">
-                <pre><code>import { getGame, search } from 'roblox-stats-sdk';
-
-// Point at your own deployment if self-hosted
-const game = await getGame(994732206);
-console.log(game.name, game.playing, game.ratings.upVotes);
-
-const results = await search('Blox Fruits', { limit: 5 });</code></pre>
-              </div>
-              <p class="hint">Install: <code>npm install roblox-stats-sdk</code>. Set <code>ROBLOX_BASE_URL</code> for custom deployments.</p>
-            </div>
-
-            <div class="tabpanel" role="tabpanel" data-tab="py" aria-hidden="true">
-              <div class="codeblock">
-                <pre><code>import requests
-
-data = requests.get("https://ms-mba.up.railway.app/api/v1/games/994732206").json()["data"]
-print(data["name"], data["playing"], data["ratings"]["upVotes"])</code></pre>
-              </div>
-            </div>
-
-            <div class="tabpanel" role="tabpanel" data-tab="php" aria-hidden="true">
-              <div class="codeblock">
-                <pre><code>$json = file_get_contents("https://ms-mba.up.railway.app/api/v1/games/994732206");
-$data = json_decode($json, true)["data"];
-echo $data["name"] . " — " . number_format($data["playing"]) . " playing";</code></pre>
-              </div>
-            </div>
-
-            <div class="tabpanel" role="tabpanel" data-tab="curl" aria-hidden="true">
-              <div class="codeblock">
-                <pre><code>curl https://ms-mba.up.railway.app/api/v1/games/994732206
-
-# Many at once:
-curl "https://ms-mba.up.railway.app/api/v1/games/batch?ids=994732206,1686885941"
-
-# Fill template:
-curl -X POST https://ms-mba.up.railway.app/api/v1/render \
-  -H "Content-Type: application/json" \
-  -d '{"universeId":994732206,"html":"{{playing}} players"}'</code></pre>
-              </div>
-            </div>
+          <div class="chips">
+            <a class="chip" href="/docs/examples">JavaScript, Python, PHP, cURL, Node SDK &rarr;</a>
+            <a class="chip" href="/docs/endpoints">All 15 endpoints &rarr;</a>
+            <a class="chip" href="/docs/fields">The 20 stat names &rarr;</a>
           </div>
-        </div>
       </section>
 
       <section class="section" id="widget">
@@ -221,18 +163,12 @@ curl -X POST https://ms-mba.up.railway.app/api/v1/render \
 &lt;script src="https://ms-mba.up.railway.app/roblox-stats.js"&gt;&lt;/script&gt;</code></pre>
           </div>
 
-          <h3 class="mt-3">Options</h3>
-          <div class="table-scroll">
-            <table>
-              <thead><tr><th>Attribute</th><th>Values</th></tr></thead>
-              <tbody>
-                <tr><td><code>data-roblox-game</code></td><td>Universe ID (required)</td></tr>
-                <tr><td><code>data-roblox-theme</code></td><td><code>"dark"</code> (default) | <code>"light"</code></td></tr>
-                <tr><td><code>data-roblox-fields</code></td><td><code>"stats"</code> (default) | <code>"compact"</code></td></tr>
-                <tr><td><code>data-roblox-refresh</code></td><td>Seconds between updates (0 = never)</td></tr>
-              </tbody>
-            </table>
-          </div>
+          <!-- The four attributes and what they accept are documented once, on
+               /docs/widget. Listing them here too meant two tables to update
+               whenever an option was added. -->
+          <p>That is the entire setup. The four attributes it accepts, what they
+            do, and how to restyle the card are on
+            <a href="/docs/widget">the widget page</a>.</p>
         </div>
       </section>
 
@@ -267,39 +203,34 @@ curl -X POST https://ms-mba.up.railway.app/api/v1/render \
   <div class="wrap">
     <div class="footer-grid">
       <div class="footer-col">
-        <a class="footer-brand" href="/">
+        <a class="brand" href="/">
           <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5 8.6 8.6 0 1 0 20.5 14.6z"/><path d="M17.4 4.2l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z" fill="currentColor" stroke="none"/></svg></span>
-          MoonBlox&nbsp;API
+          MoonBlox API
         </a>
-        <p class="footer-about">
-          Live Roblox game statistics over plain HTTP, free to use. Data comes from Roblox's public
-          APIs; this project is not affiliated with Roblox Corporation.
-        </p>
+        <p class="footer-about">Live Roblox game statistics over plain HTTP, free to use. Data comes from Roblox's public APIs; this project is not affiliated with Roblox Corporation.</p>
       </div>
       <div class="footer-col">
         <h4>Product</h4>
         <a href="/docs">Documentation</a>
         <a href="/explorer">Explorer</a>
-        <a href="/demo">Demo</a>
-        <a href="/pricing">Pricing & limits</a>
+        <a href="/demo">Live demo</a>
       </div>
       <div class="footer-col">
         <h4>Reference</h4>
+        <a href="/pricing">Pricing &amp; limits</a>
         <a href="/docs/endpoints">Endpoints</a>
-        <a href="/docs/fields">Stat names</a>
-        <a href="/roblox-stats.js">roblox-stats.js</a>
-        <a href="/health">Health</a>
+        <a href="/docs/fields">Stat names</a>        <a href="/health">Health</a>
       </div>
       <div class="footer-col">
         <h4>Legal</h4>
         <a href="/legal">Terms of use</a>
-        <a href="/legal#privacy">Privacy</a>
-        <a href="/legal#license">License</a>
+        <a href="/pricing">Privacy</a>
+        <a href="/legal">License</a>
       </div>
     </div>
     <div class="footer-bottom">
-      <p>© <span data-year>2026</span> · Data provided by Roblox's public APIs. Not affiliated with Roblox Corporation.</p>
-      <p class="push studio-credit"><span class="tag">MBA</span> Made by Moonlight Studios</p>
+      <p>&copy; <span data-year>2026</span> &middot; Data provided by Roblox's public APIs. Not affiliated with Roblox Corporation.</p>
+      <a class="studio-credit" href="https://ms-mba.up.railway.app" target="_blank" rel="noopener"><span class="tag">MBA</span> Made by Moonlight Studios</a>
     </div>
   </div>
 </footer>

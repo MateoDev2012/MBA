@@ -11,8 +11,9 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "mcp": "node extras/mcp/server.js",
-    "test": "node extras/tests/smoke.js && node extras/tests/smoke-sdk.js && node extras/tests/smoke-mcp.js && node extras/tests/smoke-auth.js",
+    "test": "node extras/tests/smoke-site.js && node extras/tests/smoke.js && node extras/tests/smoke-sdk.js && node extras/tests/smoke-mcp.js && node extras/tests/smoke-auth.js",
     "smoke": "node extras/tests/smoke.js",
+    "smoke:site": "node extras/tests/smoke-site.js",
     "smoke:sdk": "node extras/tests/smoke-sdk.js",
     "smoke:mcp": "node extras/tests/smoke-mcp.js",
     "smoke:auth": "node extras/tests/smoke-auth.js"
