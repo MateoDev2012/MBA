@@ -1099,9 +1099,10 @@
   function start() {
     renderCredit();
     watchCredit();
+    console.error('[roblox-stats] START: about to call runBindings');
     try {
       runBindings();
-      console.log('[roblox-stats] runBindings completed successfully');
+      console.error('[roblox-stats] runBindings completed successfully');
     } catch (e) {
       console.error('[roblox-stats] runBindings threw:', e && e.message, e && e.stack);
     }
