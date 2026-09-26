@@ -1099,7 +1099,12 @@
   function start() {
     renderCredit();
     watchCredit();
-    runBindings();
+    try {
+      runBindings();
+      console.log('[roblox-stats] runBindings completed successfully');
+    } catch (e) {
+      console.error('[roblox-stats] runBindings threw:', e && e.message, e && e.stack);
+    }
     runWidgets();
 
     // data-rbx-refresh="60" on any scope re-reads the data every 60 seconds.
