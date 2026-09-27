@@ -131,7 +131,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cards" id="gamesGrid" role="list" aria-label="Game results">
+      <div class="grid grid-cards" id="gamesGrid" role="list" aria-label="Game results" tabindex="-1">
         <!-- Game cards inserted here -->
       </div>
 
@@ -158,7 +158,7 @@
             <img id="modalThumbnail" class="modal-thumbnail" alt="" />
             <div>
               <h2 id="modalTitle"></h2>
-              <p class="modal-creator">by <a id="modalCreatorLink" href="#" target="_blank"><span id="modalCreator"></span></a> (<span id="modalCreatorType"></span>)</p>
+              <p class="modal-creator">by <span id="modalCreatorWrap"><a id="modalCreatorLink" target="_blank" rel="noopener"><span id="modalCreator"></span></a></span> (<span id="modalCreatorType">Unknown</span>)</p>
             </div>
           </div>
         </div>
@@ -288,8 +288,6 @@
   var modalMaxPlayers = document.getElementById('modalMaxPlayers');
   var modalDescription = document.getElementById('modalDescription');
   var modalUrl = document.getElementById('modalUrl');
-  var modalCreatorLink = document.getElementById('modalCreatorLink');
-  var modalCreatorType = document.getElementById('modalCreatorType');
   var copyIdBtn = document.getElementById('copyId');
   var copyEmbedBtn = document.getElementById('copyEmbed');
   var trendChart = document.getElementById('trendChart');
@@ -314,6 +312,7 @@
     state.query = searchInput.value.trim();
     state.page = 1;
     loadGames();
+    writeUrl();
   }, 300);
 
   searchInput.addEventListener('input', doSearch);
@@ -330,17 +329,20 @@
     state.sort = this.value;
     state.page = 1;
     applyFilters();
+    writeUrl();
   });
   limitSelect.addEventListener('change', function () {
     state.limit = parseInt(this.value, 10);
     state.page = 1;
     applyFilters();
+    writeUrl();
   });
 
   prevPage.addEventListener('click', function () {
     if (state.page > 1) {
       state.page--;
       applyFilters();
+      writeUrl();
     }
   });
 
@@ -348,6 +350,69 @@
     if (state.page < state.totalPages) {
       state.page++;
       applyFilters();
+      writeUrl();
+    }
+  });
+
+  // --- Moving around the grid ----------------------------------------------
+  //
+  // Tab alone means one press per card, so reading a ranked list of forty games
+  // is forty presses. Arrow keys walk it the way the eye does, and the container
+  // is given a grid role so the count is announced rather than guessed at.
+  function onGridKey(e) {
+    // A NodeList, which has no indexOf of its own. Calling it on one throws a
+    // TypeError on every keypress, which is how this handler looked like it
+    // had never been attached.
+    var cards = Array.prototype.slice.call(gamesGrid.querySelectorAll('.game-card'));
+    if (!cards.length) return;
+
+    var i = cards.indexOf(document.activeElement);
+    // A keypress anywhere in the grid that is not on a card starts from the
+    // first one, so the first arrow press lands somewhere useful.
+    if (i === -1) {
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowRight' && e.key !== 'Home') return;
+      e.preventDefault();
+      cards[0].focus();
+      return;
+    }
+
+    // Measured rather than assumed: the grid is one to three columns depending
+    // on the width, and a hard-coded "3" would send you sideways on a phone.
+    var perRow = 1;
+    var top = cards[i].getBoundingClientRect().top;
+    for (var c = 0; c < cards.length; c++) {
+      if (Math.abs(cards[c].getBoundingClientRect().top - top) < 2) perRow++;
+      else break;
+    }
+
+    var next = -1;
+    switch (e.key) {
+      case 'ArrowRight': next = i + 1; break;
+      case 'ArrowLeft': next = i - 1; break;
+      case 'ArrowDown': next = i + perRow; break;
+      case 'ArrowUp': next = i - perRow; break;
+      case 'Home': next = 0; break;
+      case 'End': next = cards.length - 1; break;
+      default: return;
+    }
+
+    // Clamped rather than wrapped. Wrapping at the end of a row is disorienting
+    // when the row is three wide and the last card is the last of the page.
+    if (next < 0) next = 0;
+    if (next >= cards.length) next = cards.length - 1;
+    if (next === i) return;
+
+    e.preventDefault();
+    cards[next].focus();
+    cards[next].scrollIntoView({ block: 'nearest' });
+  }
+
+  gamesGrid.addEventListener('keydown', onGridKey);
+
+  // Tabbing into the grid should land on the first card, not on the container.
+  gamesGrid.addEventListener('focus', function (e) {
+    if (e.target === gamesGrid && gamesGrid.querySelector('.game-card')) {
+      gamesGrid.querySelector('.game-card').focus();
     }
   });
 
@@ -384,10 +449,13 @@
     // The poller has to stop with the modal, or it keeps asking about a game
     // nobody is looking at.
     stopSampling();
+    // Cleared before the URL is written, or ?game= would outlive the card.
+    state.currentGame = null;
     if (state.chart) {
       state.chart.destroy();
       state.chart = null;
     }
+    writeUrl();
   }
 
   function openModal(game) {
@@ -411,8 +479,8 @@
     modalThumbnail.alt = game.name + ' logo';
     modalTitle.textContent = game.name;
     modalCreator.textContent = creatorName(game.creator) || 'Unknown';
-    modalCreatorLink.href = game.creatorUrl || '#';
-    modalCreatorType.textContent = game.creatorType || 'Unknown';
+    modalCreatorType.textContent = creatorType(game.creator) || game.creatorType || 'Unknown';
+    setCreatorLink(game.creatorUrl);
 
     // A missing field and a real zero are not the same thing. Trending does not
     // carry favorites or maxPlayers, and printing "0" for them reads as "this
@@ -443,6 +511,13 @@
     // The chart, and a poller that keeps feeding it real readings.
     loadTrendChart(game.id);
     startSampling(game.id);
+
+    // Fills in the owner's profile link and whether they are a user or a
+    // group, neither of which trending carries.
+    if (!game.creatorUrl) loadCreatorDetails(game.id);
+
+    // A card opened is a step back you expect the back button to undo.
+    writeUrl(true);
   }
 
   // While a game is on screen, ask the API about that one game again every half
@@ -676,7 +751,76 @@
     }
   }
 
-    // How many games to pull. Deliberately more than any page size: sorting and
+    // --- The address bar -----------------------------------------------------
+  //
+  // A ranking is a thing people want to send to someone. Without this, the only
+  // way to point at a game is to describe it in words, and the back button after
+  // opening a card left the site instead of closing the card.
+  //
+  // The filters are written with replaceState, because picking a sort is not a
+  // place anyone wants in their history. Opening a game is a pushState, because
+  // that is a step back the back button is expected to undo.
+
+  function writeUrl(push) {
+    var params = new URLSearchParams();
+    if (state.query) params.set('q', state.query);
+    if (state.sort !== 'playing') params.set('sort', state.sort);
+    if (state.limit !== 20) params.set('per', String(state.limit));
+    if (state.page > 1) params.set('page', String(state.page));
+    if (state.currentGame) params.set('game', String(state.currentGame.id));
+
+    var qs = params.toString();
+    var url = location.pathname + (qs ? '?' + qs : '');
+    try {
+      if (push) history.pushState(null, '', url);
+      else history.replaceState(null, '', url);
+    } catch (_) {
+      // A sandboxed frame can refuse history. The page works either way; only
+      // the shareable link is lost, which is not worth an error over.
+    }
+  }
+
+  function readUrl() {
+    var q = new URLSearchParams(location.search);
+    state.query = (q.get('q') || '').trim();
+    var s = q.get('sort');
+    state.sort = s && SORTERS[s] ? s : 'playing';
+    var per = parseInt(q.get('per'), 10);
+    state.limit = [10, 20, 50].indexOf(per) !== -1 ? per : 20;
+    state.page = Math.max(1, parseInt(q.get('page'), 10) || 1);
+
+    // Put the controls where the address bar says they are, so a shared link
+    // does not open looking like it ignored itself.
+    searchInput.value = state.query;
+    sortSelect.value = state.sort;
+    limitSelect.value = String(state.limit);
+    return q.get('game');
+  }
+
+  /**
+   * Opens a game that is not in the current list at all, which is what a shared
+   * ?game= link usually points at. The grid cannot help here, so it is one call.
+   */
+  function openGameById(id) {
+    if (!/^\d+$/.test(String(id))) return Promise.resolve(false);
+    return api
+      .fetch('/api/v1/games/' + encodeURIComponent(id))
+      .then(function (res) { return res.json(); })
+      .then(function (body) {
+        if (!body.ok || !body.data) return false;
+        openModal(normalise(body.data));
+        return true;
+      })
+      .catch(function () { return false; });
+  }
+
+  window.addEventListener('popstate', function () {
+    var id = readUrl();
+    if (gameModal.style.display !== 'none' && !id) closeModal();
+    if (id) openGameById(id);
+  });
+
+  // How many games to pull. Deliberately more than any page size: sorting and
   // paging need the whole set, and one request that covers every page is
   // cheaper than one per page.
   var FETCH_LIMIT = 50;
@@ -716,6 +860,59 @@
   function creatorType(c) {
     if (!c) return null;
     return typeof c === 'string' ? null : c.type || null;
+  }
+
+  /**
+   * The owner's name is a link only when there is somewhere to link to.
+   *
+   * Trending sends the name and nothing else, so this used to render
+   * href="#" and quietly go nowhere - a link that looks clickable and does
+   * nothing. Without a URL the anchor is unwrapped and the name is left as
+   * plain text, which is the truth about what we know.
+   */
+  function setCreatorLink(url) {
+    var wrap = document.getElementById('modalCreatorWrap');
+    var link = document.getElementById('modalCreatorLink');
+    var name = document.getElementById('modalCreator');
+    if (!wrap || !link || !name) return;
+
+    if (url) {
+      link.href = url;
+      link.hidden = false;
+      if (name.parentNode !== link) link.appendChild(name);
+      return;
+    }
+    link.hidden = true;
+    if (name.parentNode !== wrap) wrap.appendChild(name);
+  }
+
+  /**
+   * One call for the game the modal is showing, which is the only place a
+   * trending list is missing the owner's profile URL and whether they are a
+   * user or a group. It is the same request the poller already makes, so this
+   * is not an extra round trip in practice.
+   */
+  function loadCreatorDetails(id) {
+    return api
+      .fetch('/api/v1/games/' + encodeURIComponent(id))
+      .then(function (res) { return res.json(); })
+      .then(function (body) {
+        if (!body.ok || !body.data) return null;
+        var d = body.data;
+        if (state.currentGame && state.currentGame.id === id) {
+          setCreatorLink(creatorUrl(d.creator));
+          modalCreatorType.textContent = creatorType(d.creator) || 'Unknown';
+          modalVisits.textContent = stat(d.visits);
+          modalMaxPlayers.textContent = stat(d.maxPlayers);
+          modalFavorites.textContent = stat(d.favorites);
+        }
+        return d;
+      })
+      .catch(function () {
+        // Leaving the name unlinked is a fine outcome. An error banner for a
+        // missing avatar would not be.
+        return null;
+      });
   }
 
   /**
@@ -792,8 +989,10 @@
     retryBtn.style.display = 'none';
     pagination.style.display = 'none';
 
-    api.fetch(url)
-      .then(function (res) { return res.json(); })
+    // Returned, not merely started. The deep link chains onto this to open the
+    // game it was sent for, and a caller that cannot chain gets a TypeError
+    // instead of a modal.
+    return api.fetch(url).then(function (res) { return res.json(); })
       .then(function (body) {
         showLoading(false);
 
@@ -810,6 +1009,7 @@
         // Painted with what search already gave us, so the grid is never empty
         // while the second request is in flight.
         applyFilters();
+        writeUrl();
 
         if (!isSearch) return null;
 
@@ -817,6 +1017,7 @@
         return enrich(state.all).then(function () {
           markEnriching(false);
           applyFilters();
+          writeUrl();
           return null;
         });
       })
@@ -1020,8 +1221,11 @@
       .replace(/'/g, '&#39;');
   }
 
-  // Initial load
-  loadGames();
+  // Initial load, from whatever the address bar asked for.
+  var deepLinkedGame = readUrl();
+  loadGames().then(function () {
+    return deepLinkedGame ? openGameById(deepLinkedGame) : false;
+  });
 
   // Expose for debugging
   window.explorerState = state;
