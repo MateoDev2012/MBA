@@ -89,7 +89,11 @@
             <option value="visits">Most visits</option>
             <option value="likes">Most likes</option>
             <option value="ratio">Highest like ratio</option>
-            <option value="updated">Recently updated</option>
+            <option value="name">Name A–Z</option>
+            <!-- "Recently updated" used to be here. Trending does not carry an
+                 update date, so the option could only ever have been a label
+                 that did nothing, and a control that silently lies is worse
+                 than a missing one. -->
           </select>
           <select id="limitSelect" aria-label="Results per page">
             <option value="10">10 per page</option>
@@ -113,7 +117,13 @@
     <!-- Results Grid -->
     <section class="section">
       <div class="results-header">
-        <h2 id="resultsTitle">Trending games</h2>
+        <div class="results-heading">
+          <h2 id="resultsTitle">Trending games</h2>
+          <!-- Search answers without a logo, an owner or visit counts, so a
+               second request fills them in. This says so while it happens,
+               rather than leaving the cards quietly looking empty. -->
+          <p class="enrich-note" id="enrichNote" style="display:none">Loading logos, owners and visit counts…</p>
+        </div>
         <div class="pagination" id="pagination" style="display:none">
           <button class="btn btn-ghost" id="prevPage" disabled>Previous</button>
           <span id="pageInfo">Page 1</span>
@@ -167,9 +177,14 @@
             <button class="btn btn-ghost" id="copyId">Copy universeId</button>
             <button class="btn btn-ghost" id="copyEmbed">Copy embed code</button>
           </div>
-          <div class="chart-container">
-            <canvas id="trendChart" aria-label="Player count trend"></canvas>
+          <div class="chart-head">
+            <h3 class="chart-title">Player count</h3>
+            <span class="chart-sub">real readings only</span>
           </div>
+          <div class="chart-container" id="chartWrap">
+            <canvas id="trendChart" aria-label="Player count over the readings this page has collected"></canvas>
+          </div>
+          <p class="chart-note" id="chartNote"></p>
         </div>
       </div>
     </div>
@@ -228,6 +243,9 @@
     limit: 20,
     page: 1,
     totalPages: 1,
+    // The whole result set, kept so that sorting and paging are a local
+    // operation instead of another round trip.
+    all: [],
     currentGame: null,
     chart: null
   };
@@ -303,28 +321,33 @@
     state.page = 1;
     loadGames();
   });
+
+  // Sorting and paging happen here rather than at the API. The list is at most
+  // fifty games and every field the sort needs is already in the response, so a
+  // round trip would cost a second and change nothing. It also means the sort
+  // works on a search result set, which the server cannot sort at all.
   sortSelect.addEventListener('change', function () {
     state.sort = this.value;
     state.page = 1;
-    loadGames();
+    applyFilters();
   });
   limitSelect.addEventListener('change', function () {
     state.limit = parseInt(this.value, 10);
     state.page = 1;
-    loadGames();
+    applyFilters();
   });
 
   prevPage.addEventListener('click', function () {
     if (state.page > 1) {
       state.page--;
-      loadGames();
+      applyFilters();
     }
   });
 
   nextPage.addEventListener('click', function () {
     if (state.page < state.totalPages) {
       state.page++;
-      loadGames();
+      applyFilters();
     }
   });
 
@@ -358,6 +381,9 @@
   function closeModal() {
     gameModal.style.display = 'none';
     document.body.style.overflow = '';
+    // The poller has to stop with the modal, or it keeps asking about a game
+    // nobody is looking at.
+    stopSampling();
     if (state.chart) {
       state.chart.destroy();
       state.chart = null;
@@ -384,7 +410,7 @@
     modalThumbnail.src = game.thumbnail || '';
     modalThumbnail.alt = game.name + ' logo';
     modalTitle.textContent = game.name;
-    modalCreator.textContent = game.creator || 'Unknown';
+    modalCreator.textContent = creatorName(game.creator) || 'Unknown';
     modalCreatorLink.href = game.creatorUrl || '#';
     modalCreatorType.textContent = game.creatorType || 'Unknown';
 
@@ -400,6 +426,8 @@
     modalVisits.textContent = stat(game.visits);
     modalLikes.textContent = stat(game.ratings?.upVotes ?? game.upVotes);
     modalFavorites.textContent = stat(game.ratings?.favorites ?? game.favorites);
+    // Opening the modal is itself a fresh reading of the number, so it counts.
+    recordSample(game.id, game.playing);
     // voteRatio() is a hoisted function declaration, so it is already defined
     // here even though it is written further down the file.
     var ratio = voteRatio(game);
@@ -412,48 +440,186 @@
     gameModal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
 
-    // Load trend chart (simulated with recent trending data)
+    // The chart, and a poller that keeps feeding it real readings.
     loadTrendChart(game.id);
+    startSampling(game.id);
+  }
+
+  // While a game is on screen, ask the API about that one game again every half
+  // minute. This is what makes the chart worth having: leave it open and the
+  // line is your own watch of the number moving, not a line drawn once and
+  // left to look authoritative. It costs one small request per half minute,
+  // only while a modal is actually open, and it stops on close.
+  var SAMPLE_MS = 30000;
+  var sampleTimer = null;
+
+  function startSampling(id) {
+    stopSampling();
+    sampleTimer = setInterval(function () {
+      if (document.hidden || getComputedStyle(gameModal).display === 'none') return;
+      api.fetch('/api/v1/games/' + encodeURIComponent(id) + '/quick')
+        .then(function (res) { return res.json(); })
+        .then(function (body) {
+          if (!body.ok || !body.data) return;
+          var playing = body.data.playing;
+          if (typeof playing !== 'number') return;
+          var before = samplesFor(id).length;
+          recordSample(id, playing);
+          // Only redraw when a new point was actually kept, so a poll that
+          // returns the same count does not churn the canvas.
+          if (samplesFor(id).length === before) return;
+          if (state.currentGame && state.currentGame.id === id) {
+            // Abbreviated like every other player count on the page, so the
+            // number does not change format the moment the poll lands.
+            modalPlaying.textContent = abbr(playing);
+            loadTrendChart(id);
+          }
+        })
+        .catch(function () {
+          // A failed poll is not worth telling anyone about. The line already
+          // on screen is still the last thing the API said, which is true.
+        });
+    }, SAMPLE_MS);
+  }
+
+  function stopSampling() {
+    if (sampleTimer) clearInterval(sampleTimer);
+    sampleTimer = null;
+  }
+
+  // --- Real player-count history -------------------------------------------
+  //
+  // This used to draw seven points from Math.random() around the current
+  // number and label the result "Players online". On a page whose entire claim
+  // is that the numbers are live, that was the one thing on it that was not
+  // true, and a visitor could not tell it from a real reading.
+  //
+  // So: every answer this page receives is a real measurement, and each one is
+  // kept. Change the filter, search, page through, come back tomorrow, and the
+  // line is made only of readings the API actually returned. Fewer points is
+  // worse than a nice-looking lie, so the chart says how many it has and
+  // refuses to draw a trend off a single reading.
+  var SAMPLE_KEY = 'mbx-samples-v1';
+  var MAX_SAMPLES = 240; // per game
+
+  function readStore() {
+    try {
+      var raw = localStorage.getItem(SAMPLE_KEY);
+      var o = raw ? JSON.parse(raw) : {};
+      return o && typeof o === 'object' ? o : {};
+    } catch (_) {
+      // A browser with storage disabled still gets a working page; it just
+      // cannot remember readings between visits.
+      return {};
+    }
+  }
+
+  function writeStore(o) {
+    try {
+      localStorage.setItem(SAMPLE_KEY, JSON.stringify(o));
+    } catch (_) {}
+  }
+
+  /**
+   * Records one real reading.
+   *
+   * Skipped when it would add nothing: the same count again inside a short
+   * window is the same fact, and four page loads a second apart must not become
+   * four points. Past that window the same value IS information, because it
+   * says the count is holding steady, so the test is on time as well as value.
+   */
+  var MIN_GAP_MS = 20000;
+
+  function recordSample(id, playing) {
+    if (typeof playing !== 'number' || !isFinite(playing)) return;
+    var store = readStore();
+    var key = String(id);
+    var list = Array.isArray(store[key]) ? store[key] : [];
+
+    var last = list[list.length - 1];
+    if (last && Date.now() - last.t < MIN_GAP_MS && last.v === playing) return;
+
+    list.push({ t: Date.now(), v: playing });
+    if (list.length > MAX_SAMPLES) list = list.slice(-MAX_SAMPLES);
+    store[key] = list;
+    writeStore(store);
+  }
+
+  /** Every game in a response is a real reading, so all of them get recorded. */
+  function recordAll(games) {
+    (games || []).forEach(function (g) { recordSample(g.id, g.playing); });
+  }
+
+  function samplesFor(id) {
+    var list = readStore()[String(id)];
+    return Array.isArray(list) ? list : [];
+  }
+
+  /** Collapses readings taken seconds apart into one point per minute. */
+  function downsample(list, max) {
+    if (list.length <= max) return list;
+    var step = Math.ceil(list.length / max);
+    var out = [];
+    for (var i = 0; i < list.length; i += step) out.push(list[i]);
+    return out;
   }
 
   function loadTrendChart(gameId) {
-    // Destroy existing chart
     if (state.chart) {
       state.chart.destroy();
+      state.chart = null;
     }
 
-    // Fetch trending history for this game (using trending endpoint with includeMedia)
-    // For demo, we'll simulate with current data point
-    var ctx = trendChart.getContext('2d');
-    var now = new Date();
-    var labels = [];
-    var data = [];
+    var samples = samplesFor(gameId);
+    var note = document.getElementById('chartNote');
+    var wrap = document.getElementById('chartWrap');
 
-    // Generate last 7 data points (simulated)
-    for (var i = 6; i >= 0; i--) {
-      var d = new Date(now);
-      d.setHours(d.getHours() - i);
-      labels.push(d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-      // Add some variance to current playing count
-      var base = state.currentGame.playing || 0;
-      var variance = Math.random() * 0.1 * base;
-      data.push(Math.round(base + variance - 0.05 * base));
+    // One reading is not a trend. Two is barely one, and drawing a curve
+    // through three minutes of data would overstate what it knows.
+    if (samples.length < 3) {
+      wrap.style.display = 'none';
+      if (note) {
+        note.style.display = 'block';
+        note.textContent =
+          samples.length === 0
+            ? 'No readings yet. Change the filter or come back later and this fills in from real API responses.'
+            : samples.length + ' reading' + (samples.length === 1 ? '' : 's') +
+              ' so far. A line needs at least three.';
+      }
+      return;
     }
 
-    if (state.chart) state.chart.destroy();
-    state.chart = new Chart(ctx, {
+    wrap.style.display = 'block';
+    if (note) note.style.display = 'none';
+
+    var points = downsample(samples, 40);
+    var css = getComputedStyle(document.documentElement);
+    var token = function (name, fallback) {
+      return css.getPropertyValue(name).trim() || fallback;
+    };
+
+    var first = new Date(points[0].t);
+    var spansDays = points[points.length - 1].t - points[0].t > 86400000;
+    var label = function (t) {
+      var d = new Date(t);
+      return spansDays
+        ? d.toLocaleDateString([], { month: 'short', day: 'numeric' })
+        : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+
+    state.chart = new Chart(trendChart.getContext('2d'), {
       type: 'line',
       data: {
-        labels: labels,
+        labels: points.map(function (p) { return label(p.t); }),
         datasets: [{
           label: 'Players online',
-          data: data,
-          borderColor: getComputedStyle(document.documentElement).getPropertyValue('--ok').trim() || '#16a34a',
-          backgroundColor: 'rgba(22, 163, 74, 0.1)',
+          data: points.map(function (p) { return p.v; }),
+          borderColor: token('--ok', '#16a34a'),
+          backgroundColor: 'rgba(52, 211, 153, 0.12)',
           borderWidth: 2,
           fill: true,
           tension: 0.3,
-          pointRadius: 3,
+          pointRadius: points.length > 20 ? 0 : 3,
           pointHoverRadius: 5
         }]
       },
@@ -470,21 +636,139 @@
             bodyColor: getComputedStyle(document.documentElement).getPropertyValue('--text-soft').trim(),
             borderColor: getComputedStyle(document.documentElement).getPropertyValue('--border').trim(),
             borderWidth: 1,
-            padding: 12
+            padding: 12,
+            // The tooltip is where a reader decides whether to trust a number,
+            // so it carries the exact count and the exact time, not the
+            // abbreviated forms the axis uses.
+            callbacks: {
+              title: function (items) {
+                if (!items.length) return '';
+                var d = new Date(points[items[0].dataIndex].t);
+                return d.toLocaleString([], {
+                  month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+              },
+              label: function (item) {
+                return item.parsed.y.toLocaleString('en-US') + ' players';
+              }
+            }
           }
         },
         scales: {
           x: {
             grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--border').trim() },
-            ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--muted').trim() }
+            ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--muted').trim(), maxTicksLimit: 8 }
           },
           y: {
+            beginAtZero: false,
             grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--border').trim() },
             ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--muted').trim(), callback: function (v) { return abbr(v); } }
           }
         }
       }
     });
+
+    if (note) {
+      note.style.display = 'block';
+      note.textContent =
+        samples.length + ' real reading' + (samples.length === 1 ? '' : 's') +
+        ', oldest ' + label(points[0].t) + '. Recorded as this page loaded; nothing here is modelled.';
+    }
+  }
+
+    // How many games to pull. Deliberately more than any page size: sorting and
+  // paging need the whole set, and one request that covers every page is
+  // cheaper than one per page.
+  var FETCH_LIMIT = 50;
+
+  /**
+   * Puts a search result into the same shape as a trending one.
+   *
+   * /search answers with a thinner object than /trending, and two of the
+   * differences broke the page rather than merely looking sparse:
+   *
+   *   - it names the id "universeId" where trending names it "id". The card
+   *     template reads game.id, so every search result rendered
+   *     data-id="undefined" and the click handler could not find a game to
+   *     open. Search results could not be clicked at all.
+   *   - it carries no thumbnail, no creator and no visits, so a searched card
+   *     had no logo, no owner and no visit count. That was never a styling
+   *     problem: the fields were not in the response.
+   */
+  function normalise(g) {
+    if (g && g.id === undefined && g.universeId !== undefined) g.id = g.universeId;
+    return g;
+  }
+
+  /**
+   * The creator is a name on /trending and an object on /games/{id}. These three
+   * read whichever it is, so no caller has to branch and no page can ever print
+   * "[object Object]".
+   */
+  function creatorName(c) {
+    if (!c) return null;
+    return typeof c === 'string' ? c : c.name || null;
+  }
+  function creatorUrl(c) {
+    if (!c) return null;
+    return typeof c === 'string' ? null : c.url || null;
+  }
+  function creatorType(c) {
+    if (!c) return null;
+    return typeof c === 'string' ? null : c.type || null;
+  }
+
+  /**
+   * One batch call fills in what search left out. It covers the whole result
+   * set at once, so a fifty-game search costs two requests and not fifty.
+   */
+  function enrich(games) {
+    var thin = games.filter(function (g) {
+      return g && (g.thumbnail === undefined || g.creator === undefined || g.visits === undefined);
+    });
+    if (!thin.length) return Promise.resolve(games);
+
+    var ids = thin
+      .map(function (g) { return g.id; })
+      .filter(function (v) { return /^\d+$/.test(String(v)); })
+      .join(',');
+    if (!ids) return Promise.resolve(games);
+
+    return api
+      .fetch('/api/v1/games/batch?ids=' + encodeURIComponent(ids))
+      .then(function (res) { return res.json(); })
+      .then(function (body) {
+        if (!body.ok || !body.data) return games;
+        var byId = {};
+        body.data.forEach(function (g) { byId[g.id] = g; });
+        games.forEach(function (g) {
+          var full = byId[g.id];
+          if (!full) return;
+          g.thumbnail = full.thumbnail;
+          g.banner = full.banner;
+          // The two endpoints disagree about the shape of the creator:
+          // /trending sends a name, /games/{id} sends { id, name, type, url }.
+          // Flattening it here means the card never has to care, and one shape
+          // change upstream cannot turn into "[object Object]" on the page.
+          g.creator = creatorName(full.creator) || creatorName(g.creator);
+          g.creatorUrl = creatorUrl(full.creator) || full.creatorUrl;
+          g.creatorType = creatorType(full.creator) || full.creatorType;
+          g.visits = full.visits;
+          g.upVoteRatio = full.upVoteRatio;
+          g.favorites = full.favorites;
+          g.maxPlayers = full.maxPlayers;
+          // batch does not carry the description, so the search copy is kept
+          // rather than being replaced with nothing.
+          g.description = g.description || full.description;
+        });
+        return games;
+      })
+      .catch(function () {
+        // Enrichment is an improvement, not a requirement. A failure here must
+        // leave the results usable: the ids and the player count are already
+        // correct, and wiping them for a missing logo would be a bad trade.
+        return games;
+      });
   }
 
   function loadGames() {
@@ -493,14 +777,10 @@
     // until the user types, so comparing it to '*' never matched and the
     // default view silently fell through to a search for "*".
     var q = (state.query || '').trim();
-    var url = q
-      ? '/api/v1/search?q=' + encodeURIComponent(q) +
-        '&limit=' + state.limit +
-        '&page=' + state.page +
-        '&sort=' + state.sort
-      : '/api/v1/trending?limit=' + state.limit +
-        '&page=' + state.page +
-        '&sort=' + state.sort +
+    var isSearch = !!q;
+    var url = isSearch
+      ? '/api/v1/search?q=' + encodeURIComponent(q) + '&limit=' + FETCH_LIMIT
+      : '/api/v1/trending?limit=' + FETCH_LIMIT +
         // Trending withholds images unless asked. Without this the whole grid
         // is a wall of empty grey squares, which is the one thing a game list
         // cannot be.
@@ -518,35 +798,31 @@
         showLoading(false);
 
         if (!body.ok) {
-          throw new Error(body.error?.message || 'Request failed');
+          throw new Error(body.error && body.error.message || 'Request failed');
         }
 
-        var games = body.data || [];
-        var meta = body.meta || {};
+        state.all = (body.data || []).map(normalise);
+        // Every one of these is a measurement the API actually made, so every
+        // one of them is a point the chart is allowed to use.
+        recordAll(state.all);
+        resultsTitle.textContent = isSearch ? 'Results for "' + q + '"' : 'Trending games';
 
-        state.totalPages = meta.totalPages || 1;
-        resultsTitle.textContent = q ? 'Results for "' + q + '"' : 'Trending games';
+        // Painted with what search already gave us, so the grid is never empty
+        // while the second request is in flight.
+        applyFilters();
 
-        if (games.length === 0) {
-          gamesGrid.innerHTML = '';
-          emptyTitle.textContent = 'No games found';
-          emptyMessage.textContent = q
-            ? 'Nothing matches "' + q + '". Try a shorter or different term.'
-            : 'Try a different search term or filter.';
-          emptyState.style.display = 'flex';
-          pagination.style.display = 'none';
-          summaryStats.style.display = 'none';
-          return;
-        }
+        if (!isSearch) return null;
 
-        renderGames(games);
-        updateSummary(games);
-        updatePagination();
-        summaryStats.style.display = 'grid';
-        pagination.style.display = 'flex';
+        markEnriching(true);
+        return enrich(state.all).then(function () {
+          markEnriching(false);
+          applyFilters();
+          return null;
+        });
       })
       .catch(function (err) {
         showLoading(false);
+        markEnriching(false);
         gamesGrid.innerHTML = '';
         emptyTitle.textContent = 'Could not load games';
         emptyMessage.textContent = err.message;
@@ -558,6 +834,68 @@
         pagination.style.display = 'none';
         console.error('[explorer] Load games error:', err);
       });
+  }
+
+  /** A line under the heading while the second request is in flight. */
+  function markEnriching(on) {
+    var el = document.getElementById('enrichNote');
+    if (el) el.style.display = on ? 'block' : 'none';
+  }
+
+/**
+   * Sorts and pages what is already in memory, then paints. No request.
+   *
+   * Every comparator below is total: a game missing the field it is being
+   * sorted on goes last rather than being treated as zero, because a game with
+   * no recorded likes is not the same as a game with none.
+   */
+  var SORTERS = {
+    playing: function (a, b) { return num(b.playing) - num(a.playing); },
+    visits: function (a, b) { return num(b.visits) - num(a.visits); },
+    likes: function (a, b) { return num(likeCount(b)) - num(likeCount(a)); },
+    ratio: function (a, b) { return num(voteRatio(b)) - num(voteRatio(a)); },
+    name: function (a, b) { return String(a.name || '').localeCompare(String(b.name || '')); },
+  };
+
+  function num(v) { return typeof v === 'number' && isFinite(v) ? v : -Infinity; }
+  function likeCount(g) { return g.ratings?.upVotes ?? g.upVotes; }
+
+  function applyFilters() {
+    var all = state.all || [];
+    var sorter = SORTERS[state.sort] || SORTERS.playing;
+
+    var sorted = all.slice().sort(function (a, b) {
+      var d = sorter(a, b);
+      // A stable tiebreak, so two games with the same count do not swap places
+      // every time the sort is clicked again.
+      return d !== 0 ? d : String(a.name || '').localeCompare(String(b.name || ''));
+    });
+
+    state.totalPages = Math.max(1, Math.ceil(sorted.length / state.limit));
+    if (state.page > state.totalPages) state.page = state.totalPages;
+
+    var start = (state.page - 1) * state.limit;
+    var page = sorted.slice(start, start + state.limit);
+
+    if (page.length === 0) {
+      gamesGrid.innerHTML = '';
+      emptyTitle.textContent = 'No games found';
+      emptyMessage.textContent = state.query
+        ? 'Nothing matches "' + state.query + '". Try a shorter or different term.'
+        : 'Try a different search term.';
+      emptyState.style.display = 'flex';
+      pagination.style.display = 'none';
+      summaryStats.style.display = 'none';
+      return;
+    }
+
+    renderGames(page, sorted, start);
+    // The summary describes the whole result set, not the visible page, so the
+    // numbers do not change when you turn the page.
+    updateSummary(sorted);
+    updatePagination();
+    summaryStats.style.display = 'grid';
+    pagination.style.display = 'flex';
   }
 
   // Trending returns upVotes and downVotes but no upVoteRatio, so every card
@@ -572,24 +910,46 @@
     return total > 0 ? (up / total) * 100 : null;
   }
 
-  function renderGames(games) {
-    gamesGrid.innerHTML = games.map(function (game) {
+  /**
+   * Escapes, then wraps the searched-for term in a <mark>. Escaping has to
+   * happen first, or a game called "<script>" would be the thing that gets to
+   * decide what markup runs on this page.
+   */
+  function highlight(text, q) {
+    var safe = escapeHtml(text == null ? '' : String(text));
+    if (!q) return safe;
+
+    var needle = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Boundaries where the term starts or ends on a word character, so
+    // searching "an" does not light up every letter a in the title.
+    var re = new RegExp('\\b' + needle + '\\b', 'gi');
+    return safe.replace(re, '<mark class="hit">$&</mark>');
+  }
+
+  function renderGames(games, sorted, offset) {
+    var q = (state.query || '').trim();
+
+    gamesGrid.innerHTML = games.map(function (game, i) {
       var banner = game.banner
         ? ' style="background-image:url(&quot;' + escapeHtml(game.banner) + '&quot;)"'
         : '';
 
       var ratio = voteRatio(game);
+      // The position in the whole sorted list, not on this page, so the number
+      // on the last card of page two does not claim to be first.
+      var rank = (offset || 0) + i + 1;
 
       return '<article class="game-card" role="listitem" data-id="' + game.id + '" tabindex="0">' +
         // No banner means no 120px hole at the top of the card: the strip is
         // only emitted when there is an image to put in it.
         (game.banner ? '<div class="game-card-banner"' + banner + '></div>' : '') +
+        '<span class="game-card-rank" aria-hidden="true">#' + rank + '</span>' +
         '<div class="game-card-content">' +
         (game.thumbnail
           ? '<img class="game-card-thumbnail" src="' + escapeHtml(game.thumbnail) + '" alt="" loading="lazy">'
           : '') +
-        '<h3 class="game-card-title">' + escapeHtml(game.name) + '</h3>' +
-        '<p class="game-card-creator">by ' + escapeHtml(game.creator || 'Unknown') + '</p>' +
+        '<h3 class="game-card-title">' + highlight(game.name, q) + '</h3>' +
+        '<p class="game-card-creator">by ' + highlight(creatorName(game.creator) || 'Unknown', q) + '</p>' +
         '<div class="game-card-stats">' +
         '<span class="game-stat"><b>' + abbr(game.playing) + '</b><span>Playing</span></span>' +
         '<span class="game-stat"><b>' + abbr(game.ratings?.upVotes || game.upVotes || 0) + '</b><span>Likes</span></span>' +
@@ -608,8 +968,11 @@
     gamesGrid.querySelectorAll('.game-card').forEach(function (card) {
       card.addEventListener('click', function () {
         var id = Number(this.getAttribute('data-id'));
-        var game = games.find(function (g) { return g.id === id; });
+        // Compared as a string, because one side can be a number and the other
+        // a string once a search result has been through normalise().
+        var game = games.find(function (g) { return String(g.id) === String(id); });
         if (game) openModal(game);
+        else console.warn('[explorer] no game for card', this.getAttribute('data-id'));
       });
       card.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -778,6 +1141,34 @@
   letter-spacing: -0.02em;
 }
 
+.results-heading { min-width: 0; }
+
+.enrich-note {
+  margin: 5px 0 0;
+  font-size: 0.78rem;
+  font-weight: 550;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+/* A small crescent, same as the spinner and the logo, so "working" looks the
+   same everywhere on the site. */
+.enrich-note::before {
+  content: "";
+  width: 11px;
+  height: 11px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--accent);
+  -webkit-mask-image: radial-gradient(circle at 68% 50%, transparent 56%, #000 57%);
+  mask-image: radial-gradient(circle at 68% 50%, transparent 56%, #000 57%);
+  animation: spin 1.1s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .enrich-note::before { animation: none; }
+}
+
 .pagination {
   display: flex;
   gap: 8px;
@@ -806,6 +1197,34 @@
 .game-card:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* The position in the sorted list. Sits on the banner when there is one and on
+   the panel when there is not, so it is placed rather than flow-positioned. */
+.game-card-rank {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 7px;
+  background: rgba(6, 5, 18, 0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* The searched-for term. Needs a colour of its own rather than a background, or
+   it reads as a highlighter pen in a document. */
+.hit {
+  background: none;
+  color: var(--accent-ink);
+  font-weight: 700;
+  box-shadow: inset 0 -2px 0 var(--accent-soft);
 }
 
 .game-card-banner {
@@ -1262,9 +1681,41 @@
   flex-wrap: wrap;
 }
 
+.chart-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 22px 0 10px;
+}
+.chart-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--text);
+}
+.chart-sub {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ok-ink);
+  background: var(--ok-soft);
+  border: 1px solid color-mix(in srgb, var(--ok) 30%, transparent);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
 .chart-container {
-  height: 280px;
+  height: 260px;
   width: 100%;
+}
+
+.chart-note {
+  margin: 12px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: var(--muted);
 }
 
 @media (max-width: 600px) {
