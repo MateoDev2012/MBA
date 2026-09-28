@@ -1201,97 +1201,6 @@ footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40
      .panel-accent the last thing on the page is the loudest thing on the page
    ========================================================================== */
 
-/* --- Live strip ------------------------------------------------------------ */
-/* Full-bleed, so it breaks the 1080px measure and gives the page a horizon
-   line. It was a 420px card floating in white space next to the headline. */
-
-.livestrip {
-  background: #0b0b0d;
-  border-top: 1px solid rgba(255, 255, 255, 0.09);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
-  overflow: hidden;
-}
-.livestrip-in {
-  position: relative; z-index: 1;
-  display: grid; grid-template-columns: 1fr auto; gap: 28px;
-  align-items: center;
-  /* It is a direct child of .livestrip, not of a .wrap, so it has to impose the
-     measure itself. The 24px matches .wrap so the strip lines up with the
-     headline above it.
-
-     The z-index is load-bearing. Both .livestrip-bg and the ::after scrim are
-     positioned with z-index 0, and a non-positioned sibling paints underneath
-     them, so without this the whole strip sat behind its own dimming layer and
-     came out as a black rectangle with two numbers faintly showing through. */
-  max-width: var(--maxw); margin: 0 auto;
-  padding: 24px 24px 0;
-}
-@media (max-width: 900px) { .livestrip-in { grid-template-columns: 1fr; gap: 18px; } }
-
-.livestrip-label {
-  display: flex; align-items: center; gap: 8px;
-  font-family: var(--mono); font-size: 0.66rem;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  color: #6e6e76; margin-bottom: 12px;
-}
-.livestrip-label .dot-live { animation: none; }
-.livestrip-label .muted { margin-left: auto; text-transform: none; letter-spacing: 0; }
-
-.livestrip-main { display: flex; align-items: center; gap: 14px; min-width: 0; }
-.livestrip-banner {
-  width: 132px; height: 74px; flex: none;
-  border-radius: var(--radius); background: #17181b center/cover no-repeat;
-  position: relative; overflow: hidden;
-}
-.livestrip-rank {
-  position: absolute; top: 6px; left: 6px;
-  font-family: var(--mono); font-size: 0.6rem; font-weight: 700;
-  padding: 2px 5px; border-radius: 4px;
-  background: rgba(0, 0, 0, 0.78); color: #fff;
-}
-.livestrip-titles { min-width: 0; }
-.livestrip-name {
-  margin: 0 0 2px; font-size: 1.16rem; font-weight: 600;
-  letter-spacing: -0.022em; color: #f4f4f5;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.livestrip-creator {
-  font-size: 0.82rem; color: #86868f;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.livestrip-credit {
-  display: flex; align-items: center; gap: 6px; margin-top: 8px;
-  font-size: 0.66rem; color: #6e6e76;
-}
-.livestrip-credit .tag {
-  font-size: 0.58rem; font-weight: 800; letter-spacing: 0.05em;
-  color: #2a1500; background: #fbbf24; border-radius: 4px; padding: 1px 5px;
-}
-
-.livestrip-stats { display: flex; gap: 26px; flex: none; }
-@media (max-width: 640px) { .livestrip-stats { gap: 18px; } .livestrip-banner { display: none; } }
-.livestrip-stats > div { min-width: 0; }
-.livestrip-stats b {
-  display: block; font-size: 1.42rem; font-weight: 600;
-  letter-spacing: -0.032em; color: #f4f4f5;
-  font-variant-numeric: tabular-nums; line-height: 1.15;
-}
-.livestrip-stats > div:first-child b { color: #6ee7b7; }
-.livestrip-stats span {
-  display: block; margin-top: 2px;
-  font-family: var(--mono); font-size: 0.6rem;
-  letter-spacing: 0.06em; text-transform: uppercase; color: #6e6e76;
-}
-.livestrip-dots { display: flex; gap: 5px; justify-content: flex-end; margin-top: 12px; }
-.livestrip-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  border: 0; padding: 0; cursor: pointer;
-  background: rgba(255, 255, 255, 0.16);
-  transition: background 0.14s, transform 0.14s;
-}
-.livestrip-dot:hover { background: #86868f; transform: scale(1.3); }
-.livestrip-dot[aria-current="true"] { background: var(--accent-bright); transform: scale(1.3); }
-
 /* --- Number rail ----------------------------------------------------------- */
 /* Was a whole section of its own: 211px holding four numbers. Now it is a rail
    that sits under the strip, and the numbers are the smallest thing on the
@@ -1391,6 +1300,18 @@ footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40
   overflow: hidden;
   background: var(--panel);
 }
+/* Full width with a 250px path column and a one-line description left about
+   600px of empty page to the right, so on a wide screen the list becomes two
+   columns of stacked rows and fills the measure it is given. */
+@media (min-width: 900px) {
+  .section .eplist {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .section .eprow { grid-template-columns: 1fr; gap: 2px; }
+  .section .eprow:nth-child(2) { border-top: 0; }
+  .section .eprow:nth-child(n + 3) { border-top: 1px solid var(--border-faint); }
+  .section .eprow:nth-child(even) { border-left: 1px solid var(--border-faint); }
+}
 .eprow {
   display: grid;
   grid-template-columns: minmax(0, 250px) minmax(0, 1fr);
@@ -1453,115 +1374,6 @@ footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40
 .section { padding: 52px 0; }
 .section-head { margin-bottom: 24px; }
 
-/* --- Live strip, second pass ---------------------------------------------- */
-/* The strip ended up needing four things the first block did not anticipate:
-   the game's own art as a dimmed backdrop, a square logo instead of a banner,
-   the note under it, and a fade that runs over the strip rather than over the
-   link. */
-
-.livestrip { position: relative; }
-.livestrip-bg {
-  position: absolute; inset: 0; z-index: 0;
-  background-position: center 45%; background-size: cover;
-  opacity: 0.34;
-  filter: saturate(0.55);
-  transition: background-image 0.25s linear;
-}
-/* A scrim, so the game's art sits behind the type instead of fighting it.
-   Lighter than it looks like it should be: at 0.2 the backdrop was invisible
-   and the strip was just a black band, which is the same as having no
-   backdrop at all but with the code to maintain. */
-.livestrip::after {
-  content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
-  background:
-    linear-gradient(90deg, #0b0b0d 6%, rgba(10, 10, 12, 0.72) 46%, rgba(10, 10, 12, 0.55) 78%, rgba(10, 10, 12, 0.78) 100%),
-    linear-gradient(180deg, rgba(10, 10, 12, 0.42), rgba(10, 10, 12, 0.62));
-}
-.livestrip > .wrap { position: relative; z-index: 1; }
-
-.livestrip-in { transition: opacity 0.22s ease; }
-.livestrip.swap .livestrip-in { opacity: 0.3; }
-
-.livestrip-main { text-decoration: none; color: inherit; }
-.livestrip-main:hover { text-decoration: none; }
-.livestrip-main:hover .livestrip-name { text-decoration: underline; text-underline-offset: 3px; }
-.livestrip-main:focus-visible { box-shadow: var(--focus); border-radius: var(--radius); }
-
-.livestrip-logo {
-  width: 56px; height: 56px; flex: none; position: relative;
-  border-radius: var(--radius);
-  background: #17181b center/cover no-repeat;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-}
-.livestrip-rank {
-  position: absolute; bottom: -7px; left: -7px;
-  font-family: var(--mono); font-size: 0.62rem; font-weight: 700;
-  padding: 2px 6px; border-radius: 5px;
-  background: var(--accent); color: #fff;
-  box-shadow: 0 0 0 2px #0b0b0d;
-}
-
-.livestrip-note {
-  margin: 18px 0 0; padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 0.82rem; color: #86868f;
-}
-.livestrip-note a { color: #a78bfa; }
-
-.livestrip-stats .btn { align-self: end; }
-@media (max-width: 900px) { .livestrip-stats .btn { width: 100%; justify-content: center; } }
-@media (max-width: 900px) { .livestrip-dots { justify-content: flex-start; } }
-
-/* ==========================================================================
-   Alternating feature rows
-   ==========================================================================
-
-   Four rounds of the same complaint: it still looked wrong after the paint was
-   fixed, because the underlying page was still the documentation shape —
-   heading on top, content underneath, repeat. Six times over. A grid of cards
-   is the same box whether there are three of them or six, and the eye reads a
-   column of identical edges as a spreadsheet.
-
-   This is the other shape: a row of text beside a visual, then the next row
-   flipped. It is how Vercel, Railway and Resend all do it, and the reason is
-   not fashion — a row has a natural reading direction and a column does not,
-   so the alternation is what makes a long page feel like a document rather than
-   a list.
-
-   It also lets every visual be a different kind of object. Three boxes of the
-   same kind are three boxes; a code card, a live response and an install
-   command are three arguments.
-   ========================================================================== */
-
-.alt {
-  display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-  gap: 72px;
-  align-items: center;
-  /* Generous, because there is now one sentence per section instead of a
-     paragraph and three bullets. Less content needs more room, not less:
-     compressing the padding to fit the old density is what made the last
-     version feel cramped even where it was empty. */
-  padding: 88px 0;
-  border-top: 1px solid var(--border-faint);
-}
-.alt:first-of-type { border-top: 0; }
-.alt.flip .alt-text { order: 2; }
-
-.alt-text { min-width: 0; }
-/* balance, because at this column width a long headline otherwise breaks after
-   the sixth word and leaves a single orphan on the second line */
-.alt-text h2 { margin-bottom: 14px; text-wrap: balance; }
-.alt-text > p { color: var(--text-soft); max-width: 40ch; font-size: 1.02rem; }
-
-.alt-vis { min-width: 0; }
-.alt-more { display: inline-flex; align-items: center; gap: 6px; font-weight: 550; margin-top: 20px; }
-
-@media (max-width: 880px) {
-  .alt { grid-template-columns: 1fr; gap: 30px; padding: 56px 0; }
-  .alt.flip .alt-text { order: 0; }
-}
-
 /* --- Light code card ------------------------------------------------------- */
 /* The hero visual. The black terminal was 380px of near-black slab with 12px
    type in it, which is why the hero felt heavy and the left column looked
@@ -1613,14 +1425,6 @@ footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40
 .kw { color: var(--code-kw); }                   /* language keywords */
 .nm { color: var(--text); font-weight: 600; }
 .cm { color: var(--muted); }              /* comments */
-
-/* --- Two-up install cards -------------------------------------------------- */
-
-.codecard-pair { display: grid; gap: 12px; }
-.codecard-bar .sub {
-  margin-left: auto; font-family: var(--font);
-  font-size: 0.78rem; color: var(--text-soft);
-}
 
 /* --- Live response --------------------------------------------------------- */
 /* The tester, relit. It was the third black block on the page; now it is a
@@ -1734,6 +1538,190 @@ footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40
 .hero { padding: 84px 0 68px; }
 .hero-grid { align-items: center; }
 @media (max-width: 980px) { .hero { padding: 56px 0 48px; } }
+
+/* ==========================================================================
+   Home page, from zero
+   ==========================================================================
+
+   Every previous version had the same flaw wearing a different coat: the page
+   was made of text boxes. The hero was a paragraph beside a code snippet, then
+   a row of features, then a how-to, then a table, then a call to action, and
+   every one of them was a light bordered rectangle holding a heading and some
+   words. Alternating the sides did not fix it. It just made the same shape
+   happen four times in a row.
+
+   The fix was to stop drawing boxes and let the product be the image. This API
+   returns live Roblox data, so the hero is live Roblox data: four real games
+   with real thumbnails and real player counts, fetched on load. It is the one
+   thing nobody else in this category can show, it cannot be faked, and it
+   carries all the colour a page made of grey rectangles cannot.
+
+   What is left is deliberately small. Four blocks, and each one answers a
+   different question:
+
+     hero      what is this        live games
+     rail      how big is it       four numbers
+     split     how do I use it     a live response
+     reference what can it answer a list
+     closeout  what is the catch   the badge, and the ask
+
+   One dark block at the end, one violet accent, and nothing else competing.
+   ========================================================================== */
+
+/* --- Hero ------------------------------------------------------------------ */
+
+.hero { padding: 92px 0 0; border-bottom: 0; }
+.hero::before { opacity: 0.7; }
+
+.herotext { max-width: 660px; }
+.herotext h1 { margin-bottom: 20px; }
+.herotext .lead {
+  font-size: 1.08rem; color: var(--text-soft);
+  max-width: 46ch; margin-bottom: 28px;
+}
+.herotext .hero-cta { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* --- Hero game grid -------------------------------------------------------- */
+/* The dominant moment. Four cards across the full measure, so each one is big
+   enough for its thumbnail to actually be seen. */
+
+.herogrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 64px;
+}
+@media (max-width: 900px) { .herogrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 460px) { .herogrid { grid-template-columns: 1fr; } }
+
+.minicard {
+  display: flex; flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color 0.16s, transform 0.16s;
+}
+.minicard:hover { border-color: var(--border-strong); }
+
+.minicard-banner {
+  position: relative;
+  height: 96px; flex: none;
+  background-color: var(--panel-2);
+  background-position: center; background-size: cover;
+}
+/* The title and the logo straddle the banner edge, so the bottom of the image
+   needs a scrim. Roblox banners are photographs: on a bright one the title was
+   unreadable, and a title nobody can read is worse than no title.
+
+   No border-bottom here. The scrim already resolves to --panel, which is the
+   body's own colour, so a hairline across that seam drew a hard line straight
+   through the middle of the game name. */
+.minicard-banner::after {
+  content: ""; position: absolute; inset: auto 0 0 0; height: 62px;
+  background: linear-gradient(to bottom, transparent, var(--panel) 96%);
+}
+.minicard-rank {
+  position: absolute; top: 8px; left: 10px; z-index: 2;
+  font-family: var(--mono); font-size: 0.6rem; font-weight: 700;
+  padding: 2px 6px; border-radius: 4px;
+  background: rgba(0, 0, 0, 0.7); color: #fff;
+}
+.minicard-body { padding: 0 14px 15px; display: flex; flex-direction: column; flex: 1; }
+.minicard-head { position: relative; z-index: 1; display: flex; align-items: flex-end; gap: 10px; margin: -18px 0 12px; }
+.minicard-logo {
+  width: 42px; height: 42px; flex: none;
+  border-radius: 10px;
+  background-color: var(--panel-2);
+  background-position: center; background-size: cover;
+  border: 2px solid var(--panel);
+}
+.minicard-titles { min-width: 0; padding-bottom: 2px; }
+.minicard-title {
+  margin: 0 0 1px; font-size: 0.92rem; font-weight: 560; letter-spacing: -0.015em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.minicard-creator {
+  font-size: 0.75rem; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.minicard-stats {
+  display: flex; gap: 16px; margin-top: auto;
+  padding-top: 11px; border-top: 1px solid var(--border-faint);
+}
+.minicard-stats > div { min-width: 0; }
+.minicard-stats b {
+  display: block; font-size: 0.9rem; font-weight: 600; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.minicard-stats > div:first-child b { color: var(--ok-ink); }
+.minicard-stats span {
+  display: block; font-family: var(--mono); font-size: 0.55rem;
+  letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted);
+}
+.minicard-link { color: inherit; text-decoration: none; display: flex; flex-direction: column; flex: 1; }
+.minicard-link:hover { text-decoration: none; }
+
+/* While the fetch is in flight the cards hold the space, so the hero does not
+   jump when the data lands. A skeleton is not decoration: it is what stops the
+   whole page from shifting under the reader. */
+.minicard.skel { pointer-events: none; }
+.minicard-banner, .skel-line {
+  background-image: none;
+  background-color: var(--panel-2);
+  animation: breathe 1.5s ease-in-out infinite;
+}
+.skel-line { height: 9px; border-radius: 4px; margin-bottom: 8px; }
+.skel-line.short { width: 55%; }
+.minicard.skel .minicard-body { padding-top: 18px; }
+@keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) { .minicard.skel * { animation: none; } }
+
+/* What happens when the API is unreachable. Say so; do not show a zero. */
+.herogrid-fail {
+  grid-column: 1 / -1;
+  padding: 34px 20px; text-align: center;
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  color: var(--muted); font-size: 0.9rem;
+}
+.herogrid-fail a { color: var(--accent-ink); }
+
+.herofoot {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
+  margin: 0; padding: 22px 0 26px;
+  font-size: 0.85rem; color: var(--muted);
+}
+.herofoot a { margin-left: auto; }
+
+@media (max-width: 980px) {
+  .hero { padding: 64px 0 0; }
+  .herogrid { margin-top: 48px; }
+}
+@media (max-width: 640px) {
+  .herotext .lead { font-size: 1rem; }
+  .herofoot a { margin-left: 0; width: 100%; }
+}
+
+/* --- How it works ---------------------------------------------------------- */
+/* One block, two ideas, one live element. The previous version spent four
+   alternating rows on this and said less. */
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 72px; align-items: center;
+  padding: 96px 0;
+  border-top: 1px solid var(--border-faint);
+}
+.split-text { min-width: 0; }
+.split-text h2 { font-size: 1.5rem; margin-bottom: 8px; text-wrap: balance; }
+.split-text h2 + p { color: var(--text-soft); max-width: 42ch; }
+.split-text h2:not(:first-child) { margin-top: 34px; }
+.split-vis { min-width: 0; }
+@media (max-width: 880px) {
+  .split { grid-template-columns: 1fr; gap: 32px; padding: 60px 0; }
+}
 
 /* --- Responsive ----------------------------------------------------------- */
 

@@ -70,62 +70,37 @@
 <div class="wrap">
 
   <!-- ================= Hero ================= -->
+  <!-- The product is live Roblox data, so the hero is live Roblox data. Four
+       real games with real player counts, fetched on load. No screenshot, no
+       invented numbers, and nothing else on the page has to try to be the
+       thing you came for. -->
   <section class="hero">
-    <div class="hero-grid">
-      <div>
-        <h1>Live Roblox game stats, <em>one call away</em></h1>
-        <p class="lead">
-          Owner, likes, players right now, visits, thumbnail and banner for any game.
-          One script tag, or plain JSON.
-        </p>
-        <div class="hero-cta">
-          <a class="btn btn-accent" href="/docs">Get started
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-          </a>
-          <a class="btn btn-ghost" href="/demo">See it working</a>
-        </div>
-      </div>
-
-      <div class="codecard">
-        <div class="codecard-bar">
-          <span>index.html</span>
-          <span class="sp"></span>
-          <span class="tag">the whole integration</span>
-        </div>
-        <pre><code><span class="tk">&lt;h2&gt;</span><span class="ph">{{name}}</span><span class="tk">&lt;/h2&gt;</span>
-<span class="tk">&lt;p&gt;</span><span class="ph">{{playing}}</span> playing now<span class="tk">&lt;/p&gt;</span>
-
-<span class="tk">&lt;script</span> <span class="at">src</span>=<span class="st">"/roblox-stats.js"</span><span class="tk">&gt;&lt;/script&gt;</span></code></pre>
+    <div class="herotext">
+      <h1>Live Roblox game stats, <em>one call away</em></h1>
+      <p class="lead">
+        Owner, likes, players right now, visits, thumbnail and banner for any game.
+        One script tag, or plain JSON.
+      </p>
+      <div class="hero-cta">
+        <a class="btn btn-accent" href="/docs">Get started
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <a class="btn btn-ghost" href="/demo">See it working</a>
       </div>
     </div>
-  </section>
 
-  <!-- ================= Live strip ================= -->
-  <section class="livestrip" id="liveCard" aria-label="Most played games right now">
-    <div class="livestrip-bg" id="lcBanner" aria-hidden="true"></div>
-    <div class="livestrip-in">
-      <div>
-        <div class="livestrip-label">
-          <span class="dot-live" aria-hidden="true"></span>
-          Most played right now
-          <span class="muted" id="lcUpdated">loading&hellip;</span>
-        </div>
-        <div class="livestrip-main">
-          <div class="livestrip-logo" id="lcLogo"><span class="livestrip-rank" id="lcRank">#1</span></div>
-          <div class="livestrip-titles">
-            <p class="livestrip-name" id="lcName">Loading live data&hellip;</p>
-            <div class="livestrip-creator" id="lcCreator">From /api/v1/trending</div>
-            <div class="livestrip-credit"><span class="tag">MBA</span> Made by Moonlight Studios</div>
-          </div>
-        </div>
-        <div class="livestrip-dots" id="lcDots" aria-label="Top 10 games"></div>
-      </div>
-      <div class="livestrip-stats">
-        <div><b id="lcPlaying">&mdash;</b><span>Playing now</span></div>
-        <div><b id="lcLikes">&mdash;</b><span>Likes</span></div>
-        <a class="btn btn-ghost" id="lcLink" href="/explorer" target="_blank" rel="noopener">Open &nearr;</a>
-      </div>
+    <div class="herogrid" id="heroGrid" aria-label="Most played Roblox games right now">
+      <div class="minicard skel"><div class="minicard-banner"></div><div class="minicard-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
+      <div class="minicard skel"><div class="minicard-banner"></div><div class="minicard-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
+      <div class="minicard skel"><div class="minicard-banner"></div><div class="minicard-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
+      <div class="minicard skel"><div class="minicard-banner"></div><div class="minicard-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
     </div>
+
+    <p class="herofoot">
+      <span class="dot-live" aria-hidden="true"></span>
+      <span id="heroAge">Loading live data&hellip;</span>
+      <a href="/explorer">Browse the top 40 in the Explorer &rarr;</a>
+    </p>
   </section>
 
   <div class="rail">
@@ -135,38 +110,16 @@
     <div><b>0</b><span>lines to write</span></div>
   </div>
 
-  <!-- ================= One ================= -->
-  <section class="alt">
-    <div class="alt-text">
+  <!-- ================= How it works ================= -->
+  <section class="split">
+    <div class="split-text">
       <h2>Write the stat name, get the number</h2>
-      <p>No function to call. You write <span class="ph">{{playing}}</span> in your HTML and the file
-        replaces it once Roblox answers.</p>
-      <a class="alt-more" href="/docs/autofill">Every stat name &rarr;</a>
-    </div>
-    <div class="alt-vis">
-      <div class="codecard">
-        <div class="codecard-bar">
-          <span>your page</span>
-          <span class="sp"></span>
-          <span>after the file runs</span>
-        </div>
-        <pre><code><span class="tk">&lt;p&gt;</span><span class="ph">{{playing}}</span> players right now<span class="tk">&lt;/p&gt;</span>
-
-<span class="cm">becomes</span>
-
-<span class="tk">&lt;p&gt;</span><span class="nm">1,204,558</span> players right now<span class="tk">&lt;/p&gt;</span></code></pre>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= Two ================= -->
-  <section class="alt flip">
-    <div class="alt-text">
+      <p>There is no function to call. You write <span class="ph">{{playing}}</span> in your HTML and the
+        file replaces it once Roblox answers.</p>
       <h2>Or just call the API</h2>
       <p>Ordinary <code>GET</code>, open CORS, no key. From a browser, a server, Python, anything.</p>
-      <a class="alt-more" href="/docs/endpoints">All 15 endpoints &rarr;</a>
     </div>
-    <div class="alt-vis">
+    <div class="split-vis">
       <div class="tester">
         <div class="tester-head">
           <span class="dot-live" aria-hidden="true"></span>
@@ -186,58 +139,40 @@
     </div>
   </section>
 
-  <!-- ================= Three ================= -->
-  <section class="alt">
-    <div class="alt-text">
-      <h2>SDK and MCP, if you want them</h2>
-      <p>A Node SDK that unwraps the envelope, and an MCP server for AI tools. One env var.</p>
-      <a class="alt-more" href="/docs#sdks">Read the docs &rarr;</a>
-    </div>
-    <div class="alt-vis">
-      <div class="codecard">
-        <div class="codecard-bar"><span>npm i roblox-stats-sdk</span><span class="sp"></span><span class="sub">and/or</span></div>
-        <pre><code><span class="kw">import</span> { robloxStats } <span class="kw">from</span> <span class="st">'roblox-stats-sdk'</span>;
-
-<span class="kw">const</span> g = <span class="kw">await</span> robloxStats.game(994732206);
-console.log(g.name, g.playing);</code></pre>
-      </div>
-    </div>
-  </section>
-
   <!-- ================= Reference ================= -->
-  <section class="alt flip">
-    <div class="alt-text">
-      <h2>Fifteen endpoints</h2>
-      <p>All <code>GET</code> except two. One envelope, always.</p>
-      <a class="alt-more" href="/docs/endpoints">Full reference &rarr;</a>
+  <section class="section reveal" id="endpoints">
+    <div class="section-head">
+      <h2>Fifteen endpoints, one envelope</h2>
     </div>
-    <div class="alt-vis">
-      <div class="eplist">
-        <div class="eprow">
-          <div class="eprow-path"><span class="method get">GET</span><code>/games/{universeId}</code></div>
-          <p>Everything about a game in one call.</p>
-        </div>
-        <div class="eprow">
-          <div class="eprow-path"><span class="method get">GET</span><code>/games/{id}/quick</code></div>
-          <p>No media. For cards and listings.</p>
-        </div>
-        <div class="eprow">
-          <div class="eprow-path"><span class="method get">GET</span><code>/games/batch?ids=</code></div>
-          <p>Up to 50 games in one request.</p>
-        </div>
-        <div class="eprow">
-          <div class="eprow-path"><span class="method get">GET</span><code>/trending?limit=20</code></div>
-          <p>Most played right now.</p>
-        </div>
-        <div class="eprow">
-          <div class="eprow-path"><span class="method get">GET</span><code>/resolve?url=</code></div>
-          <p>Any Roblox URL to its universeId.</p>
-        </div>
-        <div class="eprow">
-          <div class="eprow-path"><span class="method post">POST</span><code>/render</code></div>
-          <p>Fills placeholders in an HTML string.</p>
-        </div>
+    <div class="eplist">
+      <div class="eprow">
+        <div class="eprow-path"><span class="method get">GET</span><code>/games/{universeId}</code></div>
+        <p>Everything about a game in one call.</p>
       </div>
+      <div class="eprow">
+        <div class="eprow-path"><span class="method get">GET</span><code>/games/{id}/quick</code></div>
+        <p>No media. For cards and listings.</p>
+      </div>
+      <div class="eprow">
+        <div class="eprow-path"><span class="method get">GET</span><code>/games/batch?ids=</code></div>
+        <p>Up to 50 games in one request.</p>
+      </div>
+      <div class="eprow">
+        <div class="eprow-path"><span class="method get">GET</span><code>/trending?limit=20</code></div>
+        <p>Most played right now.</p>
+      </div>
+      <div class="eprow">
+        <div class="eprow-path"><span class="method get">GET</span><code>/resolve?url=</code></div>
+        <p>Any Roblox URL to its universeId.</p>
+      </div>
+      <div class="eprow">
+        <div class="eprow-path"><span class="method post">POST</span><code>/render</code></div>
+        <p>Fills placeholders in an HTML string.</p>
+      </div>
+    </div>
+    <div class="chips">
+      <a class="chip" href="/docs/endpoints">Full reference &rarr;</a>
+      <a class="chip" href="/docs#sdks">Node SDK and MCP</a>
     </div>
   </section>
 
@@ -264,6 +199,7 @@ console.log(g.name, g.playing);</code></pre>
 
 </div>
 </main>
+
 
 
 
@@ -307,146 +243,73 @@ console.log(g.name, g.playing);</code></pre>
 <script src="/api.js"></script>
 <script src="/site.js"></script>
 <script>
-// Everything lives inside this function on purpose. A bare `var top = []` at
-// page level is silently ignored, because window.top is a read-only property of
-// the browser: the array never gets stored and the card stays empty with no
-// error anywhere. An IIFE also keeps the page's own variables out of window,
-// where they could collide with anything else on the site.
 (function () {
   'use strict';
 
   var api = window.RbxApi;
+  var grid = document.getElementById('heroGrid');
+  var ageSlot = document.getElementById('heroAge');
+  var since = 0;
 
-  // --- Live top 10 in the hero ----------------------------------------------
-  // The card cycles through the ten games with the most players connected right
-  // now. Every number comes from this API, so the first thing on the page
-  // proves the thing works instead of showing a screenshot of it.
-  var TOP_N = 10;
-  var ROTATE_MS = 4500;
-
-  var lc = {
-    card: document.getElementById('liveCard'),
-    link: document.getElementById('lcLink'),
-    banner: document.getElementById('lcBanner'),
-    rank: document.getElementById('lcRank'),
-    logo: document.getElementById('lcLogo'),
-    name: document.getElementById('lcName'),
-    creator: document.getElementById('lcCreator'),
-    playing: document.getElementById('lcPlaying'),
-    likes: document.getElementById('lcLikes'),
-    dots: document.getElementById('lcDots'),
-    updated: document.getElementById('lcUpdated'),
-    since: 0,
-  };
-
-  var top = [];
-  var idx = 0;
-  var timer = null;
-  var held = false; // true while the pointer rests on the card
-  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  function paint(i) {
-    var g = top[i];
-    if (!g) return;
-    idx = i;
-
-    lc.banner.style.backgroundImage = g.banner ? 'url("' + g.banner + '")' : '';
-    lc.logo.style.backgroundImage = g.thumbnail ? 'url("' + g.thumbnail + '")' : '';
-    lc.rank.textContent = '#' + (i + 1);
-    lc.name.textContent = g.name;
-    lc.creator.textContent = g.creator || 'Unknown creator';
-    lc.playing.textContent = api.abbr(g.playing);
-    lc.likes.textContent = api.abbr(g.upVotes);
-    lc.link.href = g.url || '#';
-    lc.since = Date.now();
-
-    Array.prototype.forEach.call(lc.dots.children, function (dot, n) {
-      dot.setAttribute('aria-current', String(n === i));
-    });
-    tickAge();
-  }
-
-  // A short fade hides the swap. Skipped when the visitor asked for less motion.
-  function show(i) {
-    if (reduceMotion) { paint(i); return; }
-    lc.card.classList.add('swap');
-    setTimeout(function () {
-      paint(i);
-      lc.card.classList.remove('swap');
-    }, 170);
-  }
-
-  function advance() {
-    if (!top.length) return;
-    if (idx + 1 >= top.length) {
-      // A full pass finished: ask Roblox again, because the ranking moves.
-      show(0);
-      loadTop();
-      return;
-    }
-    show(idx + 1);
-  }
-
-  function startTimer() {
-    stopTimer();
-    if (held || document.hidden || !top.length) return;
-    timer = setInterval(advance, ROTATE_MS);
-  }
-
-  function stopTimer() {
-    if (timer) { clearInterval(timer); timer = null; }
-  }
-
-  function buildDots() {
-    lc.dots.textContent = '';
-    top.forEach(function (g, i) {
-      var dot = document.createElement('button');
-      dot.type = 'button';
-      dot.className = 'livecard-dot';
-      dot.title = '#' + (i + 1) + ' ' + g.name;
-      dot.setAttribute('aria-label', 'Show #' + (i + 1) + ': ' + g.name);
-      dot.addEventListener('click', function () { show(i); startTimer(); });
-      lc.dots.appendChild(dot);
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
 
-  function loadTop() {
-    return api.fetch('/api/v1/trending?limit=' + TOP_N + '&includeMedia=true')
+  function card(g, i) {
+    var url = g.url || 'https://www.roblox.com/games/' + (g.universeId || g.id || '');
+    return '<a class="minicard-link" href="' + esc(url) + '" target="_blank" rel="noopener">' +
+      '<div class="minicard-banner"' +
+        (g.banner ? ' style="background-image:url(&quot;' + esc(g.banner) + '&quot;)"' : '') + '>' +
+        '<span class="minicard-rank">#' + (i + 1) + '</span>' +
+      '</div>' +
+      '<div class="minicard-body">' +
+        '<div class="minicard-head">' +
+          '<div class="minicard-logo"' +
+            (g.thumbnail ? ' style="background-image:url(&quot;' + esc(g.thumbnail) + '&quot;)"' : '') + '></div>' +
+          '<div class="minicard-titles">' +
+            '<p class="minicard-title">' + esc(g.name || 'Untitled') + '</p>' +
+            '<div class="minicard-creator">' + esc(g.creator || 'Unknown creator') + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="minicard-stats">' +
+          '<div><b>' + esc(api.abbr(g.playing)) + '</b><span>Playing</span></div>' +
+          '<div><b>' + esc(api.abbr(g.upVotes)) + '</b><span>Likes</span></div>' +
+        '</div>' +
+      '</div>' +
+    '</a>';
+  }
+
+  function loadHero() {
+    if (!grid) return Promise.resolve();
+    return api.fetch('/api/v1/trending?limit=4&includeMedia=true')
       .then(function (res) { return res.json(); })
       .then(function (body) {
-        if (!body.ok) throw new Error(body.error && body.error.message);
-        if (!body.data.length) throw new Error('no games returned');
-        top = body.data;
-        buildDots();
-        paint(0);
-        startTimer();
+        if (!body.ok || !body.data || !body.data.length) throw new Error('no games returned');
+        grid.innerHTML = body.data.map(card).join('');
+        since = Date.now();
+        tickAge();
       })
       .catch(function (err) {
-        lc.name.textContent = 'Could not load the ranking';
-        lc.creator.textContent = err.message;
-        lc.updated.textContent = 'the API is unreachable from here';
+        // Never a zero and never a blank box. If Roblox is rate-limiting us the
+        // reader is told that, which is more useful than a card showing 0.
+        grid.innerHTML = '<div class="herogrid-fail">Could not reach Roblox right now' +
+          (err && err.message ? ' (' + esc(err.message) + ')' : '') +
+          '. <a href="/explorer">Open the Explorer</a> or <a href="/pricing">read the docs</a>.</div>';
+        if (ageSlot) ageSlot.textContent = 'the API is unreachable from here';
       });
   }
 
-  // A visible "how old is this number" beats a static label: the whole point of
-  // the page is that the data is live.
+  // How old is this number. A ranking that silently looks current is worse than
+  // one that admits when it was fetched.
   function tickAge() {
-    if (!lc.since) return;
-    var secs = Math.round((Date.now() - lc.since) / 1000);
-    lc.updated.textContent = 'updated ' + secs + 's ago';
+    if (!ageSlot || !since) return;
+    var secs = Math.round((Date.now() - since) / 1000);
+    ageSlot.textContent = 'Top 4 by live players, updated ' + secs + 's ago';
   }
 
-  // Moving content is hostile to anyone trying to read or click it, so it holds
-  // still while the pointer is on it and while the tab is in the background.
-  lc.card.addEventListener('mouseenter', function () { held = true; stopTimer(); });
-  lc.card.addEventListener('mouseleave', function () { held = false; startTimer(); });
-  lc.card.addEventListener('focusin', function () { held = true; stopTimer(); });
-  lc.card.addEventListener('focusout', function () { held = false; startTimer(); });
-  document.addEventListener('visibilitychange', function () {
-    if (document.hidden) stopTimer(); else startTimer();
-  });
-
-  // --- Interactive game tester ----------------------------------------------
+  // --- Live tester --------------------------------------------------------
   function loadGame(variant) {
     var input = document.getElementById('gameId');
     var out = document.getElementById('result');
@@ -469,29 +332,13 @@ console.log(g.name, g.playing);</code></pre>
     });
   });
 
-  // The page's own script runs at parse time, but site.js wires things up on
-  // DOMContentLoaded, so wait for the DOM before the first render.
-  // The hero's response panel is filled from the API, not typed into the
-  // markup. A hard-coded sample would silently go stale, and a page whose whole
-  // argument is "this is live" cannot afford one invented number.
-  function loadTerm() {
-    var out = document.getElementById('termOut');
-    if (!out) return;
-    api.fetch('/api/v1/games/994732206/quick')
-      .then(function (res) { return res.json(); })
-      .then(function (body) { api.show(out, body); })
-      .catch(function () { out.textContent = '{ "ok": false }'; });
-  }
-
   function start() {
-    loadTop();
-    // The tester answers before anyone presses anything. An empty box with a
-    // "hit a button" line in it is a form; a box already showing a live response
-    // is a demonstration, and only one of those two makes a point.
+    loadHero();
     loadGame('quick');
     setInterval(tickAge, 1000);
   }
 
+  // site.js wires itself up on DOMContentLoaded, so wait for the DOM too.
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', start);
   } else {
