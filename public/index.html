@@ -264,9 +264,12 @@
   var ageSlot = document.getElementById('heroAge');
   var since = 0;
 
-  // How fast the ribbon should travel, in pixels per second. Slower than it
-  // looks and it drags; faster and the card titles cannot be read at all.
-  var PX_PER_SEC = 88;
+  // How fast the ribbon should travel, in pixels per second. At 88 a card took
+  // 2.4s to cross, which is slow enough that on a large monitor it reads as a
+  // still image rather than as motion. 120 puts one card past every 1.8s: fast
+  // enough to be obviously moving, slow enough that a title is readable as it
+  // goes by.
+  var PX_PER_SEC = 120;
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
