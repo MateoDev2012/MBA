@@ -267,6 +267,15 @@
       { rootMargin: '0px 0px -8% 0px', threshold: 0.04 }
     );
     Array.prototype.forEach.call(items, function (el) { observer.observe(el); });
+
+    // Failsafe. The observer is reliable in a normal tab, but a page that is
+    // hidden at load, a stitched full-page capture, or a browser that throttles
+    // observers can leave a section stuck at opacity 0 — which on this palette is
+    // a blank page, not a slightly late fade. A late fade is fine; a blank
+    // page is not, so the animation is never allowed to have the last word.
+    setTimeout(function () {
+      Array.prototype.forEach.call(items, function (el) { el.classList.add('in'); });
+    }, 2500);
   }
 
   // --- Footer year ----------------------------------------------------------
