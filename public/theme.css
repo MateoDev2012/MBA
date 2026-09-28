@@ -75,6 +75,10 @@
   --code-bg: #060607;
   --code-bg-2: #0b0b0d;
   --code-border: rgba(255, 255, 255, 0.08);
+  /* Language keywords inside a code card. One fixed hex cannot serve both
+     panels: the value that reads on near-black measures 2.8:1 on white, so
+     this is a token with a value per theme. */
+  --code-kw: #c084fc;
 
   --grad: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
   --focus: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
@@ -129,6 +133,7 @@
   --code-bg: #f8f8fa;
   --code-bg-2: #f1f1f4;
   --code-border: rgba(0, 0, 0, 0.1);
+  --code-kw: #7c22ce;
 
   --grad: linear-gradient(180deg, #ffffff, #fafafa);
   --focus: 0 0 0 2px #fff, 0 0 0 4px var(--accent);
@@ -907,13 +912,6 @@ footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40
 
 /* --- Spinner -------------------------------------------------------------- */
 
-.spinner {
-  width: 16px; height: 16px; border-radius: 50%;
-  border: 2px solid var(--border-strong);
-  border-top-color: var(--accent);
-  animation: spin 0.7s linear infinite;
-  display: inline-block;
-}
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* --- Explorer ------------------------------------------------------------- */
@@ -1203,78 +1201,6 @@ footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40
      .panel-accent the last thing on the page is the loudest thing on the page
    ========================================================================== */
 
-/* --- Terminal panel -------------------------------------------------------- */
-/* Always dark, in both themes. A code panel that flipped to white in the light
-   theme stopped reading as a terminal, and the violet tokens are what make the
-   page feel like it has one accent rather than none. */
-
-.term {
-  position: relative;
-  background: #0b0b0d;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.55);
-}
-.term-bar {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
-}
-.term-dots { display: flex; gap: 5px; flex: none; }
-.term-dots i { width: 8px; height: 8px; border-radius: 50%; background: rgba(255, 255, 255, 0.14); }
-.term-file {
-  font-family: var(--mono); font-size: 0.7rem; color: #86868f;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.term-badge {
-  margin-left: auto; flex: none;
-  font-family: var(--mono); font-size: 0.58rem; font-weight: 700; letter-spacing: 0.05em;
-  padding: 2px 6px; border-radius: 4px;
-  background: rgba(61, 220, 151, 0.13); color: #6ee7b7;
-  border: 1px solid rgba(61, 220, 151, 0.26);
-}
-
-.term pre {
-  margin: 0; border: 0; border-radius: 0;
-  background: transparent; padding: 16px 18px;
-  font-size: 0.775rem; line-height: 1.75;
-  color: #d9d9e0;
-  max-height: 380px;
-  /* Wrap, do not clip. Roblox image URLs are long enough to run off the edge,
-     and a JSON object sliced in half at the right margin reads as a rendering
-     bug rather than as a payload that is merely long. */
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-/* Two panels stacked, one hairline between them. */
-.term-split { display: grid; }
-.term-split > * + * { border-top: 1px solid rgba(255, 255, 255, 0.08); }
-.term-cap {
-  font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.08em;
-  text-transform: uppercase; color: #6e6e78;
-  padding: 9px 18px 0;
-}
-
-.term .tk { color: #a78bfa; }   /* tags and attribute names */
-.term .at { color: #c4b5fd; }   /* attribute values */
-.term .st { color: #6ee7b7; }   /* strings */
-.term .nm { color: #7dd3fc; }   /* numbers */
-.term .ky { color: #fbbf24; }   /* keys in the JSON */
-.term .cm { color: #6e6e78; }   /* comments */
-.term .fn { color: #f4f4f5; }   /* method names */
-
-.term-foot {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px;
-  padding: 12px 18px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.02);
-  font-size: 0.78rem; color: #86868f;
-}
-.term-foot b { color: #d9d9e0; font-weight: 550; }
-.term-foot .sp { margin-left: auto; }
-
 /* --- Live strip ------------------------------------------------------------ */
 /* Full-bleed, so it breaks the 1080px measure and gives the page a horizon
    line. It was a 420px card floating in white space next to the headline. */
@@ -1286,9 +1212,19 @@ footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40
   overflow: hidden;
 }
 .livestrip-in {
+  position: relative; z-index: 1;
   display: grid; grid-template-columns: 1fr auto; gap: 28px;
   align-items: center;
-  padding: 22px 0;
+  /* It is a direct child of .livestrip, not of a .wrap, so it has to impose the
+     measure itself. The 24px matches .wrap so the strip lines up with the
+     headline above it.
+
+     The z-index is load-bearing. Both .livestrip-bg and the ::after scrim are
+     positioned with z-index 0, and a non-positioned sibling paints underneath
+     them, so without this the whole strip sat behind its own dimming layer and
+     came out as a black rectangle with two numbers faintly showing through. */
+  max-width: var(--maxw); margin: 0 auto;
+  padding: 24px 24px 0;
 }
 @media (max-width: 900px) { .livestrip-in { grid-template-columns: 1fr; gap: 18px; } }
 
@@ -1392,34 +1328,10 @@ footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40
   .rail b { font-size: 1.6rem; }
 }
 
-/* --- Bento ----------------------------------------------------------------- */
-/* Three cards, so a three-column grid with the first one spanning two leaves
-   the third alone on a row with two empty cells beside it — which is what the
-   first attempt did, and it read as a layout bug. Two columns with the first
-   card spanning both fills the rectangle exactly: one wide card, then a pair. */
-
-.grid-bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.grid-bento > :first-child { grid-column: 1 / -1; }
-@media (max-width: 760px) {
-  .grid-bento { grid-template-columns: 1fr; }
-  .grid-bento > :first-child { grid-column: auto; }
-}
-/* The wide card lays out sideways, so the extra width buys a second column of
-   text instead of a longer line in the same one. */
-.feature-wide { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 20px; align-items: start; }
-.feature-wide .feature-ico { margin-bottom: 0; }
-.feature-wide h3 { margin-top: 2px; }
-@media (max-width: 760px) { .feature-wide { grid-template-columns: 1fr; gap: 0; } .feature-wide .feature-ico { margin-bottom: 16px; } }
-
 /* --- Split: prose beside code --------------------------------------------- */
 /* The setup section was 1025px tall and 1032px wide of nothing but stacked code
    blocks. Two columns halves the height and uses the width. */
 
-.split {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.82fr);
-  gap: 40px; align-items: start;
-}
-.split > * { min-width: 0; }
 @media (max-width: 900px) { .split { grid-template-columns: 1fr; gap: 28px; } }
 
 /* The live tester. Dark, because it is the one place the page shows the API
@@ -1481,9 +1393,9 @@ footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40
 }
 .eprow {
   display: grid;
-  grid-template-columns: minmax(0, 320px) minmax(0, 1fr);
-  gap: 6px 32px; align-items: baseline;
-  padding: 14px 18px;
+  grid-template-columns: minmax(0, 250px) minmax(0, 1fr);
+  gap: 6px 24px; align-items: baseline;
+  padding: 12px 16px;
 }
 .eprow + .eprow { border-top: 1px solid var(--border-faint); }
 .eprow:hover { background: var(--panel-2); }
@@ -1495,6 +1407,10 @@ footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40
 }
 .eprow p { margin: 0; font-size: 0.86rem; color: var(--muted); }
 .eprow p code { font-size: 0.9em; }
+/* Inside a feature row the list gets a narrow column, and a 250px path column
+   plus a 1fr description in 430px leaves the description about 100px wide,
+   which wraps every sentence onto three lines. Stacked, it reads normally. */
+.alt-vis .eprow { grid-template-columns: 1fr; gap: 2px; }
 @media (max-width: 780px) {
   .eprow { grid-template-columns: 1fr; }
   .eprow p { margin-top: 2px; }
@@ -1504,23 +1420,7 @@ footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40
 /* The credit rule is the whole business model, and it was a white box with a
    paragraph. It gets a dark panel and a real rendering of the badge. */
 
-.panel-dark {
-  background: #0b0b0d;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-xl);
-  padding: 40px;
-  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-  gap: 44px; align-items: center;
-}
 @media (max-width: 860px) { .panel-dark { grid-template-columns: 1fr; gap: 28px; padding: 28px; } }
-.panel-dark h2 { color: #f4f4f5; }
-.panel-dark p { color: #a1a1aa; }
-.panel-dark .kicker { color: #a78bfa; }
-.panel-dark .muted { color: #6e6e76; }
-.panel-dark code {
-  background: rgba(255, 255, 255, 0.07); border-color: transparent; color: #c4b5fd;
-}
-.panel-dark strong { color: #f4f4f5; }
 
 /* The badge, drawn as it actually ships. */
 .badgeshot {
@@ -1545,49 +1445,6 @@ footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40
 }
 .badgeshot-badge a { color: #5b34e8; }
 .badgeshot-note { margin: 12px 0 0; font-size: 0.76rem; color: #6e6e76; }
-
-/* --- Accent panel ---------------------------------------------------------- */
-/* The last thing on the page should be the loudest thing on the page. */
-
-.panel-accent {
-  position: relative; overflow: hidden;
-  border-radius: var(--radius-xl);
-  padding: 52px 44px;
-  text-align: center;
-  color: #fff;
-  background: #5b34e8;
-  background-image:
-    radial-gradient(120% 130% at 12% 0%, #7c53f5 0%, transparent 62%),
-    radial-gradient(90% 120% at 100% 100%, #4a24c9 0%, transparent 60%);
-}
-.panel-accent::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
-  background-size: 48px 48px;
-  -webkit-mask-image: radial-gradient(70% 70% at 50% 40%, #000, transparent 78%);
-  mask-image: radial-gradient(70% 70% at 50% 40%, #000, transparent 78%);
-}
-.panel-accent > * { position: relative; z-index: 1; }
-.panel-accent h2 { color: #fff; margin-bottom: 10px; }
-.panel-accent p { color: rgba(255, 255, 255, 0.86); max-width: 46ch; margin: 0 auto 26px; }
-.panel-accent .kicker { color: rgba(255, 255, 255, 0.72); }
-.panel-accent .btn { padding: 11px 20px; font-size: 0.95rem; }
-:root[data-theme="dark"] .panel-accent .btn:not(.btn-accent) {
-  background: rgba(255, 255, 255, 0.13);
-  border-color: rgba(255, 255, 255, 0.22);
-  color: #fff;
-}
-:root[data-theme="dark"] .panel-accent .btn:not(.btn-accent):hover { background: rgba(255, 255, 255, 0.2); }
-:root[data-theme="light"] .panel-accent .btn:not(.btn-accent) {
-  background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.3); color: #fff;
-}
-:root[data-theme="light"] .panel-accent .btn:not(.btn-accent):hover { background: rgba(255, 255, 255, 0.26); }
-.panel-accent .btn-white { background: #fff; color: #3f1fb8; border-color: #fff; }
-.panel-accent .btn-white:hover { background: #f0ecff; color: #3f1fb8; }
-
-@media (max-width: 640px) { .panel-accent { padding: 36px 20px; } }
 
 /* --- Rhythm ---------------------------------------------------------------- */
 /* Six sections at 60px top and bottom, each with its own box, is what made the
@@ -1654,6 +1511,229 @@ footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40
 .livestrip-stats .btn { align-self: end; }
 @media (max-width: 900px) { .livestrip-stats .btn { width: 100%; justify-content: center; } }
 @media (max-width: 900px) { .livestrip-dots { justify-content: flex-start; } }
+
+/* ==========================================================================
+   Alternating feature rows
+   ==========================================================================
+
+   Four rounds of the same complaint: it still looked wrong after the paint was
+   fixed, because the underlying page was still the documentation shape —
+   heading on top, content underneath, repeat. Six times over. A grid of cards
+   is the same box whether there are three of them or six, and the eye reads a
+   column of identical edges as a spreadsheet.
+
+   This is the other shape: a row of text beside a visual, then the next row
+   flipped. It is how Vercel, Railway and Resend all do it, and the reason is
+   not fashion — a row has a natural reading direction and a column does not,
+   so the alternation is what makes a long page feel like a document rather than
+   a list.
+
+   It also lets every visual be a different kind of object. Three boxes of the
+   same kind are three boxes; a code card, a live response and an install
+   command are three arguments.
+   ========================================================================== */
+
+.alt {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: 72px;
+  align-items: center;
+  /* Generous, because there is now one sentence per section instead of a
+     paragraph and three bullets. Less content needs more room, not less:
+     compressing the padding to fit the old density is what made the last
+     version feel cramped even where it was empty. */
+  padding: 88px 0;
+  border-top: 1px solid var(--border-faint);
+}
+.alt:first-of-type { border-top: 0; }
+.alt.flip .alt-text { order: 2; }
+
+.alt-text { min-width: 0; }
+/* balance, because at this column width a long headline otherwise breaks after
+   the sixth word and leaves a single orphan on the second line */
+.alt-text h2 { margin-bottom: 14px; text-wrap: balance; }
+.alt-text > p { color: var(--text-soft); max-width: 40ch; font-size: 1.02rem; }
+
+.alt-vis { min-width: 0; }
+.alt-more { display: inline-flex; align-items: center; gap: 6px; font-weight: 550; margin-top: 20px; }
+
+@media (max-width: 880px) {
+  .alt { grid-template-columns: 1fr; gap: 30px; padding: 56px 0; }
+  .alt.flip .alt-text { order: 0; }
+}
+
+/* --- Light code card ------------------------------------------------------- */
+/* The hero visual. The black terminal was 380px of near-black slab with 12px
+   type in it, which is why the hero felt heavy and the left column looked
+   unbalanced. A bordered card the height of its own content does the same job
+   in a third of the space, and it is light, so the page keeps one accent
+   instead of two. */
+
+.codecard {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.codecard-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-faint);
+  font-family: var(--mono); font-size: 0.68rem; color: var(--muted);
+}
+.codecard-bar .sp { margin-left: auto; }
+.codecard-bar .tag {
+  font-size: 0.58rem; font-weight: 700; letter-spacing: 0.05em;
+  padding: 2px 6px; border-radius: 4px;
+  background: var(--ok-soft); color: var(--ok-ink);
+  border: 1px solid rgba(61, 220, 151, 0.28);
+}
+.codecard pre {
+  margin: 0; border: 0; border-radius: 0; background: transparent;
+  padding: 16px 18px; font-size: 0.8rem; line-height: 1.8;
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.codecard-foot {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px;
+  padding: 12px 18px; border-top: 1px solid var(--border-faint);
+  background: var(--panel-2);
+  font-size: 0.79rem; color: var(--muted);
+}
+.codecard-foot .sp { margin-left: auto; }
+
+/* A {{placeholder}}, drawn the way it behaves: a slot waiting for a value. */
+.ph {
+  color: var(--accent-ink); font-weight: 600;
+  box-shadow: inset 0 -1px 0 var(--accent-line);
+}
+.tk { color: var(--accent-ink); }        /* tag and attribute names */
+.at { color: var(--text-soft); }          /* attribute values */
+.st { color: var(--ok-ink); }             /* strings */
+.ky { color: var(--accent-ink); }         /* JSON keys */
+.kw { color: var(--code-kw); }                   /* language keywords */
+.nm { color: var(--text); font-weight: 600; }
+.cm { color: var(--muted); }              /* comments */
+
+/* --- Two-up install cards -------------------------------------------------- */
+
+.codecard-pair { display: grid; gap: 12px; }
+.codecard-bar .sub {
+  margin-left: auto; font-family: var(--font);
+  font-size: 0.78rem; color: var(--text-soft);
+}
+
+/* --- Live response --------------------------------------------------------- */
+/* The tester, relit. It was the third black block on the page; now it is a
+   card like everything else, with the JSON on a code surface. It answers on
+   load, so it is a demonstration rather than a form. */
+
+.tester {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.tester-head {
+  padding: 11px 16px; border-bottom: 1px solid var(--border-faint);
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 0.68rem; color: var(--muted);
+}
+.tester-head .sp { margin-left: auto; }
+.tester-body { padding: 14px 16px 16px; }
+.tester-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.tester-row input {
+  flex: 1 1 auto; min-width: 0;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 11px; color: var(--text);
+  font-family: var(--mono); font-size: 0.84rem;
+}
+.tester-row input:focus {
+  outline: none; border-color: var(--accent); background: var(--panel);
+}
+.tester pre {
+  margin: 0;
+  background: var(--code-bg); border: 1px solid var(--code-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 13px; max-height: 250px;
+  font-size: 0.73rem; color: var(--code-text);
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.tester-hint { margin: 10px 0 0; font-size: 0.78rem; color: var(--muted); }
+.tester-hint code { font-size: 0.9em; }
+
+/* --- Closeout wrapper ----------------------------------------------------- */
+
+.closeout-wrap { padding: 40px 0 96px; }
+
+/* --- Closeout -------------------------------------------------------------- */
+/* The credit rule and the call to action were two boxes: a white one, then a
+   purple gradient that was the only saturated thing on the page and clashed
+   with all of it. They are one dark panel now, which is also the only place
+   the page asks for anything, so it is the only place it should be loud. */
+
+.closeout {
+  background: #0b0b0d;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-xl);
+  padding: 52px;
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 48px; align-items: center;
+}
+.closeout h2 { color: #f4f4f5; }
+.closeout h3 { color: #f4f4f5; }
+.closeout p { color: #a1a1aa; }
+.closeout .kicker { color: #a78bfa; }
+.closeout .muted { color: #6e6e76; }
+.closeout code {
+  background: rgba(255, 255, 255, 0.07); border-color: transparent; color: #c4b5fd;
+}
+.closeout strong { color: #f4f4f5; }
+.closeout-cta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+.closeout-cta .btn { padding: 10px 18px; }
+.closeout .btn:not(.btn-accent) {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #f4f4f5;
+}
+.closeout .btn:not(.btn-accent):hover { background: rgba(255, 255, 255, 0.12); }
+.closeout-note { font-size: 0.84rem; margin: 0; }
+
+/* The badge, drawn as it actually ships. */
+.badgeshot {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: var(--radius); padding: 18px;
+}
+.badgeshot-cap {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.08em;
+  text-transform: uppercase; color: #6e6e76; margin-bottom: 12px;
+}
+.badgeshot-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(255, 255, 255, 0.92); color: #0a0a0a;
+  border: 1px solid rgba(91, 52, 232, 0.28);
+  border-radius: 6px; padding: 6px 10px;
+  font-size: 0.78rem; font-weight: 550;
+}
+.badgeshot-badge .tag {
+  font-size: 0.6rem; font-weight: 800; letter-spacing: 0.05em;
+  color: #2a1500; background: #fbbf24; border-radius: 4px; padding: 2px 5px;
+}
+.badgeshot-badge a { color: #5b34e8; }
+.badgeshot-note { margin: 12px 0 0; font-size: 0.76rem; color: #6e6e76; }
+
+@media (max-width: 880px) {
+  .closeout { grid-template-columns: 1fr; gap: 30px; padding: 30px 24px; }
+}
+@media (max-width: 640px) { .closeout { padding: 26px 18px; } }
+
+/* --- The hero visual ------------------------------------------------------- */
+
+.hero { padding: 84px 0 68px; }
+.hero-grid { align-items: center; }
+@media (max-width: 980px) { .hero { padding: 56px 0 48px; } }
 
 /* --- Responsive ----------------------------------------------------------- */
 

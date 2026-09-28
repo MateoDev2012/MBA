@@ -67,294 +67,205 @@
 </header>
 
 <main id="main">
+<div class="wrap">
 
   <!-- ================= Hero ================= -->
-  <!-- The right column is a terminal, not a screenshot and not a card. It shows
-       the two things a visitor actually needs to see: the tag they copy, and
-       the answer that comes back. The answer is fetched live, not typed in, so
-       the page cannot drift out of date with itself. -->
   <section class="hero">
-    <div class="wrap">
-      <div class="hero-grid">
-        <div>
-          <span class="kicker">Public REST API</span>
-          <h1>Live Roblox game stats, <em>one call away</em></h1>
-          <p class="lead">
-            Owner, likes, players online right now, visits, thumbnail and banner for any Roblox game.
-            Drop it in with a single <code>&lt;script&gt;</code> tag, or call plain JSON from anywhere.
-          </p>
-          <div class="hero-cta">
-            <a class="btn btn-accent" href="/docs">Get started
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-            </a>
-            <a class="btn btn-ghost" href="/demo">See it working</a>
-          </div>
-          <div class="pills">
-            <span class="pill ok">No signup</span>
-            <span class="pill ok">Open CORS</span>
-            <span class="pill">Live data from Roblox</span>
-            <span class="pill">Caching included</span>
-          </div>
+    <div class="hero-grid">
+      <div>
+        <h1>Live Roblox game stats, <em>one call away</em></h1>
+        <p class="lead">
+          Owner, likes, players right now, visits, thumbnail and banner for any game.
+          One script tag, or plain JSON.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-accent" href="/docs">Get started
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="btn btn-ghost" href="/demo">See it working</a>
         </div>
+      </div>
 
-        <div class="term">
-          <div class="term-bar">
-            <span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span class="term-file">index.html</span>
-            <span class="term-badge">GET 200</span>
-          </div>
-          <div class="term-split">
-            <pre><code><span class="cm">&lt;!-- all you write --&gt;</span>
-<span class="tk">&lt;body</span> <span class="at">data-rbx-game</span><span class="tk">=</span><span class="st">"994732206"</span><span class="tk">&gt;</span>
-  <span class="tk">&lt;p&gt;</span><span class="cm">{{name}}</span> &middot; <span class="nm">0</span> players now<span class="tk">&lt;/p&gt;</span>
-  <span class="tk">&lt;img</span> <span class="at">data-rbx-set</span><span class="tk">=</span><span class="st">"src=thumbnail:url"</span><span class="tk">&gt;</span>
-  <span class="tk">&lt;script</span> <span class="at">src</span><span class="tk">=</span><span class="st">"/roblox-stats.js"</span><span class="tk">&gt;&lt;/script&gt;</span></code></pre>
-            <div class="term-cap">what the API answers &mdash; loaded live</div>
-            <pre><code id="termOut">Loading&hellip;</code></pre>
-          </div>
-          <div class="term-foot">
-            <span><b>No key.</b> No signup, no billing, nothing to rotate.</span>
-            <span class="sp"></span>
-            <a class="chip" href="/roblox-stats.js?download=1">Get the file &darr;</a>
-          </div>
+      <div class="codecard">
+        <div class="codecard-bar">
+          <span>index.html</span>
+          <span class="sp"></span>
+          <span class="tag">the whole integration</span>
         </div>
+        <pre><code><span class="tk">&lt;h2&gt;</span><span class="ph">{{name}}</span><span class="tk">&lt;/h2&gt;</span>
+<span class="tk">&lt;p&gt;</span><span class="ph">{{playing}}</span> playing now<span class="tk">&lt;/p&gt;</span>
+
+<span class="tk">&lt;script</span> <span class="at">src</span>=<span class="st">"/roblox-stats.js"</span><span class="tk">&gt;&lt;/script&gt;</span></code></pre>
       </div>
     </div>
   </section>
 
   <!-- ================= Live strip ================= -->
-  <!-- Full-bleed and dark, so the page has a horizon instead of six stacked
-       boxes. The game's own banner is the backdrop, heavily dimmed: real data
-       doing the decorating for once. -->
   <section class="livestrip" id="liveCard" aria-label="Most played games right now">
     <div class="livestrip-bg" id="lcBanner" aria-hidden="true"></div>
-    <div class="wrap">
-      <div class="livestrip-in">
-        <div>
-          <div class="livestrip-label">
-            <span class="dot-live" aria-hidden="true"></span>
-            Most played right now
-            <span class="muted" id="lcUpdated">loading&hellip;</span>
-          </div>
-          <div class="livestrip-main">
-            <div class="livestrip-logo" id="lcLogo"><span class="livestrip-rank" id="lcRank">#1</span></div>
-            <div class="livestrip-titles">
-              <p class="livestrip-name" id="lcName">Loading live data&hellip;</p>
-              <div class="livestrip-creator" id="lcCreator">From /api/v1/trending</div>
-              <div class="livestrip-credit"><span class="tag">MBA</span> Made by Moonlight Studios</div>
-            </div>
-          </div>
-          <div class="livestrip-dots" id="lcDots" aria-label="Top 10 games"></div>
+    <div class="livestrip-in">
+      <div>
+        <div class="livestrip-label">
+          <span class="dot-live" aria-hidden="true"></span>
+          Most played right now
+          <span class="muted" id="lcUpdated">loading&hellip;</span>
         </div>
-        <div class="livestrip-stats">
-          <div><b id="lcPlaying">&mdash;</b><span>Playing now</span></div>
-          <div><b id="lcLikes">&mdash;</b><span>Likes</span></div>
-          <a class="btn btn-ghost" id="lcLink" href="/explorer" target="_blank" rel="noopener">Open game &nearr;</a>
+        <div class="livestrip-main">
+          <div class="livestrip-logo" id="lcLogo"><span class="livestrip-rank" id="lcRank">#1</span></div>
+          <div class="livestrip-titles">
+            <p class="livestrip-name" id="lcName">Loading live data&hellip;</p>
+            <div class="livestrip-creator" id="lcCreator">From /api/v1/trending</div>
+            <div class="livestrip-credit"><span class="tag">MBA</span> Made by Moonlight Studios</div>
+          </div>
         </div>
+        <div class="livestrip-dots" id="lcDots" aria-label="Top 10 games"></div>
       </div>
-      <p class="livestrip-note">
-        Live player counts straight from Roblox, re-ranked every few minutes.
-        Hover to hold a game, click a dot to jump. <a href="/explorer">Browse all of them &rarr;</a>
-      </p>
+      <div class="livestrip-stats">
+        <div><b id="lcPlaying">&mdash;</b><span>Playing now</span></div>
+        <div><b id="lcLikes">&mdash;</b><span>Likes</span></div>
+        <a class="btn btn-ghost" id="lcLink" href="/explorer" target="_blank" rel="noopener">Open &nearr;</a>
+      </div>
     </div>
   </section>
 
-  <div class="wrap">
-    <div class="rail">
-      <div><b>15</b><span>endpoints</span></div>
-      <div><b>20</b><span>stat variables</span></div>
-      <div><b>1</b><span>file to copy</span></div>
-      <div><b>0</b><span>lines of code</span></div>
+  <div class="rail">
+    <div><b>15</b><span>endpoints</span></div>
+    <div><b>20</b><span>stat names</span></div>
+    <div><b>1</b><span>file</span></div>
+    <div><b>0</b><span>lines to write</span></div>
+  </div>
+
+  <!-- ================= One ================= -->
+  <section class="alt">
+    <div class="alt-text">
+      <h2>Write the stat name, get the number</h2>
+      <p>No function to call. You write <span class="ph">{{playing}}</span> in your HTML and the file
+        replaces it once Roblox answers.</p>
+      <a class="alt-more" href="/docs/autofill">Every stat name &rarr;</a>
     </div>
+    <div class="alt-vis">
+      <div class="codecard">
+        <div class="codecard-bar">
+          <span>your page</span>
+          <span class="sp"></span>
+          <span>after the file runs</span>
+        </div>
+        <pre><code><span class="tk">&lt;p&gt;</span><span class="ph">{{playing}}</span> players right now<span class="tk">&lt;/p&gt;</span>
 
-    <!-- ================= Three ways ================= -->
-    <!-- Bento: the primary path is twice as wide as the other two, so the row is
-         not three identical boxes. -->
-    <section class="section reveal" id="ways">
-      <div class="section-head">
-        <span class="kicker">Pick your path</span>
-        <h2>Three ways to use it</h2>
-        <p>Same data, same endpoints. Use as much or as little of it as you need.</p>
+<span class="cm">becomes</span>
+
+<span class="tk">&lt;p&gt;</span><span class="nm">1,204,558</span> players right now<span class="tk">&lt;/p&gt;</span></code></pre>
       </div>
+    </div>
+  </section>
 
-      <div class="grid grid-bento">
-        <div class="feature feature-wide">
-          <div class="feature-ico red">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
-          </div>
-          <div>
-            <h3>One script tag</h3>
-            <p>Write <code>{{playing}}</code> anywhere in your HTML and the numbers appear. No build step, no
-              framework, works on any host &mdash; even a GitHub Pages repo you never build. This is the
-              whole integration.</p>
-            <p class="mt-2"><a href="/demo">See the live demo &rarr;</a></p>
-          </div>
+  <!-- ================= Two ================= -->
+  <section class="alt flip">
+    <div class="alt-text">
+      <h2>Or just call the API</h2>
+      <p>Ordinary <code>GET</code>, open CORS, no key. From a browser, a server, Python, anything.</p>
+      <a class="alt-more" href="/docs/endpoints">All 15 endpoints &rarr;</a>
+    </div>
+    <div class="alt-vis">
+      <div class="tester">
+        <div class="tester-head">
+          <span class="dot-live" aria-hidden="true"></span>
+          <span>/api/v1/games/</span>
+          <span class="sp"></span>
+          <span>live</span>
         </div>
-
-        <div class="feature">
-          <div class="feature-ico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        <div class="tester-body">
+          <div class="tester-row">
+            <input type="text" id="gameId" value="994732206" inputmode="numeric" aria-label="Roblox universeId" />
+            <button class="btn" type="button" data-action="full">Full</button>
+            <button class="btn btn-ghost" type="button" data-action="quick">Quick</button>
           </div>
-          <h3>Plain JSON</h3>
-          <p>Every endpoint is an ordinary <code>GET</code> with open CORS. Call it from a browser, a server, Python, PHP, anything.</p>
-          <p class="mt-2"><a href="/docs/endpoints">Endpoint list &rarr;</a></p>
-        </div>
-
-        <div class="feature">
-          <div class="feature-ico green">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></svg>
-          </div>
-          <h3>SDK and MCP</h3>
-          <p>A small Node SDK unwraps the responses, and an MCP server exposes the whole API to AI tools. Both read one env var.</p>
-          <p class="mt-2"><a href="/docs#sdks">Node SDK &rarr;</a></p>
+          <pre id="result">Loading&hellip;</pre>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- ================= Start ================= -->
-    <!-- Was 1025px of stacked code blocks. Two columns: the setup on the left,
-         the thing that proves it works on the right. -->
-    <section class="section reveal" id="start">
-      <div class="section-head">
-        <span class="kicker">Start here</span>
-        <h2>One file, one script tag, done</h2>
-        <p>You do not need to study this API to use it. Copy the file into your project, add the tag,
-          and write the name of any stat wherever you want it. That is the entire setup.</p>
+  <!-- ================= Three ================= -->
+  <section class="alt">
+    <div class="alt-text">
+      <h2>SDK and MCP, if you want them</h2>
+      <p>A Node SDK that unwraps the envelope, and an MCP server for AI tools. One env var.</p>
+      <a class="alt-more" href="/docs#sdks">Read the docs &rarr;</a>
+    </div>
+    <div class="alt-vis">
+      <div class="codecard">
+        <div class="codecard-bar"><span>npm i roblox-stats-sdk</span><span class="sp"></span><span class="sub">and/or</span></div>
+        <pre><code><span class="kw">import</span> { robloxStats } <span class="kw">from</span> <span class="st">'roblox-stats-sdk'</span>;
+
+<span class="kw">const</span> g = <span class="kw">await</span> robloxStats.game(994732206);
+console.log(g.name, g.playing);</code></pre>
       </div>
+    </div>
+  </section>
 
-      <div class="split">
-        <div>
-          <div class="codeblock-label"><span>index.html</span> <span class="lang">html</span></div>
-          <div class="codeblock">
-            <pre><code>&lt;body data-rbx-game="994732206"&gt;
-
-  &lt;h2&gt;{{name}}&lt;/h2&gt;
-  &lt;p&gt;{{playing}} players right now &middot; {{likes}} likes&lt;/p&gt;
-  &lt;img data-rbx-set="src=thumbnail:url"&gt;
-
-  &lt;script src="https://YOUR-DOMAIN.com/roblox-stats.js"&gt;&lt;/script&gt;</code></pre>
-          </div>
-
-          <div class="chips mt-2">
-            <a class="chip" href="/roblox-stats.js?download=1">Download the file &rarr;</a>
-            <a class="chip" href="/docs/autofill">All the stat names &rarr;</a>
-          </div>
-
-          <h3 class="mt-3">Prefer plain JSON?</h3>
-          <p>Everything the file builds is also one plain HTTP call, with no library and no key.
-            The id above is Blox&nbsp;Fruits.</p>
-          <div class="codeblock">
-            <pre><code>GET /api/v1/games/994732206</code></pre>
-          </div>
-          <p class="hint">Only have a link instead of an id? <code>/api/v1/resolve?url=…</code> converts any Roblox URL, place pages included.</p>
-        </div>
-
-        <div class="tester">
-          <div class="tester-head">
-            <span class="dot-live" aria-hidden="true"></span>
-            <span>/api/v1/games/&hellip;</span>
-            <span class="sp"></span>
-            <span>live</span>
-          </div>
-          <div class="tester-body">
-            <div class="tester-row">
-              <input type="text" id="gameId" value="994732206" inputmode="numeric" aria-label="Roblox universeId" />
-              <button class="btn" type="button" data-action="full">Full</button>
-              <button class="btn btn-ghost" type="button" data-action="quick">Quick</button>
-            </div>
-            <pre id="result">Hit a button to see a live response.</pre>
-            <p class="tester-hint">
-              Try <code>994732206</code> (Blox&nbsp;Fruits), <code>1686885941</code> (Brookhaven RP) or <code>15339</code>.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================= Endpoints ================= -->
-    <!-- Six bordered boxes became one dense list. The reference section should
-         read like a table you can scan, not like a gallery. -->
-    <section class="section reveal" id="endpoints">
-      <div class="section-head">
-        <span class="kicker">Reference</span>
-        <h2>Everything it can answer</h2>
-        <p>Fifteen endpoints, all <code>GET</code> except the two render ones. Every response uses the same
-          envelope: <code>{ "ok": true, "data": &hellip; }</code>.</p>
-      </div>
-
+  <!-- ================= Reference ================= -->
+  <section class="alt flip">
+    <div class="alt-text">
+      <h2>Fifteen endpoints</h2>
+      <p>All <code>GET</code> except two. One envelope, always.</p>
+      <a class="alt-more" href="/docs/endpoints">Full reference &rarr;</a>
+    </div>
+    <div class="alt-vis">
       <div class="eplist">
         <div class="eprow">
-          <div class="eprow-path"><span class="method get">GET</span><code>/api/v1/games/{universeId}</code></div>
-          <p>Everything important about a game in one call: data, owner, votes, favorites, thumbnail, banners and media.</p>
+          <div class="eprow-path"><span class="method get">GET</span><code>/games/{universeId}</code></div>
+          <p>Everything about a game in one call.</p>
         </div>
         <div class="eprow">
-          <div class="eprow-path"><span class="method get">GET</span><code>/api/v1/games/{universeId}/quick</code></div>
-          <p>Lightweight version without heavy media. Ideal for cards, listings and widgets where payload size matters.</p>
+          <div class="eprow-path"><span class="method get">GET</span><code>/games/{id}/quick</code></div>
+          <p>No media. For cards and listings.</p>
         </div>
         <div class="eprow">
-          <div class="eprow-path"><span class="method get">GET</span><code>/api/v1/games/batch?ids=1,2,3</code></div>
-          <p>Up to 50 games in a single request. For listings: do not make 50 calls, make one.</p>
+          <div class="eprow-path"><span class="method get">GET</span><code>/games/batch?ids=</code></div>
+          <p>Up to 50 games in one request.</p>
         </div>
         <div class="eprow">
-          <div class="eprow-path"><span class="method get">GET</span><code>/api/v1/trending?limit=20</code></div>
-          <p>The most played games right now, sorted by live player count. A popularity ranking, not a curated chart.</p>
+          <div class="eprow-path"><span class="method get">GET</span><code>/trending?limit=20</code></div>
+          <p>Most played right now.</p>
         </div>
         <div class="eprow">
-          <div class="eprow-path"><span class="method get">GET</span><code>/api/v1/resolve?url={url}</code></div>
-          <p>Converts any Roblox URL to its <code>universeId</code>, including place URLs.</p>
+          <div class="eprow-path"><span class="method get">GET</span><code>/resolve?url=</code></div>
+          <p>Any Roblox URL to its universeId.</p>
         </div>
         <div class="eprow">
-          <div class="eprow-path"><span class="method post">POST</span><code>/api/v1/render</code></div>
-          <p>Fills <code>{{placeholders}}</code> in an HTML string with live data. Works from a server or the browser.</p>
+          <div class="eprow-path"><span class="method post">POST</span><code>/render</code></div>
+          <p>Fills placeholders in an HTML string.</p>
         </div>
       </div>
+    </div>
+  </section>
 
-      <div class="chips mt-2">
-        <a class="chip" href="/docs/endpoints">See all 15 endpoints &rarr;</a>
-        <a class="chip" href="/api">JSON index</a>
+  <!-- ================= Closeout ================= -->
+  <section class="closeout-wrap reveal" id="credit">
+    <div class="closeout">
+      <div>
+        <h2>Leave the credit badge in</h2>
+        <p>It is what keeps this free. Remove it and the file stops filling in numbers.</p>
       </div>
-    </section>
-
-    <!-- ================= The rule ================= -->
-    <section class="section reveal" id="credit">
-      <div class="panel-dark">
-        <div>
-          <span class="kicker">The one rule</span>
-          <h2>Leave the credit badge in</h2>
-          <p>
-            The small <strong>MBA &middot; Made by Moonlight Studios</strong> badge that comes with
-            <code>roblox-stats.js</code> is what keeps this free. Delete it, or hide it with CSS, and the
-            file stops filling in numbers. It links to the studio's site, so leaving it in place is also
-            how people find out who built this.
-          </p>
-          <p class="muted">
-            There is no API key to leak, no account to close, no per-request billing. The badge is the deal.
-          </p>
-        </div>
+      <div>
         <div class="badgeshot">
-          <div class="badgeshot-cap">What ships inside the file</div>
           <div class="badgeshot-badge">
             <span class="tag">MBA</span> Made by <a href="https://ms-mba.up.railway.app" target="_blank" rel="noopener">Moonlight Studios</a>
           </div>
-          <p class="badgeshot-note">The widget looks for this node. Remove it and the placeholders are left as literal text.</p>
         </div>
-      </div>
-    </section>
-
-    <!-- ================= CTA ================= -->
-    <section class="section reveal">
-      <div class="panel-accent">
-        <span class="kicker">Two minutes</span>
-        <h2>Ready when you are</h2>
-        <p>Read the quick start, copy one line, and watch a real number appear on your own page.</p>
-        <div class="hero-cta" style="justify-content:center">
-          <a class="btn btn-white" href="/docs">Read the docs</a>
+        <div class="closeout-cta">
+          <a class="btn btn-accent" href="/docs">Read the docs</a>
           <a class="btn" href="/demo">Open the demo</a>
         </div>
       </div>
-    </section>
-  </div>
+    </div>
+  </section>
+
+</div>
 </main>
+
+
 
 
 <footer class="site">
@@ -574,7 +485,6 @@
 
   function start() {
     loadTop();
-    loadTerm();
     // The tester answers before anyone presses anything. An empty box with a
     // "hit a button" line in it is a form; a box already showing a live response
     // is a demonstration, and only one of those two makes a point.
