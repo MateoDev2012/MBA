@@ -67,138 +67,151 @@
 </header>
 
 <main id="main">
-<div class="wrap">
 
   <!-- ================= Hero ================= -->
-  <!-- The product is live Roblox data, so the hero is live Roblox data. Four
-       real games with real player counts, fetched on load. No screenshot, no
-       invented numbers, and nothing else on the page has to try to be the
-       thing you came for. -->
+  <!-- The product is live Roblox data, so the hero is live Roblox data: the top
+       twenty right now, each with its real thumbnail and real player count.
+       Nothing else on the page has to try to be the thing you came for. -->
   <section class="hero">
-    <div class="herotext">
-      <h1>Live Roblox game stats, <em>one call away</em></h1>
-      <p class="lead">
-        Owner, likes, players right now, visits, thumbnail and banner for any game.
-        One script tag, or plain JSON.
+    <div class="wrap">
+      <div class="herotext">
+        <h1>Live Roblox game stats, <em>one call away</em></h1>
+        <p class="lead">
+          Owner, likes, players right now, visits, thumbnail and banner for any game.
+          One script tag, or plain JSON.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-accent" href="/docs">Get started
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="btn btn-ghost" href="/demo">See it working</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="marquee" id="heroMarquee" aria-label="The twenty most played Roblox games right now">
+      <div class="marquee-track" id="heroTrack">
+        <div class="marquee-half">
+          <div class="minicard skel"><div class="minicard-banner"></div><div class="minicard-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
+          <div class="minicard skel"><div class="minicard-banner"></div><div class="minicard-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
+          <div class="minicard skel"><div class="minicard-banner"></div><div class="minicard-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
+          <div class="minicard skel"><div class="minicard-banner"></div><div class="minicard-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
+          <div class="minicard skel"><div class="minicard-banner"></div><div class="minicard-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
+          <div class="minicard skel"><div class="minicard-banner"></div><div class="minicard-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
+          <div class="minicard skel"><div class="minicard-banner"></div><div class="minicard-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
+          <div class="minicard skel"><div class="minicard-banner"></div><div class="minicard-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <p class="herofoot">
+        <span class="dot-live" aria-hidden="true"></span>
+        <span id="heroAge">Loading live data&hellip;</span>
+        <a href="/explorer">Browse all of them in the Explorer &rarr;</a>
       </p>
-      <div class="hero-cta">
-        <a class="btn btn-accent" href="/docs">Get started
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </a>
-        <a class="btn btn-ghost" href="/demo">See it working</a>
-      </div>
     </div>
-
-    <div class="herogrid" id="heroGrid" aria-label="Most played Roblox games right now">
-      <div class="minicard skel"><div class="minicard-banner"></div><div class="minicard-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
-      <div class="minicard skel"><div class="minicard-banner"></div><div class="minicard-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
-      <div class="minicard skel"><div class="minicard-banner"></div><div class="minicard-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
-      <div class="minicard skel"><div class="minicard-banner"></div><div class="minicard-body"><div class="skel-line"></div><div class="skel-line short"></div></div></div>
-    </div>
-
-    <p class="herofoot">
-      <span class="dot-live" aria-hidden="true"></span>
-      <span id="heroAge">Loading live data&hellip;</span>
-      <a href="/explorer">Browse the top 40 in the Explorer &rarr;</a>
-    </p>
   </section>
 
-  <div class="rail">
-    <div><b>15</b><span>endpoints</span></div>
-    <div><b>20</b><span>stat names</span></div>
-    <div><b>1</b><span>file</span></div>
-    <div><b>0</b><span>lines to write</span></div>
+  <div class="wrap">
+
+    <div class="rail">
+      <div><b>15</b><span>endpoints</span></div>
+      <div><b>20</b><span>stat names</span></div>
+      <div><b>1</b><span>file</span></div>
+      <div><b>0</b><span>lines to write</span></div>
+    </div>
+
+    <!-- ================= How it works ================= -->
+    <section class="split">
+      <div class="split-text">
+        <h2>Write the stat name, get the number</h2>
+        <p>There is no function to call. You write <span class="ph">{{playing}}</span> in your HTML and the
+          file replaces it once Roblox answers.</p>
+        <h2>Or just call the API</h2>
+        <p>Ordinary <code>GET</code>, open CORS, no key. From a browser, a server, Python, anything.</p>
+      </div>
+      <div class="split-vis">
+        <div class="tester">
+          <div class="tester-head">
+            <span class="dot-live" aria-hidden="true"></span>
+            <span>/api/v1/games/</span>
+            <span class="sp"></span>
+            <span>live</span>
+          </div>
+          <div class="tester-body">
+            <div class="tester-row">
+              <input type="text" id="gameId" value="994732206" inputmode="numeric" aria-label="Roblox universeId" />
+              <button class="btn" type="button" data-action="full">Full</button>
+              <button class="btn btn-ghost" type="button" data-action="quick">Quick</button>
+            </div>
+            <pre id="result">Loading&hellip;</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= Reference ================= -->
+    <section class="section reveal" id="endpoints">
+      <div class="section-head">
+        <h2>Fifteen endpoints, one envelope</h2>
+      </div>
+      <div class="eplist">
+        <div class="eprow">
+          <div class="eprow-path"><span class="method get">GET</span><code>/games/{universeId}</code></div>
+          <p>Everything about a game in one call.</p>
+        </div>
+        <div class="eprow">
+          <div class="eprow-path"><span class="method get">GET</span><code>/games/{id}/quick</code></div>
+          <p>No media. For cards and listings.</p>
+        </div>
+        <div class="eprow">
+          <div class="eprow-path"><span class="method get">GET</span><code>/games/batch?ids=</code></div>
+          <p>Up to 50 games in one request.</p>
+        </div>
+        <div class="eprow">
+          <div class="eprow-path"><span class="method get">GET</span><code>/trending?limit=20</code></div>
+          <p>Most played right now.</p>
+        </div>
+        <div class="eprow">
+          <div class="eprow-path"><span class="method get">GET</span><code>/resolve?url=</code></div>
+          <p>Any Roblox URL to its universeId.</p>
+        </div>
+        <div class="eprow">
+          <div class="eprow-path"><span class="method post">POST</span><code>/render</code></div>
+          <p>Fills placeholders in an HTML string.</p>
+        </div>
+      </div>
+      <div class="chips">
+        <a class="chip" href="/docs/endpoints">Full reference &rarr;</a>
+        <a class="chip" href="/docs#sdks">Node SDK and MCP</a>
+      </div>
+    </section>
+
+    <!-- ================= Closeout ================= -->
+    <section class="closeout-wrap reveal" id="credit">
+      <div class="closeout">
+        <div>
+          <h2>Leave the credit badge in</h2>
+          <p>It is what keeps this free. Remove it and the file stops filling in numbers.</p>
+        </div>
+        <div>
+          <div class="badgeshot">
+            <div class="badgeshot-badge">
+              <span class="tag">MBA</span> Made by <a href="https://ms-mba.up.railway.app" target="_blank" rel="noopener">Moonlight Studios</a>
+            </div>
+          </div>
+          <div class="closeout-cta">
+            <a class="btn btn-accent" href="/docs">Read the docs</a>
+            <a class="btn" href="/demo">Open the demo</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </div>
-
-  <!-- ================= How it works ================= -->
-  <section class="split">
-    <div class="split-text">
-      <h2>Write the stat name, get the number</h2>
-      <p>There is no function to call. You write <span class="ph">{{playing}}</span> in your HTML and the
-        file replaces it once Roblox answers.</p>
-      <h2>Or just call the API</h2>
-      <p>Ordinary <code>GET</code>, open CORS, no key. From a browser, a server, Python, anything.</p>
-    </div>
-    <div class="split-vis">
-      <div class="tester">
-        <div class="tester-head">
-          <span class="dot-live" aria-hidden="true"></span>
-          <span>/api/v1/games/</span>
-          <span class="sp"></span>
-          <span>live</span>
-        </div>
-        <div class="tester-body">
-          <div class="tester-row">
-            <input type="text" id="gameId" value="994732206" inputmode="numeric" aria-label="Roblox universeId" />
-            <button class="btn" type="button" data-action="full">Full</button>
-            <button class="btn btn-ghost" type="button" data-action="quick">Quick</button>
-          </div>
-          <pre id="result">Loading&hellip;</pre>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= Reference ================= -->
-  <section class="section reveal" id="endpoints">
-    <div class="section-head">
-      <h2>Fifteen endpoints, one envelope</h2>
-    </div>
-    <div class="eplist">
-      <div class="eprow">
-        <div class="eprow-path"><span class="method get">GET</span><code>/games/{universeId}</code></div>
-        <p>Everything about a game in one call.</p>
-      </div>
-      <div class="eprow">
-        <div class="eprow-path"><span class="method get">GET</span><code>/games/{id}/quick</code></div>
-        <p>No media. For cards and listings.</p>
-      </div>
-      <div class="eprow">
-        <div class="eprow-path"><span class="method get">GET</span><code>/games/batch?ids=</code></div>
-        <p>Up to 50 games in one request.</p>
-      </div>
-      <div class="eprow">
-        <div class="eprow-path"><span class="method get">GET</span><code>/trending?limit=20</code></div>
-        <p>Most played right now.</p>
-      </div>
-      <div class="eprow">
-        <div class="eprow-path"><span class="method get">GET</span><code>/resolve?url=</code></div>
-        <p>Any Roblox URL to its universeId.</p>
-      </div>
-      <div class="eprow">
-        <div class="eprow-path"><span class="method post">POST</span><code>/render</code></div>
-        <p>Fills placeholders in an HTML string.</p>
-      </div>
-    </div>
-    <div class="chips">
-      <a class="chip" href="/docs/endpoints">Full reference &rarr;</a>
-      <a class="chip" href="/docs#sdks">Node SDK and MCP</a>
-    </div>
-  </section>
-
-  <!-- ================= Closeout ================= -->
-  <section class="closeout-wrap reveal" id="credit">
-    <div class="closeout">
-      <div>
-        <h2>Leave the credit badge in</h2>
-        <p>It is what keeps this free. Remove it and the file stops filling in numbers.</p>
-      </div>
-      <div>
-        <div class="badgeshot">
-          <div class="badgeshot-badge">
-            <span class="tag">MBA</span> Made by <a href="https://ms-mba.up.railway.app" target="_blank" rel="noopener">Moonlight Studios</a>
-          </div>
-        </div>
-        <div class="closeout-cta">
-          <a class="btn btn-accent" href="/docs">Read the docs</a>
-          <a class="btn" href="/demo">Open the demo</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-</div>
 </main>
+
 
 
 
@@ -247,9 +260,13 @@
   'use strict';
 
   var api = window.RbxApi;
-  var grid = document.getElementById('heroGrid');
+  var track = document.getElementById('heroTrack');
   var ageSlot = document.getElementById('heroAge');
   var since = 0;
+
+  // How fast the ribbon should travel, in pixels per second. Slower than it
+  // looks and it drags; faster and the card titles cannot be read at all.
+  var PX_PER_SEC = 88;
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -257,17 +274,31 @@
     });
   }
 
+  // Images are <img loading="lazy">, not CSS background-image, and that is not a
+  // style choice. A background image cannot be lazy, so forty of them — twenty
+  // games times banner and icon — all block the window load event, and the
+  // second copy of the ribbon is off screen for the first minute. With <img>
+  // the browser skips the half that has not arrived yet and defers decoding.
   function card(g, i) {
     var url = g.url || 'https://www.roblox.com/games/' + (g.universeId || g.id || '');
-    return '<a class="minicard-link" href="' + esc(url) + '" target="_blank" rel="noopener">' +
-      '<div class="minicard-banner"' +
-        (g.banner ? ' style="background-image:url(&quot;' + esc(g.banner) + '&quot;)"' : '') + '>' +
+    // Both classes, and the order matters: minicard is the box (background,
+    // border, radius, hover) and minicard-link is the link behaviour. The box
+    // class was missing for a while, so every card rendered with no border, no
+    // background and no hover, and read as loose images floating in the hero.
+    return '<a class="minicard minicard-link" href="' + esc(url) + '" target="_blank" rel="noopener">' +
+      '<div class="minicard-banner">' +
+        (g.banner
+          ? '<img src="' + esc(g.banner) + '" alt="" loading="lazy" decoding="async">'
+          : '') +
         '<span class="minicard-rank">#' + (i + 1) + '</span>' +
       '</div>' +
       '<div class="minicard-body">' +
         '<div class="minicard-head">' +
-          '<div class="minicard-logo"' +
-            (g.thumbnail ? ' style="background-image:url(&quot;' + esc(g.thumbnail) + '&quot;)"' : '') + '></div>' +
+          '<div class="minicard-logo">' +
+            (g.thumbnail
+              ? '<img src="' + esc(g.thumbnail) + '" alt="" loading="lazy" decoding="async">'
+              : '') +
+          '</div>' +
           '<div class="minicard-titles">' +
             '<p class="minicard-title">' + esc(g.name || 'Untitled') + '</p>' +
             '<div class="minicard-creator">' + esc(g.creator || 'Unknown creator') + '</div>' +
@@ -281,20 +312,42 @@
     '</a>';
   }
 
+  // The loop is seamless because the track holds the cards twice and slides
+  // exactly -50%, which is one half's width: card 21 arrives where card 1
+  // started. The second copy is aria-hidden so a screen reader hears twenty
+  // games rather than forty.
+  function paint(data) {
+    var html = data.map(card).join('');
+    track.innerHTML =
+      '<div class="marquee-half">' + html + '</div>' +
+      '<div class="marquee-half" aria-hidden="true">' + html + '</div>';
+    setSpeed();
+  }
+
+  // Duration from the measured half-width, so the speed is the same whether
+  // twenty games came back or eight, and whether the card is 208px or 180px. A
+  // fixed number in the stylesheet drifts every time either one changes.
+  function setSpeed() {
+    var half = track.querySelector('.marquee-half');
+    if (!half) return;
+    var w = half.getBoundingClientRect().width;
+    if (w > 0) track.style.setProperty('--marquee-dur', (w / PX_PER_SEC) + 's');
+  }
+
   function loadHero() {
-    if (!grid) return Promise.resolve();
-    return api.fetch('/api/v1/trending?limit=4&includeMedia=true')
+    if (!track) return Promise.resolve();
+    return api.fetch('/api/v1/trending?limit=20&includeMedia=true')
       .then(function (res) { return res.json(); })
       .then(function (body) {
         if (!body.ok || !body.data || !body.data.length) throw new Error('no games returned');
-        grid.innerHTML = body.data.map(card).join('');
+        paint(body.data);
         since = Date.now();
         tickAge();
       })
       .catch(function (err) {
-        // Never a zero and never a blank box. If Roblox is rate-limiting us the
-        // reader is told that, which is more useful than a card showing 0.
-        grid.innerHTML = '<div class="herogrid-fail">Could not reach Roblox right now' +
+        // Never a zero and never an empty ribbon. If Roblox is rate-limiting us
+        // the reader is told, which beats a card showing 0 players.
+        track.innerHTML = '<div class="marquee-empty">Could not reach Roblox right now' +
           (err && err.message ? ' (' + esc(err.message) + ')' : '') +
           '. <a href="/explorer">Open the Explorer</a> or <a href="/pricing">read the docs</a>.</div>';
         if (ageSlot) ageSlot.textContent = 'the API is unreachable from here';
@@ -306,8 +359,23 @@
   function tickAge() {
     if (!ageSlot || !since) return;
     var secs = Math.round((Date.now() - since) / 1000);
-    ageSlot.textContent = 'Top 4 by live players, updated ' + secs + 's ago';
+    ageSlot.textContent = 'The top 20 by live players, updated ' + secs + 's ago';
   }
+
+  // Moving content is hostile to anyone trying to read or click it. CSS pauses
+  // it on hover; this stops it dead while the tab is in the background, which
+  // is when nobody is looking at it anyway.
+  document.addEventListener('visibilitychange', function () {
+    if (!track) return;
+    track.style.animationPlayState = document.hidden ? 'paused' : '';
+  });
+
+  // Re-measure if the font finishes loading late and the card titles change
+  // width. Cheap, and it stops the loop drifting out of alignment.
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(setSpeed).catch(function () {});
+  }
+  window.addEventListener('resize', setSpeed);
 
   // --- Live tester --------------------------------------------------------
   function loadGame(variant) {
