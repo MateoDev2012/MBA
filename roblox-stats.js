@@ -775,16 +775,16 @@
       // The theme colours now live on the card itself, not on the body, so the
       // banner and the head inherit them too. Indigo and violet rather than
       // blue-grey, so the card still reads as MoonBlox on somebody's page.
-      '.' + PREFIX + 'dark{--rbxw-fg:#edeaff;--rbxw-dim:#a49dd0;--rbxw-live:#34d399;--rbxw-tile:rgba(167,139,250,.10);--rbxw-line:rgba(167,139,250,.20);--rbxw-shadow:0 12px 34px rgba(3,2,12,.55);--rbxw-shadow-hi:0 20px 48px rgba(3,2,12,.68);background:#14112b;color:var(--rbxw-fg);border:1px solid #2a2350;box-shadow:var(--rbxw-shadow)}' +
-      '.' + PREFIX + 'light{--rbxw-fg:#1a1436;--rbxw-dim:#5b5480;--rbxw-live:#0f6b33;--rbxw-tile:rgba(124,58,237,.05);--rbxw-line:rgba(26,20,54,.11);--rbxw-shadow:0 10px 28px rgba(26,20,54,.11);--rbxw-shadow-hi:0 18px 40px rgba(26,20,54,.17);background:#fff;color:var(--rbxw-fg);border:1px solid #e3e0f0;box-shadow:var(--rbxw-shadow)}' +
-      '.' + PREFIX + 'dark:hover{box-shadow:var(--rbxw-shadow-hi);border-color:#3d3470}' +
-      '.' + PREFIX + 'light:hover{box-shadow:var(--rbxw-shadow-hi);border-color:#cdc8e2}' +
+      '.' + PREFIX + 'dark{--rbxw-fg:#f4f4f5;--rbxw-dim:#a1a1aa;--rbxw-live:#3ddc97;--rbxw-tile:rgba(255,255,255,.04);--rbxw-line:rgba(255,255,255,.09);--rbxw-shadow:0 8px 24px rgba(0,0,0,.5);--rbxw-shadow-hi:0 16px 40px rgba(0,0,0,.62);background:#101113;color:var(--rbxw-fg);border:1px solid rgba(255,255,255,.09);box-shadow:var(--rbxw-shadow)}' +
+      '.' + PREFIX + 'light{--rbxw-fg:#0a0a0a;--rbxw-dim:#6e6e78;--rbxw-live:#0b7a45;--rbxw-tile:rgba(0,0,0,.03);--rbxw-line:rgba(0,0,0,.09);--rbxw-shadow:0 10px 28px rgba(26,20,54,.11);--rbxw-shadow-hi:0 18px 40px rgba(26,20,54,.17);background:#fff;color:var(--rbxw-fg);border:1px solid rgba(0,0,0,.09);box-shadow:var(--rbxw-shadow)}' +
+      '.' + PREFIX + '.rbxw-dark:hover{box-shadow:var(--rbxw-shadow-hi);border-color:rgba(255,255,255,.2)}' +
+      '.' + PREFIX + '.rbxw-light:hover{box-shadow:var(--rbxw-shadow-hi);border-color:rgba(0,0,0,.18)}' +
       // A gradient scrim under the banner, so the logo that overlaps it and any
       // pale artwork both keep their contrast. Dark enough at the bottom to keep
       // white text legible over a light banner: game banners are frequently pale
       // and the title sits right on the seam.
-      '.' + PREFIX + 'banner{position:relative;height:124px;flex-shrink:0;background-size:cover;background-position:center;background-color:#0d0b22}' +
-      '.' + PREFIX + 'banner::after{content:"";position:absolute;left:0;right:0;bottom:0;height:96px;background:linear-gradient(to bottom,rgba(5,4,15,0),rgba(5,4,15,.55) 55%,rgba(5,4,15,.82))}' +
+      '.' + PREFIX + 'banner{position:relative;height:124px;flex-shrink:0;background-size:cover;background-position:center;background-color:#17181b}' +
+      '.' + PREFIX + 'banner::after{content:"";position:absolute;left:0;right:0;bottom:0;height:96px;background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,.5) 55%,rgba(0,0,0,.8))}' +
       // Pulled up over the banner's bottom edge, the way game cards do it - but
       // only on the dark theme. On a light card the strip below the banner is
       // white, so a title hanging over that seam in white is invisible, and
@@ -799,8 +799,9 @@
       '.rbxw-light.rbxw-padbanner .rbxw-head{margin-top:0;padding:16px 18px 0}' +
       '.rbxw-light.rbxw-padbanner .rbxw-titles{padding-bottom:3px;text-shadow:none}' +
       '.' + PREFIX + 'logo{width:58px;height:58px;border-radius:14px;background-size:cover;background-position:center;flex-shrink:0;background-color:var(--rbxw-tile);transition:transform .18s ease}' +
-      '.rbxw-dark .rbxw-logo{box-shadow:0 0 0 3px #14112b,0 6px 16px rgba(0,0,0,.45)}' +
-      '.rbxw-light .rbxw-logo{box-shadow:0 0 0 3px #fff,0 6px 16px rgba(26,20,54,.18)}' +
+      '.rbxw-dark .rbxw-logo{box-shadow:0 0 0 3px #101113,0 6px 16px rgba(0,0,0,.45)}' +
+      '.rbxw-light .rbxw-logo{box-shadow:0 0 0 3px #fff,0 6px 16px rgba(0,0,0,.18)}' +
+      '.rbxw-light .rbxw-logo{box-shadow:0 0 0 3px #fff,0 6px 16px rgba(0,0,0,.18)}' +
       '.' + PREFIX + 'a:hover .rbxw-logo{transform:scale(1.04)}' +
       '.' + PREFIX + 'titles{flex:1;min-width:0;padding-bottom:3px}' +
       '.' + PREFIX + 'title{margin:0;font-size:17.5px;font-weight:750;letter-spacing:-.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--rbxw-fg)}' +
@@ -1169,8 +1170,8 @@
     'text-decoration:none;cursor:pointer;' +
     // A blurred backdrop rather than a flat fill: the badge floats over somebody
     // else's photography, and a solid block over artwork reads as a mistake.
-    'background:rgba(13,11,34,.82);color:#edeaff;border:1px solid rgba(167,139,250,.28);' +
-    'box-shadow:0 4px 16px rgba(3,2,12,.4),0 1px 2px rgba(3,2,12,.24);' +
+    'background:rgba(16,17,19,.88);color:#f4f4f5;border:1px solid rgba(255,255,255,.14);' +
+    'box-shadow:0 4px 16px rgba(0,0,0,.4),0 1px 2px rgba(0,0,0,.24);' +
     'backdrop-filter:blur(10px) saturate(1.3);-webkit-backdrop-filter:blur(10px) saturate(1.3);' +
     'transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;' +
     '}' +
@@ -1184,24 +1185,24 @@
     /* White on amber is 1.9:1; this brown on amber is 5.4:1, so the tag stays
        readable on both a light and a dark host page. */
     'color:#6b3f00;background:#fbbf24;border-radius:999px;padding:4px 7px;flex-shrink:0;}' +
-    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-text{color:#edeaff;white-space:nowrap;' +
+    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-text{color:#f4f4f5;white-space:nowrap;' +
     'overflow:hidden;text-overflow:ellipsis;}' +
     // Only the name is a link, and it carries its own colour so a host rule
     // like `a { color: inherit }` cannot flatten it into the surrounding text
     // and make the badge look unclickable.
-    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-link{color:#fbbf24;text-decoration:none;' +
+    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-link{color:#a78bfa;text-decoration:none;' +
     'font-weight:700;}' +
-    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-link:hover{color:#fcd34d;text-decoration:underline;}' +
-    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-link:focus-visible{outline:2px solid #fbbf24;' +
+    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-link:hover{color:#c4b5fd;text-decoration:underline;}' +
+    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-link:focus-visible{outline:2px solid #a78bfa;' +
     'outline-offset:2px;border-radius:3px;}' +
     '@media (prefers-color-scheme:light){' +
-    '#' + CREDIT_ID + '{background:rgba(255,255,255,.88);color:#1a1436;border-color:rgba(124,58,237,.24);' +
-    'box-shadow:0 4px 16px rgba(26,20,54,.16),0 1px 2px rgba(26,20,54,.08);}' +
-    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-text{color:#1a1436;}' +
+    '#' + CREDIT_ID + '{background:rgba(255,255,255,.9);color:#0a0a0a;border-color:rgba(91,52,232,.28);' +
+    'box-shadow:0 4px 16px rgba(0,0,0,.14),0 1px 2px rgba(0,0,0,.07);}' +
+    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-text{color:#0a0a0a;}' +
     // Amber reads as a washed-out link on a white badge; this brown is 5.4:1.
-    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-link{color:#6b3f00;}' +
-    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-link:hover{color:#4a2b00;}' +
-    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-link:focus-visible{outline-color:#6b3f00;}' +
+    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-link{color:#5b34e8;}' +
+    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-link:hover{color:#4a24c9;}' +
+    '#' + CREDIT_ID + ' .' + PREFIX + 'credit-link:focus-visible{outline-color:#5b34e8;}' +
     '}';
 
   var NOTICE_CSS =
