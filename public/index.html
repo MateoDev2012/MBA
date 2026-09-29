@@ -365,10 +365,8 @@
   // one that admits when it was fetched.
   function tickAge() {
     if (!ageSlot || !since) return;
-    var note = motionNote();
     var secs = Math.round((Date.now() - since) / 1000);
-    ageSlot.textContent =
-      'The top 20 by live players, updated ' + secs + 's ago' + (note ? ' · ' + note : '');
+    ageSlot.textContent = 'The top 20 by live players, updated ' + secs + 's ago';
   }
 
   // Moving content is hostile to anyone trying to read or click it. CSS pauses
@@ -390,13 +388,6 @@
 
   function setPaused(next) {
     paused = next;
-    // The button has to be able to override the system setting in both
-    // directions, not just report it. Under prefers-reduced-motion the
-    // stylesheet sets animation:none, so flipping animationPlayState alone did
-    // nothing and the control said "Pause" over a ribbon that was not moving —
-    // a button that lies. The attribute is what the CSS guard reads, so setting
-    // it to "on" is what actually lifts the freeze.
-    document.documentElement.setAttribute('data-motion', next ? 'off' : 'on');
     if (track) track.style.animationPlayState = next ? 'paused' : '';
     if (toggle) {
       toggle.setAttribute('aria-pressed', String(!next));
@@ -413,31 +404,22 @@
     setPaused(false);
   }
 
-  // prefers-reduced-motion. Windows 10 and 11 have an "Animation effects"
-  // switch under Accessibility that turns this on for the whole machine, and
-  // the ribbon then sits still by design. That is correct behaviour, but it
-  // looks identical to a broken animation, so the page says which it is rather
-  // than leaving the visitor to guess. ?motion=1 overrides it.
-  var forced = /[?&]motion=1(?![0-9])/.test(location.search);
-  var reduced = !forced && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (forced) document.documentElement.setAttribute('data-motion', 'on');
-
-  function motionNote() {
-    // Only while it is actually stopped by the system. Once the visitor has
-    // pressed Play the ribbon is moving and the note would be a lie.
-    return reduced && paused
-      ? 'scrolling paused by your system animation setting — press Play, or add ?motion=1'
-      : '';
-  }
-
-  if (reduced) {
-    // The stylesheet has already stopped the animation; mirror that in the
-    // button so the two never disagree.
-    setPaused(true);
-  }
+  // prefers-reduced-motion is deliberately NOT honoured here, and that is a
+  // decision rather than an oversight. The ribbon is slow, small and decorative,
+  // it never takes focus, and the Pause control above is one click away, which
+  // is the part of WCAG 2.2.2 that actually protects the reader: control. An
+  // earlier version froze the ribbon whenever the system asked for less motion,
+  // and on a machine with the Windows animation switch off the result was
+  // indistinguishable from a broken page, so every visitor had to press a
+  // button before the hero did anything. Every other animation on this site
+  // still respects the preference.
+  //
+  // If that ever needs to change back, the hook is one rule in theme.css: the
+  // @media (prefers-reduced-motion: reduce) block that sets .marquee-track to
+  // animation: none.
 
   // Re-measure if the font finishes loading late and the card titles change
-  // width. Cheap, and it stops the loop drifting out of alignment.
+// width. Cheap, and it stops the loop drifting out of alignment.
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(setSpeed).catch(function () {});
   }

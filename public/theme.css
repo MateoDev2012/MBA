@@ -1667,32 +1667,19 @@ footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40
 .marquee:hover .marquee-track,
 .marquee:focus-within .marquee-track { animation-play-state: paused; }
 
-/* Reduced motion: stop, and give the reader a way across. The :root guard is
-   the escape hatch — ?motion=1, or the Play button, sets data-motion="on" and
-   the ribbon moves anyway, for anyone who has the Windows animation switch off
-   by accident and just wants to see the thing. */
-@media (prefers-reduced-motion: reduce) {
-  :root:not([data-motion="on"]) .marquee {
-    overflow-x: auto;
-    -webkit-mask-image: none; mask-image: none;
-    scroll-snap-type: x proximity;
-    padding-bottom: 4px;
-    /* Scrollable but with no visible bar. The bar was the thing that made a
-       deliberately still ribbon look like a broken component: a grey slab
-       under the cards, on a page whose whole argument is polish. */
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  :root:not([data-motion="on"]) .marquee::-webkit-scrollbar { display: none; }
-  :root:not([data-motion="on"]) .marquee-track { animation: none; }
-  :root:not([data-motion="on"]) .marquee .minicard { scroll-snap-align: start; }
-  /* Keep a hint that there is more to the right, since the ribbon no longer
-     arrives on its own to say so. */
-  :root:not([data-motion="on"]) .marquee {
-    -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent 100%);
-    mask-image: linear-gradient(90deg, #000 88%, transparent 100%);
-  }
-}
+/* prefers-reduced-motion does NOT stop the ribbon.
+   This is a decision, not an oversight, and it is reversible in one place.
+   Freezing it was technically defensible and practically a failure: on any
+   machine with the Windows "Animation effects" switch off, the hero sat still
+   and the only clue was a scrollbar, so every visitor had to press a button
+   before the page did anything at all. The ribbon is slow, small, never takes
+   focus, and the Pause control next to it is one click away — that control is
+   the part of WCAG 2.2.2 that actually protects the reader, and it is there.
+
+   To go back to respecting the preference, wrap this in
+   @media (prefers-reduced-motion: reduce) { ... }.
+*/
+.marquee-track { animation-play-state: running; }
 
 /* The ribbon card is the same component, narrower and shorter. */
 .marquee .minicard { width: 208px; flex: none; }
