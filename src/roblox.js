@@ -16,21 +16,17 @@
  *   - badges.roblox.com/v1/universes/{id}/badges?limit=10&sortOrder=Asc
  */
 
+import { RobloxError } from './errors.js';
+
 const config = {
   userAgent: process.env.USER_AGENT || 'RobloxStatsAPI/1.0',
   timeoutMs: Number(process.env.UPSTREAM_TIMEOUT_MS || 10000),
 };
 
-/** Error raised for a failed Roblox response. */
-export class RobloxError extends Error {
-  constructor(message, { status, code, cause } = {}) {
-    super(message);
-    this.name = 'RobloxError';
-    this.status = status ?? 502;
-    this.code = code ?? 'UPSTREAM_ERROR';
-    this.cause = cause;
-  }
-}
+// RobloxError lives in errors.js now, so the cache can raise the same error on its
+// cooldown path without importing this module. Re-exported here because every
+// caller has always imported it from here.
+export { RobloxError };
 
 /**
  * GET request to Roblox with timeout, retries and typed errors.

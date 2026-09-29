@@ -40,9 +40,19 @@ function requireUniverseId(raw) {
   return id;
 }
 
-/** Caches with the configured TTL and returns the value. */
-async function cached(key, ttl, producer) {
-  const { value } = await cache.wrap(key, ttl, producer);
+/**
+ * Caches with the configured TTL and returns the value.
+ *
+ * Resilient in the same way the one in template.js is: a slightly old answer
+ * beats a 429 from Roblox, and a 429 from Roblox should not become the
+ * visitor's problem. See src/cache.js for the cooldown and the grace period.
+ */
+async function cached(key, ttl, producer, req) {
+  const { value, stale } = await cache.wrapResilient(key, ttl, producer);
+  if (stale && req) {
+    req.servedStale = true;
+    req.res?.setHeader('X-MoonBlox-Cache', 'STALE');
+  }
   return value;
 }
 
@@ -290,7 +300,7 @@ router.get(
     const query = String(q).trim();
 
     if (query === '*') {
-      const games = await cached(`trending:${limit}`, config.ttl.stats, () =>
+      const games = await cached(`trending:${limit}`, config.ttl.ranking, () =>
         fetchTrending(limit, { signal: req.signal })
       );
       setCacheControl(res, config.ttl.stats);

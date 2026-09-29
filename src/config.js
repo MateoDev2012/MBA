@@ -14,6 +14,14 @@ const ttl = {
   votes: num(process.env.CACHE_TTL_VOTES, 300),
   favorites: num(process.env.CACHE_TTL_FAVORITES, 600),
   media: num(process.env.CACHE_TTL_MEDIA, 3600),
+
+  // Who is in the top 20 is a much slower-moving fact than how many players
+  // they have. The ranking used to share the 30s TTL of the player counts, so
+  // it was refetched every thirty seconds to find out, most of the time, that
+  // the order had not changed. Ten minutes cuts the upstream calls for the
+  // busiest endpoint by roughly twenty times, and the counts are still refreshed
+  // every thirty seconds on top of it, so only the ordering can lag.
+  ranking: num(process.env.CACHE_TTL_RANKING, 600),
 };
 
 export const config = {

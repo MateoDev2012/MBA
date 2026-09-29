@@ -27,8 +27,27 @@ import { setCacheControl } from './headers.js';
 
 export const router = express.Router();
 
-async function cached(key, ttl, producer) {
-  const { value } = await cache.wrap(key, ttl, producer);
+/**
+ * The one place every route goes through to reach the cache.
+ *
+ * Deliberately resilient rather than plain cache-through. Roblox refuses
+ * traffic with a 429 and treats that as definitive, so the old code turned a
+ * two-second wobble at Roblox into a visible outage here. Three behaviours now,
+ * in order: serve fresh, serve slightly old, and only refuse if there is
+ * genuinely nothing to serve.
+ *
+ * Returns the bare value, because there are two dozen call sites and none of
+ * them should have to learn about staleness. Routes that want to advertise it
+ * pass `req` and it lands on req.servedStale for the header middleware.
+ */
+async function cached(key, ttl, producer, req) {
+  const { value, stale } = await cache.wrapResilient(key, ttl, producer);
+  if (stale && req) {
+    req.servedStale = true;
+    // Set here, not in a middleware: a header written on 'finish' never reaches
+    // the client, because the response has already gone out by then.
+    req.res?.setHeader('X-MoonBlox-Cache', 'STALE');
+  }
   return value;
 }
 
@@ -196,7 +215,12 @@ router.get(
     const limit = Math.min(Number(req.query.limit) || 20, 50);
     const includeMedia = req.query.includeMedia === 'true';
 
-    const games = await cached(`trending:${limit}`, config.ttl.stats, () =>
+    // The ranking itself lives on its own, much longer TTL. Who is in the top
+    // 20 barely moves; how many players each one has moves constantly, and that
+    // part is refreshed by trenddetails below every thirty seconds. Using the
+    // stats TTL here meant refetching the ranking ten times a minute to learn
+    // that the order had not changed.
+    const games = await cached(`trending:${limit}`, config.ttl.ranking, () =>
       fetchTrending(limit, { signal: req.signal })
     );
 
