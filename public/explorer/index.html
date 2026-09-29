@@ -148,46 +148,112 @@
       </div>
     </section>
 
-    <!-- Game Detail Modal -->
+    <!-- Game detail. Modelled on a stats page rather than a dialog: the banner
+         runs to the edge of the screen, the numbers sit in one dense strip under
+         the title, and the chart gets a full panel instead of the bottom third
+         of a box. Everything in it is a real reading — the deltas and the bars
+         are computed from samples this page has taken, never typed in. -->
     <div class="modal-overlay" id="gameModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" style="display:none">
-      <div class="modal">
+      <article class="gdetail">
         <button class="modal-close" aria-label="Close">&times;</button>
-        <div class="modal-header">
-          <img class="modal-banner" id="modalBanner" alt="" />
-          <div class="modal-header-content">
-            <img id="modalThumbnail" class="modal-thumbnail" alt="" />
-            <div>
+
+        <header class="gdetail-hero">
+          <img class="gdetail-banner" id="modalBanner" alt="" />
+          <div class="gdetail-scrim" aria-hidden="true"></div>
+
+          <div class="gdetail-crumb">
+            <a href="/explorer/" id="gdetailBack">&larr; Games</a>
+            <span class="gdetail-crumb-sep">/</span>
+            <span id="gdetailCrumbText">&nbsp;</span>
+          </div>
+
+          <div class="gdetail-id">
+            <img id="modalThumbnail" class="gdetail-logo" alt="" />
+            <div class="gdetail-names">
               <h2 id="modalTitle"></h2>
-              <p class="modal-creator">by <span id="modalCreatorWrap"><a id="modalCreatorLink" target="_blank" rel="noopener"><span id="modalCreator"></span></a></span> (<span id="modalCreatorType">Unknown</span>)</p>
+              <p class="gdetail-creator">
+                by <span id="modalCreatorWrap"><a id="modalCreatorLink" target="_blank" rel="noopener"><span id="modalCreator"></span></a></span>
+              </p>
+            </div>
+            <div class="gdetail-actions">
+              <button class="icon-btn" id="copyId" type="button" title="Copy universeId" aria-label="Copy universeId">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+              </button>
+              <a class="btn btn-ghost" id="modalUrl" href="#" target="_blank" rel="noopener">Visit</a>
+              <a class="btn btn-accent" id="modalPlay" href="#" target="_blank" rel="noopener">Play &#8599;</a>
             </div>
           </div>
-        </div>
-        <div class="modal-body">
-          <div class="modal-stats">
-            <div class="modal-stat"><b id="modalPlaying">—</b><span>Playing now</span></div>
-            <div class="modal-stat"><b id="modalVisits">—</b><span>Visits</span></div>
-            <div class="modal-stat"><b id="modalLikes">—</b><span>Likes</span></div>
-            <div class="modal-stat"><b id="modalFavorites">—</b><span>Favorites</span></div>
-            <div class="modal-stat"><b id="modalRatio">—</b><span>Like ratio</span></div>
-            <div class="modal-stat"><b id="modalMaxPlayers">—</b><span>Max players</span></div>
+
+          <!-- One dense row, the way a stats page does it. Icon, grey label,
+               value under it, hairline between. -->
+          <dl class="gdetail-stats" id="gdetailStats">
+            <div><dt><span class="gs-ico" data-ico="rank"></span>Global</dt><dd id="gsRank">-</dd></div>
+            <div><dt><span class="gs-ico" data-ico="players"></span>Playing now</dt><dd id="gsPlaying">-</dd></div>
+            <div><dt><span class="gs-ico" data-ico="visits"></span>Visits</dt><dd id="gsVisits">-</dd></div>
+            <div><dt><span class="gs-ico" data-ico="likes"></span>Likes</dt><dd id="gsLikes">-</dd></div>
+            <div><dt><span class="gs-ico" data-ico="rating"></span>Rating</dt><dd id="gsRatio">-</dd></div>
+            <div><dt><span class="gs-ico" data-ico="fav"></span>Favorites</dt><dd id="gsFavorites">-</dd></div>
+            <div><dt><span class="gs-ico" data-ico="clock"></span>Updated</dt><dd id="gsUpdated">-</dd></div>
+            <div><dt><span class="gs-ico" data-ico="calendar"></span>Created</dt><dd id="gsCreated">-</dd></div>
+            <div><dt><span class="gs-ico" data-ico="server"></span>Max players</dt><dd id="gsMax">-</dd></div>
+          </dl>
+        </header>
+
+        <div class="gdetail-body">
+          <!-- Three panels, each with a delta chip and a bar. The delta compares
+               the newest reading with the oldest one on this machine; the bar
+               is this value against the largest in the current result set. Both
+               are computed, neither is stored, and both disappear rather than
+               guess when there is not enough data. -->
+          <div class="gdetail-cards" id="gdetailCards">
+            <div class="gcard" data-metric="playing">
+              <span class="gcard-label">Players right now</span>
+              <div class="gcard-row"><b data-role="value">-</b><span class="gcard-delta" data-role="delta" hidden></span></div>
+              <div class="gcard-bar"><i data-role="bar" style="width:0%"></i></div>
+              <span class="gcard-foot" data-role="foot">no comparison yet</span>
+            </div>
+            <div class="gcard" data-metric="upVotes">
+              <span class="gcard-label">Total likes</span>
+              <div class="gcard-row"><b data-role="value">-</b><span class="gcard-delta" data-role="delta" hidden></span></div>
+              <div class="gcard-bar"><i data-role="bar" style="width:0%"></i></div>
+              <span class="gcard-foot" data-role="foot">no comparison yet</span>
+            </div>
+            <div class="gcard" data-metric="visits">
+              <span class="gcard-label">Total visits</span>
+              <div class="gcard-row"><b data-role="value">-</b><span class="gcard-delta" data-role="delta" hidden></span></div>
+              <div class="gcard-bar"><i data-role="bar" style="width:0%"></i></div>
+              <span class="gcard-foot" data-role="foot">no comparison yet</span>
+            </div>
           </div>
+
+          <section class="gdetail-chart">
+            <div class="gdetail-tabs" role="tablist" aria-label="Metric to chart">
+              <button type="button" role="tab" data-metric="playing" aria-selected="true">Players</button>
+              <button type="button" role="tab" data-metric="upVotes" aria-selected="false">Likes</button>
+              <button type="button" role="tab" data-metric="visits" aria-selected="false">Visits</button>
+            </div>
+            <div class="gdetail-readout">
+              <b id="gReadValue">-</b>
+              <span class="gRead-metric" id="gReadMetric">Players right now</span>
+              <span class="gRead-note" id="gReadNote"></span>
+            </div>
+            <div class="chart-container" id="chartWrap">
+              <canvas id="trendChart" aria-label="Readings collected by this page"></canvas>
+            </div>
+            <p class="chart-note" id="chartNote"></p>
+          </section>
+
           <p id="modalDescription" class="modal-description"></p>
+
           <div class="modal-actions">
-            <a id="modalUrl" class="btn btn-accent" href="#" target="_blank">Open on Roblox</a>
-            <button class="btn btn-ghost" id="copyId">Copy universeId</button>
-            <button class="btn btn-ghost" id="copyEmbed">Copy embed code</button>
+            <button class="btn btn-ghost" id="copyEmbed" type="button">Copy embed code</button>
+            <a class="chip" href="/docs/endpoints">REST endpoint &rarr;</a>
+            <a class="chip" href="/docs/autofill">Stat names &rarr;</a>
           </div>
-          <div class="chart-head">
-            <h3 class="chart-title">Player count</h3>
-            <span class="chart-sub">real readings only</span>
-          </div>
-          <div class="chart-container" id="chartWrap">
-            <canvas id="trendChart" aria-label="Player count over the readings this page has collected"></canvas>
-          </div>
-          <p class="chart-note" id="chartNote"></p>
         </div>
-      </div>
+      </article>
     </div>
+
   </div>
 </main>
 
@@ -247,7 +313,8 @@
     // operation instead of another round trip.
     all: [],
     currentGame: null,
-    chart: null
+    chart: null,
+    metric: 'playing'
   };
 
   // DOM elements
@@ -279,13 +346,11 @@
   var modalTitle = document.getElementById('modalTitle');
   var modalCreator = document.getElementById('modalCreator');
   var modalCreatorLink = document.getElementById('modalCreatorLink');
-  var modalCreatorType = document.getElementById('modalCreatorType');
-  var modalPlaying = document.getElementById('modalPlaying');
-  var modalVisits = document.getElementById('modalVisits');
-  var modalLikes = document.getElementById('modalLikes');
-  var modalFavorites = document.getElementById('modalFavorites');
-  var modalRatio = document.getElementById('modalRatio');
-  var modalMaxPlayers = document.getElementById('modalMaxPlayers');
+  var modalPlay = document.getElementById('modalPlay');
+  // The per-field stat tiles are gone. The strip is read by id inside setStat,
+  // so there is no list of element variables left to keep in sync with markup.
+  // modalPlay used to be missing from this block entirely, which threw before
+  // the modal was ever shown: a card that did nothing when clicked, silently.
   var modalDescription = document.getElementById('modalDescription');
   var modalUrl = document.getElementById('modalUrl');
   var copyIdBtn = document.getElementById('copyId');
@@ -444,6 +509,7 @@
   });
 
   function closeModal() {
+    stopUpdatedTicker();
     gameModal.style.display = 'none';
     document.body.style.overflow = '';
     // The poller has to stop with the modal, or it keeps asking about a game
@@ -460,64 +526,201 @@
 
   function openModal(game) {
     state.currentGame = game;
+    state.metric = 'playing';
+
+    var hero = document.querySelector('.gdetail-hero');
 
     // This is an <img>, so it takes a src. Setting backgroundImage on it left
-    // the modal's 200px header permanently blank: no src means no pixels, and
-    // a background does not paint on a replaced element with nothing to paint.
+    // the header permanently blank: no src means no pixels, and a background
+    // does not paint on a replaced element with nothing to paint.
     if (game.banner) {
       modalBanner.src = game.banner;
-      modalBanner.alt = (game.name || 'Game') + ' banner';
+      modalBanner.alt = '';
       modalBanner.style.display = '';
-      modalBanner.parentNode.classList.remove('no-banner');
+      hero.classList.remove('no-banner');
     } else {
-      // Nothing to show, so take the space back rather than leaving a grey slab.
       modalBanner.removeAttribute('src');
       modalBanner.style.display = 'none';
-      modalBanner.parentNode.classList.add('no-banner');
+      hero.classList.add('no-banner');
     }
+
     modalThumbnail.src = game.thumbnail || '';
     modalThumbnail.alt = game.name + ' logo';
     modalTitle.textContent = game.name;
     modalCreator.textContent = creatorName(game.creator) || 'Unknown';
-    modalCreatorType.textContent = creatorType(game.creator) || game.creatorType || 'Unknown';
     setCreatorLink(game.creatorUrl);
+    document.getElementById('gdetailCrumbText').textContent = game.name;
 
-    // A missing field and a real zero are not the same thing. Trending does not
-    // carry favorites or maxPlayers, and printing "0" for them reads as "this
-    // game has no favourites" rather than "we do not know", which is the worse
-    // of the two mistakes.
+    // A missing field and a real zero are not the same thing. Trending carries
+    // neither favorites nor a creation date, and printing "0" for them reads as
+    // "this game has none" rather than "we do not know", which is the worse of
+    // the two mistakes.
     function stat(value) {
-      return value === null || value === undefined ? '—' : formatNumber(value);
+      return value === null || value === undefined ? '-' : formatNumber(value);
     }
 
-    modalPlaying.textContent = stat(game.playing);
-    modalVisits.textContent = stat(game.visits);
-    modalLikes.textContent = stat(game.ratings?.upVotes ?? game.upVotes);
-    modalFavorites.textContent = stat(game.ratings?.favorites ?? game.favorites);
-    // Opening the modal is itself a fresh reading of the number, so it counts.
-    recordSample(game.id, game.playing);
-    // voteRatio() is a hoisted function declaration, so it is already defined
-    // here even though it is written further down the file.
+    var rank = rankOf(game.id);
     var ratio = voteRatio(game);
-    modalRatio.textContent = ratio === null ? '—' : ratio.toFixed(1) + '%';
-    modalMaxPlayers.textContent = stat(game.maxPlayers);
+
+    // When these numbers arrived. The strip has to be able to say so, and it
+    // has to be the arrival of the data, not the moment the view was painted:
+    // the two are the same on open and diverge once the poller takes over.
+    game.fetchedAt = game.fetchedAt || Date.now();
+    tickUpdated(game);
+
+    setStat('gsRank', rank === null ? '-' : '#' + rank);
+    setStat('gsPlaying', stat(game.playing), true);
+    setStat('gsVisits', stat(game.visits));
+    setStat('gsLikes', stat(game.ratings ? game.ratings.upVotes : game.upVotes));
+    setStat('gsRatio', ratio === null ? '-' : ratio.toFixed(1) + '%');
+    setStat('gsFavorites', stat(game.ratings ? game.ratings.favorites : game.favorites));
+    // gsUpdated is set by tickUpdated above and has to be: it is the only cell
+    // in this row that keeps moving, and setting it here once would freeze it.
+    setStat('gsCreated', game.created ? formatDate(game.created) : '-');
+    setStat('gsMax', stat(game.maxPlayers));
 
     modalDescription.textContent = game.description || 'No description available.';
     modalUrl.href = game.url || '#';
+    modalPlay.href = game.url || '#';
+
+    // Opening a game is itself a fresh reading, so it counts.
+    recordSample(
+      game.id,
+      game.playing,
+      game.ratings ? game.ratings.upVotes : game.upVotes,
+      game.visits
+    );
 
     gameModal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
 
-    // The chart, and a poller that keeps feeding it real readings.
+    paintCards(game);
     loadTrendChart(game.id);
     startSampling(game.id);
+    startUpdatedTicker(game);
 
-    // Fills in the owner's profile link and whether they are a user or a
-    // group, neither of which trending carries.
+    // Neither trending nor search carries the owner's profile URL or whether
+    // they are a user or a group.
     if (!game.creatorUrl) loadCreatorDetails(game.id);
 
     // A card opened is a step back you expect the back button to undo.
     writeUrl(true);
+  }
+
+  function setStat(id, text, ok) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = text;
+    el.classList.toggle('ok', !!ok);
+  }
+
+  /** Where this game sits in the list currently on screen, or null. */
+  function rankOf(id) {
+    for (var i = 0; i < state.all.length; i++) {
+      if (String(state.all[i].id) === String(id)) return i + 1;
+    }
+    return null;
+  }
+
+  function formatDate(value) {
+    var d = new Date(value);
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  /** Takes an AGE in milliseconds, not a timestamp. Passing Date.now() here
+   *  is how the strip ended up reading "497422h ago". */
+  function formatAge(ageMs) {
+    var secs = Math.max(0, Math.round(ageMs / 1000));
+    if (secs < 5) return 'just now';
+    if (secs < 60) return secs + 's ago';
+    var mins = Math.round(secs / 60);
+    if (mins < 60) return mins + 'm ago';
+    var hours = Math.round(mins / 60);
+    if (hours < 24) return hours + 'h ago';
+    return Math.round(hours / 24) + 'd ago';
+  }
+
+  function tickUpdated(game) {
+    if (!game) return;
+    setStat('gsUpdated', formatAge(Date.now() - (game.fetchedAt || Date.now())));
+  }
+
+  var updatedTimer = null;
+  function startUpdatedTicker(game) {
+    stopUpdatedTicker();
+    updatedTimer = setInterval(function () { tickUpdated(game); }, 1000);
+  }
+  function stopUpdatedTicker() {
+    if (updatedTimer) { clearInterval(updatedTimer); updatedTimer = null; }
+  }
+
+  /**
+   * The three panels.
+   *
+   * The delta is this browser's oldest stored reading against its newest, so it
+   * describes what happened while you were watching, not a daily trend — which
+   * is all the data there is, and saying so is better than implying otherwise.
+   * The bar is this value against the largest in the current result set.
+   *
+   * Both disappear when there is not enough to compute. A fabricated arrow is
+   * worse than no arrow.
+   */
+  function paintCards(game) {
+    var cards = document.querySelectorAll('.gcard');
+    var metrics = {
+      playing: { label: 'Players right now', get: function (g) { return g.playing; } },
+      upVotes: {
+        label: 'Total likes',
+        get: function (g) { return g.ratings ? g.ratings.upVotes : g.upVotes; }
+      },
+      visits: { label: 'Total visits', get: function (g) { return g.visits; } }
+    };
+
+    for (var i = 0; i < cards.length; i++) {
+      var card = cards[i];
+      var metric = card.getAttribute('data-metric');
+      var spec = metrics[metric] || {};
+      var value = spec.get ? spec.get(game) : null;
+
+      var valueEl = card.querySelector('[data-role="value"]');
+      var deltaEl = card.querySelector('[data-role="delta"]');
+      var barEl = card.querySelector('[data-role="bar"]');
+      var footEl = card.querySelector('[data-role="foot"]');
+
+      valueEl.textContent =
+        value === null || value === undefined ? '-' : formatNumber(value);
+
+      // The bar: this value against the best in the list on screen.
+      var best = 0;
+      for (var j = 0; j < state.all.length; j++) {
+        var v = spec.get ? spec.get(state.all[j]) : null;
+        if (typeof v === 'number' && v > best) best = v;
+      }
+      if (typeof value === 'number' && best > 0) {
+        var pct = Math.max(2, Math.round((value / best) * 100));
+        barEl.style.width = pct + '%';
+        footEl.textContent = pct + '% of the top game in this list';
+      } else {
+        barEl.style.width = '0%';
+        footEl.textContent = 'not comparable from this list';
+      }
+
+      // The delta: oldest stored reading against the newest.
+      var list = samplesFor(game.id, metric);
+      if (list.length >= 2 && list[0].v > 0) {
+        var change = ((value - list[0].v) / list[0].v) * 100;
+        var kind = Math.abs(change) < 0.05 ? 'flat' : change > 0 ? 'up' : 'down';
+        deltaEl.hidden = false;
+        deltaEl.className = 'gcard-delta ' + kind;
+        deltaEl.textContent =
+          (kind === 'up' ? '↗ +' : kind === 'down' ? '↘ ' : '→ ') + Math.abs(change).toFixed(1) + '%';
+        footEl.textContent += ' · since your first reading';
+      } else {
+        deltaEl.hidden = true;
+        footEl.textContent += list.length === 1 ? ' · one reading so far' : ' · no history yet';
+      }
+    }
   }
 
   // While a game is on screen, ask the API about that one game again every half
@@ -538,15 +741,24 @@
           if (!body.ok || !body.data) return;
           var playing = body.data.playing;
           if (typeof playing !== 'number') return;
-          var before = samplesFor(id).length;
-          recordSample(id, playing);
+          // /quick carries the totals as well as the player count, so all three
+          // metrics are recorded from this one request.
+          var upVotes = typeof body.data.upVotes === 'number' ? body.data.upVotes : null;
+          var visits = typeof body.data.visits === 'number' ? body.data.visits : null;
+          // The poll carries all three metrics, so the likes and visits tabs
+          // fill from the same request instead of waiting for a page reload.
+          var before = samplesFor(id, 'playing').length;
+          recordSample(id, playing, upVotes, visits);
+          if (state.currentGame) state.currentGame.fetchedAt = Date.now();
           // Only redraw when a new point was actually kept, so a poll that
           // returns the same count does not churn the canvas.
-          if (samplesFor(id).length === before) return;
+          if (samplesFor(id, 'playing').length === before) return;
           if (state.currentGame && state.currentGame.id === id) {
-            // Abbreviated like every other player count on the page, so the
-            // number does not change format the moment the poll lands.
-            modalPlaying.textContent = abbr(playing);
+            setStat('gsPlaying', abbr(playing), true);
+            if (typeof visits === 'number') setStat('gsVisits', formatNumber(visits));
+            if (typeof upVotes === 'number') setStat('gsLikes', formatNumber(upVotes));
+            tickUpdated(state.currentGame);
+            if (state.currentGame) paintCards(state.currentGame);
             loadTrendChart(id);
           }
         })
@@ -605,30 +817,69 @@
    */
   var MIN_GAP_MS = 20000;
 
-  function recordSample(id, playing) {
+  function recordSample(id, playing, upVotes, visits) {
     if (typeof playing !== 'number' || !isFinite(playing)) return;
     var store = readStore();
     var key = String(id);
     var list = Array.isArray(store[key]) ? store[key] : [];
 
     var last = list[list.length - 1];
-    if (last && Date.now() - last.t < MIN_GAP_MS && last.v === playing) return;
+    if (
+      last &&
+      Date.now() - last.t < MIN_GAP_MS &&
+      last.p === playing &&
+      last.l === upVotes &&
+      last.v === visits
+    ) {
+      return;
+    }
 
-    list.push({ t: Date.now(), v: playing });
+    list.push({
+      t: Date.now(),
+      p: playing,
+      l: typeof upVotes === 'number' ? upVotes : null,
+      v: typeof visits === 'number' ? visits : null
+    });
     if (list.length > MAX_SAMPLES) list = list.slice(-MAX_SAMPLES);
     store[key] = list;
     writeStore(store);
   }
 
-  /** Every game in a response is a real reading, so all of them get recorded. */
-  function recordAll(games) {
-    (games || []).forEach(function (g) { recordSample(g.id, g.playing); });
+  /**
+   * Readings for one metric, in the {t, v} shape the chart and the delta code
+   * both want. Entries written before this shape existed carry the player count
+   * in `v` and nothing for the other two, so they map onto players and nothing
+   * else — every chart the browser has already earned keeps working.
+   */
+  function samplesFor(id, metric) {
+    var list = readStore()[String(id)];
+    if (!Array.isArray(list)) return [];
+    var out = [];
+    for (var i = 0; i < list.length; i++) {
+      var s = list[i];
+      var value;
+      if (metric === 'playing') value = typeof s.p === 'number' ? s.p : (typeof s.v === 'number' ? s.v : null);
+      else if (metric === 'upVotes') value = typeof s.l === 'number' ? s.l : null;
+      else value = typeof s.v === 'number' && typeof s.p === 'number' ? s.v : null;
+      if (value !== null) out.push({ t: s.t, v: value });
+    }
+    return out;
   }
 
-  function samplesFor(id) {
-    var list = readStore()[String(id)];
-    return Array.isArray(list) ? list : [];
+  /** The newest reading of a metric, or null. */
+  function latestFor(id, metric) {
+    var list = samplesFor(id, metric);
+    return list.length ? list[list.length - 1].v : null;
   }
+
+  /** Every game in a response is a real reading, so all of them get recorded. */
+  function recordAll(games) {
+    (games || []).forEach(function (g) {
+      recordSample(g.id, g.playing, g.upVotes, g.visits);
+    });
+  }
+
+
 
   /** Collapses readings taken seconds apart into one point per minute. */
   function downsample(list, max) {
@@ -639,15 +890,87 @@
     return out;
   }
 
+  var METRIC_INFO = {
+    "playing": {
+      "label": "Players",
+      "readout": "Players right now",
+      "color": "--ok"
+    },
+    "upVotes": {
+      "label": "Likes",
+      "readout": "Total likes",
+      "color": "--accent"
+    },
+    "visits": {
+      "label": "Visits",
+      "readout": "Total visits",
+      "color": "--warn"
+    }
+  };
+
+  /** Which metrics this browser actually has readings for, so a tab can be
+   *  disabled rather than opening onto an empty chart. */
+  function availableMetrics(gameId) {
+    var out = {};
+    for (var k in METRIC_INFO) {
+      if (Object.prototype.hasOwnProperty.call(METRIC_INFO, k)) {
+        out[k] = samplesFor(gameId, k).length;
+      }
+    }
+    return out;
+  }
+
+  /**
+   * Tabs are never disabled. A tab you cannot press is a broken control, and
+   * with one reading the honest answer was to grey all three out and leave the
+   * selected one looking dead. They stay live, the metric with no readings at
+   * all is only dimmed, and the note under the chart says how many there are.
+   */
+  function syncTabs(gameId) {
+    var counts = availableMetrics(gameId);
+    var tabs = document.querySelectorAll('.gdetail-tabs button');
+    for (var i = 0; i < tabs.length; i++) {
+      var metric = tabs[i].getAttribute('data-metric');
+      var n = counts[metric] || 0;
+      tabs[i].disabled = false;
+      tabs[i].title = n === 0 ? 'No readings of this yet' : n + ' reading' + (n === 1 ? '' : 's');
+    }
+    for (var j = 0; j < tabs.length; j++) {
+      tabs[j].setAttribute(
+        'aria-selected',
+        String(tabs[j].getAttribute('data-metric') === state.metric)
+      );
+    }
+  }
+
   function loadTrendChart(gameId) {
     if (state.chart) {
       state.chart.destroy();
       state.chart = null;
     }
 
-    var samples = samplesFor(gameId);
+    syncTabs(gameId);
+
+    var metric = state.metric || 'playing';
+    var info = METRIC_INFO[metric] || METRIC_INFO.playing;
+    var samples = samplesFor(gameId, metric);
     var note = document.getElementById('chartNote');
     var wrap = document.getElementById('chartWrap');
+    var valueOut = document.getElementById('gReadValue');
+    var metricOut = document.getElementById('gReadMetric');
+    var noteOut = document.getElementById('gReadNote');
+
+    if (metricOut) metricOut.textContent = info.readout;
+    if (valueOut) {
+      valueOut.textContent = samples.length
+        ? formatNumber(samples[samples.length - 1].v)
+        : 'no readings';
+    }
+    if (noteOut) {
+      noteOut.textContent = samples.length
+        ? samples.length + ' reading' + (samples.length === 1 ? '' : 's') + ' collected here'
+        : '';
+    }
 
     // One reading is not a trend. Two is barely one, and drawing a curve
     // through three minutes of data would overstate what it knows.
@@ -657,7 +980,7 @@
         note.style.display = 'block';
         note.textContent =
           samples.length === 0
-            ? 'No readings yet. Change the filter or come back later and this fills in from real API responses.'
+            ? 'No readings of this yet. They arrive as real API responses while you browse, and this fills in from them.'
             : samples.length + ' reading' + (samples.length === 1 ? '' : 's') +
               ' so far. A line needs at least three.';
       }
@@ -672,11 +995,12 @@
     var token = function (name, fallback) {
       return css.getPropertyValue(name).trim() || fallback;
     };
+    var accent = token(info.color, '#16a34a');
 
     var first = new Date(points[0].t);
     var spansDays = points[points.length - 1].t - points[0].t > 86400000;
-    var label = function (t) {
-      var d = new Date(t);
+    var label = function (ts) {
+      var d = new Date(ts);
       return spansDays
         ? d.toLocaleDateString([], { month: 'short', day: 'numeric' })
         : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -685,12 +1009,12 @@
     state.chart = new Chart(trendChart.getContext('2d'), {
       type: 'line',
       data: {
-        labels: points.map(function (p) { return label(p.t); }),
+        labels: points.map(function (pt) { return label(pt.t); }),
         datasets: [{
-          label: 'Players online',
-          data: points.map(function (p) { return p.v; }),
-          borderColor: token('--ok', '#16a34a'),
-          backgroundColor: 'rgba(52, 211, 153, 0.12)',
+          label: info.readout,
+          data: points.map(function (pt) { return pt.v; }),
+          borderColor: accent,
+          backgroundColor: accent + '22',
           borderWidth: 2,
           fill: true,
           tension: 0.3,
@@ -706,60 +1030,55 @@
           tooltip: {
             mode: 'index',
             intersect: false,
-            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--panel').trim(),
-            titleColor: getComputedStyle(document.documentElement).getPropertyValue('--text').trim(),
-            bodyColor: getComputedStyle(document.documentElement).getPropertyValue('--text-soft').trim(),
-            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--border').trim(),
+            backgroundColor: token('--panel', '#111'),
+            titleColor: token('--text', '#fff'),
+            bodyColor: token('--text-soft', '#aaa'),
+            borderColor: token('--border', '#333'),
             borderWidth: 1,
             padding: 12,
-            // The tooltip is where a reader decides whether to trust a number,
-            // so it carries the exact count and the exact time, not the
-            // abbreviated forms the axis uses.
+            displayColors: false,
             callbacks: {
-              title: function (items) {
-                if (!items.length) return '';
-                var d = new Date(points[items[0].dataIndex].t);
-                return d.toLocaleString([], {
-                  month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                });
-              },
-              label: function (item) {
-                return item.parsed.y.toLocaleString('en-US') + ' players';
+              label: function (ctx) {
+                return formatNumber(ctx.parsed.y);
               }
             }
           }
         },
         scales: {
           x: {
-            grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--border').trim() },
-            ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--muted').trim(), maxTicksLimit: 8 }
+            grid: { color: token('--border-faint', 'rgba(255,255,255,.05)') },
+            ticks: { color: token('--muted', '#888'), maxTicksLimit: 8, font: { size: 11 } }
           },
           y: {
             beginAtZero: false,
-            grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--border').trim() },
-            ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--muted').trim(), callback: function (v) { return abbr(v); } }
+            grid: { color: token('--border-faint', 'rgba(255,255,255,.05)') },
+            ticks: {
+              color: token('--muted', '#888'),
+              font: { size: 11 },
+              callback: function (v) { return abbr(v); }
+            }
           }
         }
       }
     });
-
-    if (note) {
-      note.style.display = 'block';
-      note.textContent =
-        samples.length + ' real reading' + (samples.length === 1 ? '' : 's') +
-        ', oldest ' + label(points[0].t) + '. Recorded as this page loaded; nothing here is modelled.';
-    }
   }
 
-    // --- The address bar -----------------------------------------------------
-  //
-  // A ranking is a thing people want to send to someone. Without this, the only
-  // way to point at a game is to describe it in words, and the back button after
-  // opening a card left the site instead of closing the card.
-  //
-  // The filters are written with replaceState, because picking a sort is not a
-  // place anyone wants in their history. Opening a game is a pushState, because
-  // that is a step back the back button is expected to undo.
+  /** One click handler for the whole tab strip. */
+  function onTabClick(event) {
+    var btn = event.target.closest('.gdetail-tabs button');
+    if (!btn || btn.disabled || !state.currentGame) return;
+    state.metric = btn.getAttribute('data-metric');
+    var tabs = document.querySelectorAll('.gdetail-tabs button');
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].setAttribute('aria-selected', String(tabs[i] === btn));
+    }
+    loadTrendChart(state.currentGame.id);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var strip = document.querySelector('.gdetail-tabs');
+    if (strip) strip.addEventListener('click', onTabClick);
+  });
 
   function writeUrl(push) {
     var params = new URLSearchParams();
@@ -892,6 +1211,10 @@
    * user or a group. It is the same request the poller already makes, so this
    * is not an extra round trip in practice.
    */
+  function stat(value) {
+    return value === null || value === undefined ? '-' : formatNumber(value);
+  }
+
   function loadCreatorDetails(id) {
     return api
       .fetch('/api/v1/games/' + encodeURIComponent(id))
@@ -901,10 +1224,27 @@
         var d = body.data;
         if (state.currentGame && state.currentGame.id === id) {
           setCreatorLink(creatorUrl(d.creator));
-          modalCreatorType.textContent = creatorType(d.creator) || 'Unknown';
-          modalVisits.textContent = stat(d.visits);
-          modalMaxPlayers.textContent = stat(d.maxPlayers);
-          modalFavorites.textContent = stat(d.favorites);
+          var g = state.currentGame;
+          // Merging rather than replacing: trending carries the player count and
+          // the ranking, and the full endpoint carries the rest.
+          g.visits = d.visits ?? g.visits;
+          g.maxPlayers = d.maxPlayers ?? g.maxPlayers;
+          g.created = d.created ?? g.created;
+          if (d.ratings) g.ratings = Object.assign({}, g.ratings, d.ratings);
+          else if (typeof d.favorites === 'number') g.favorites = d.favorites;
+
+          if (d.description) {
+            g.description = d.description;
+            modalDescription.textContent = d.description;
+          }
+          if (typeof d.playing === 'number') g.playing = d.playing;
+          if (d.creator) g.creator = d.creator;
+
+          setStat('gsVisits', stat(d.visits));
+          setStat('gsMax', stat(d.maxPlayers));
+          setStat('gsFavorites', stat(d.favorites ?? (d.ratings && d.ratings.favorites)));
+          setStat('gsCreated', d.created ? formatDate(d.created) : '-');
+          paintCards(g);
         }
         return d;
       })
