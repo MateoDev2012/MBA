@@ -187,7 +187,7 @@
           <!-- One dense row, the way a stats page does it. Icon, grey label,
                value under it, hairline between. -->
           <dl class="gdetail-stats" id="gdetailStats">
-            <div><dt><span class="gs-ico" data-ico="rank"></span>Global</dt><dd id="gsRank">-</dd></div>
+            <div><dt><span class="gs-ico" data-ico="rank"></span><span id="gsRankLabel">Rank</span></dt><dd id="gsRank">-</dd></div>
             <div><dt><span class="gs-ico" data-ico="players"></span>Playing now</dt><dd id="gsPlaying">-</dd></div>
             <div><dt><span class="gs-ico" data-ico="visits"></span>Visits</dt><dd id="gsVisits">-</dd></div>
             <div><dt><span class="gs-ico" data-ico="likes"></span>Likes</dt><dd id="gsLikes">-</dd></div>
@@ -559,7 +559,6 @@
       return value === null || value === undefined ? '-' : formatNumber(value);
     }
 
-    var rank = rankOf(game.id);
     var ratio = voteRatio(game);
 
     // When these numbers arrived. The strip has to be able to say so, and it
@@ -568,7 +567,12 @@
     game.fetchedAt = game.fetchedAt || Date.now();
     tickUpdated(game);
 
-    setStat('gsRank', rank === null ? '-' : '#' + rank);
+    var rank = rankCell();
+    setStat('gsRank', rank.text);
+    var rankLabel = document.getElementById('gsRankLabel');
+    if (rankLabel) rankLabel.textContent = state.query ? 'Search rank' : 'Global';
+    var rankDd = document.getElementById('gsRank');
+    if (rankDd) rankDd.title = rank.title;
     setStat('gsPlaying', stat(game.playing), true);
     setStat('gsVisits', stat(game.visits));
     setStat('gsLikes', stat(game.ratings ? game.ratings.upVotes : game.upVotes));
@@ -614,12 +618,53 @@
     el.classList.toggle('ok', !!ok);
   }
 
-  /** Where this game sits in the list currently on screen, or null. */
+  /**
+   * The game's position in the live trending ranking, or null when we do not
+   * know it.
+   *
+   * It used to return the position in state.all and the cell said "Global",
+   * which meant a search for a 21-player game put "#1 Global" at the top of
+   * the page. There is no global rank for a search result: the list is a
+   * relevance ranking, and its first entry is not the world's first entry.
+   *
+   * So the rank is only reported when the list on screen IS the trending
+   * ranking, which /trending sorts by live player count. Even then it is honest
+   * only up to the number fetched: position 47 of 50 is "47", not "the world".
+   * Outside the fetched window, the cell says so.
+   */
   function rankOf(id) {
+    if (state.query) return null;
+    if (!state.all.length) return null;
     for (var i = 0; i < state.all.length; i++) {
       if (String(state.all[i].id) === String(id)) return i + 1;
     }
     return null;
+  }
+
+  /** What the rank cell says, which is not always a number. */
+  function rankCell() {
+    var rank = rankOf(state.currentGame && state.currentGame.id);
+    var seen = state.all.length;
+    if (rank !== null) {
+      return {
+        text: '#' + rank,
+        // The number we actually fetched, not the number we asked for. A
+        // prefix of a list sorted by players is still a ranking, so this says
+        // exactly how far the ranking reaches rather than implying a global
+        // position it cannot support.
+        title: 'Most played of the ' + seen + ' games fetched, by live player count right now'
+      };
+    }
+    if (state.query) {
+      return {
+        text: 'not ranked',
+        title: 'A search result is ordered by relevance, so there is no global position for it'
+      };
+    }
+    return {
+      text: 'outside top ' + seen,
+      title: 'Not among the ' + seen + ' games with the most players right now'
+    };
   }
 
   function formatDate(value) {
@@ -731,9 +776,25 @@
   var SAMPLE_MS = 30000;
   var sampleTimer = null;
 
+  /**
+   * Close readings first, then the slow poll.
+   *
+   * A line needs three points, and at one point per thirty seconds that is a
+   * minute and a half of staring at an empty panel before anything appeared.
+   * The first three come at 1.5s, 4s and 9s — still real API responses, still
+   * recorded the same way, just close together — and after that it settles into
+   * SAMPLE_MS. The chart labels its own span, so a nine-second line reads as
+   * nine seconds.
+   */
   function startSampling(id) {
     stopSampling();
-    sampleTimer = setInterval(function () {
+    [1500, 4000, 9000].forEach(function (ms) {
+      setTimeout(function () { takeSample(id); }, ms);
+    });
+    sampleTimer = setInterval(function () { takeSample(id); }, SAMPLE_MS);
+  }
+
+  function takeSample(id) {
       if (document.hidden || getComputedStyle(gameModal).display === 'none') return;
       api.fetch('/api/v1/games/' + encodeURIComponent(id) + '/quick')
         .then(function (res) { return res.json(); })
@@ -766,7 +827,6 @@
           // A failed poll is not worth telling anyone about. The line already
           // on screen is still the last thing the API said, which is true.
         });
-    }, SAMPLE_MS);
   }
 
   function stopSampling() {
@@ -988,7 +1048,12 @@
     }
 
     wrap.style.display = 'block';
-    if (note) note.style.display = 'none';
+    if (note) {
+      // Cleared, not just hidden: the text used to stay put and contradict the
+      // readout next to it, which said three readings while the note said two.
+      note.textContent = '';
+      note.style.display = 'none';
+    }
 
     var points = downsample(samples, 40);
     var css = getComputedStyle(document.documentElement);
@@ -1143,6 +1208,9 @@
   // paging need the whole set, and one request that covers every page is
   // cheaper than one per page.
   var FETCH_LIMIT = 50;
+  // The ranking is only meaningful up to the window we actually fetched, so the
+  // two are the same number on purpose and the label says which.
+  var TREND_WINDOW = FETCH_LIMIT;
 
   /**
    * Puts a search result into the same shape as a trending one.
