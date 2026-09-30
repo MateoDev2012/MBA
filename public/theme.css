@@ -80,6 +80,13 @@
      this is a token with a value per theme. */
   --code-kw: #c084fc;
 
+  // One colour per metric, and the colour is the encoding: the swatch, the bar
+  // and the line of a metric are always the same value. Cyan and amber had to
+  // be darkened for the light theme — the dark theme's values measure about
+  // 2:1 on white, which is not a colour anyone can read a number in.
+  --metric-likes: #38bdf8;
+  --metric-visits: #f5b544;
+
   --grad: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
   --focus: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
 
@@ -134,6 +141,8 @@
   --code-bg-2: #f1f1f4;
   --code-border: rgba(0, 0, 0, 0.1);
   --code-kw: #7c22ce;
+  --metric-likes: #0369a1;
+  --metric-visits: #a16207;
 
   --grad: linear-gradient(180deg, #ffffff, #fafafa);
   --focus: 0 0 0 2px #fff, 0 0 0 4px var(--accent);
@@ -1702,281 +1711,332 @@ footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40
 }
 
 /* ==========================================================================
-   Game detail
+   Game detail — MoonBlox's own
    ==========================================================================
 
-   The reference is a Roblox stats page rather than a dialog: the game's own
-   banner runs to the edge of the screen with the logo and title sitting on top
-   of it, the numbers are one dense strip with a hairline between each, and the
-   chart gets a full panel with tabs.
+   The structure came from a reference and it is kept: the banner behind the
+   identity, the facts in one place, the chart with tabs. What is not kept is
+   the treatment, because the reference gives every one of its nine numbers the
+   same weight and that is why a page built out of equal columns reads as a
+   form rather than as a page.
 
-   Two things about that layout are not decoration, which is why it is worth
-   copying. The banner-as-header puts the game's own art behind the identity,
-   which is the fastest possible "this is the right game" signal, and the dense
-   strip is scannable where a grid of boxed tiles is not: a reader comparing two
-   games reads across a row in one pass and has to look down a column in the
-   other.
+   The opinion here: one thing matters and the rest are a caption.
 
-   Every number below is a real reading. The deltas compare the newest sample
-   with the oldest one this page has taken, and the bars compare against the
-   largest value in the current result set. Where there is not enough data the
-   element says so and shows nothing, because a fabricated trend is worse than
-   an empty one.
+   Nearly every visitor to a game page wants the same number — how many people
+   are in it right now. So that number is the largest thing on the screen, in
+   the accent, next to the change since your first reading. The other eight
+   facts become a single quiet line of small monospace metadata underneath,
+   because they are reference, not the point. And the chart sits inside the
+   panel that owns the number it draws, rather than floating in a box of its
+   own that competes with the figure it belongs to.
+
+   So: one dominant panel and two supporting ones, not three equal cards.
+
+   The palette does one job only. Each metric owns a colour — violet for
+   players, cyan for likes, amber for visits — and those colours are the chart
+   strokes and the bars. That is a data encoding, not decoration: a reader who
+   has looked at two games can tell at a glance which line is which.
    ========================================================================== */
 
 .gdetail {
   position: relative;
-  width: 100%; max-width: 1120px;
-  max-height: 92vh; overflow: hidden;
+  width: 100%; max-width: 1140px;
   display: flex; flex-direction: column;
   background: var(--bg);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
   box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
 }
 
 /* --- Hero ------------------------------------------------------------------ */
+/* The banner does not sit in a box above the content: it dissolves into the
+   page. A hard edge under a photograph is what makes these headers look like
+   dialogs, and dissolving it is most of what makes this one not. */
 
 .gdetail-hero {
   position: relative;
   flex: none;
-  padding: 0 28px 20px;
-  background: var(--panel-2);
-  border-bottom: 1px solid var(--border);
+  padding: 0 30px;
+  background: #05060a;
+  isolation: isolate;
 }
 .gdetail-banner {
-  position: absolute; inset: 0; z-index: 0;
-  width: 100%; height: 100%;
-  object-fit: cover; object-position: center 32%;
-  /* Dim the art itself, not only the layer over it. A scrim alone is a fight
-     with a bright photograph: at the opacity that made a pale banner readable
-     it turned a dark one to mud. Taking the brightness down first means the
-     gradient only has to handle the difference between a pale banner and a
-     black one. */
-  filter: brightness(0.62) saturate(0.9);
+  position: absolute; inset: -1px -1px auto -1px; z-index: 0;
+  width: calc(100% + 2px); height: 340px;
+  object-fit: cover; object-position: center 30%;
+  /* Dimmed rather than scrimmed. A gradient over a bright photograph is a
+     fight; taking the brightness off first leaves the gradient to do nothing
+     but shape. */
+  filter: brightness(0.5) saturate(0.85);
 }
-/* Then the gradient, for the shape: dark at the top for the breadcrumb, dark
-   at the bottom for the numbers, because the busy part of a Roblox banner is
-   usually the middle and the strip sits right at the bottom edge. */
 .gdetail-scrim {
-  position: absolute; inset: 0; z-index: 1;
+  position: absolute; inset: 0 0 auto -1px; z-index: 1; height: 340px;
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.28) 30%, rgba(0, 0, 0, 0.7) 66%, rgba(0, 0, 0, 0.95) 100%),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.15) 62%, rgba(0, 0, 0, 0.5));
+    linear-gradient(180deg, rgba(5, 6, 10, 0.72) 0%, rgba(5, 6, 10, 0.1) 26%, rgba(5, 6, 10, 0.55) 58%, #05060a 99%),
+    linear-gradient(90deg, rgba(5, 6, 10, 0.62), rgba(5, 6, 10, 0.1) 58%, rgba(5, 6, 10, 0.55));
 }
 .gdetail-hero > *:not(.gdetail-banner):not(.gdetail-scrim) { position: relative; z-index: 2; }
 
-/* No banner to show: keep the identity block readable on a plain surface. */
-.gdetail-hero.no-banner .gdetail-scrim { background: linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.3)); }
-.gdetail-hero.no-banner { padding-top: 46px; }
+/* Nothing to show: keep the identity readable on a plain surface. */
+.gdetail-hero.no-banner { background: var(--panel-2); }
+.gdetail-hero.no-banner .gdetail-banner,
+.gdetail-hero.no-banner .gdetail-scrim { display: none; }
+.gdetail-hero.no-banner { padding-top: 20px; }
+.gdetail-hero.no-banner .gdetail-meta { border-top-color: var(--border); }
 
 .gdetail-crumb {
   display: flex; align-items: center; gap: 8px;
-  padding: 14px 0 0;
-  font-size: 0.82rem; color: rgba(255, 255, 255, 0.72);
+  padding: 15px 0 0;
+  font-family: var(--mono); font-size: 0.72rem; color: rgba(255, 255, 255, 0.55);
 }
-.gdetail-crumb a { color: rgba(255, 255, 255, 0.82); }
+.gdetail-crumb a { color: rgba(255, 255, 255, 0.7); }
 .gdetail-crumb a:hover { color: #fff; }
-.gdetail-crumb-sep { opacity: 0.45; }
-.gdetail-crumb #gdetailCrumbText { color: #fff; font-weight: 550; }
+.gdetail-crumb .gdetail-crumb-sep { opacity: 0.4; }
+.gdetail-crumb #gdetailCrumbText { color: rgba(255, 255, 255, 0.95); }
 
 .gdetail-id {
-  display: flex; align-items: center; gap: 18px;
-  padding: 20px 0 22px;
+  display: flex; align-items: flex-end; gap: 18px;
+  padding: 26px 0 22px;
 }
 .gdetail-logo {
-  width: 84px; height: 84px; flex: none;
-  border-radius: 14px; object-fit: cover;
+  width: 76px; height: 76px; flex: none;
+  border-radius: 15px; object-fit: cover;
   background: var(--panel-3);
-  border: 2px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  border: 1.5px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
 }
 .gdetail-names { min-width: 0; flex: 1; }
 .gdetail-names h2 {
-  margin: 0 0 4px;
-  font-size: clamp(1.5rem, 3vw, 2.1rem);
-  color: #fff; letter-spacing: -0.03em;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+  margin: 0 0 3px;
+  font-size: clamp(1.45rem, 2.8vw, 2rem);
+  color: #fff; letter-spacing: -0.032em; line-height: 1.1;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.5);
   overflow-wrap: anywhere;
 }
-.gdetail-creator { margin: 0; font-size: 0.95rem; color: rgba(255, 255, 255, 0.84); }
+.gdetail-creator { margin: 0; font-size: 0.92rem; color: rgba(255, 255, 255, 0.72); }
 .gdetail-creator a { color: #fff; text-decoration: underline; text-underline-offset: 2px; }
+
 .gdetail-actions { display: flex; align-items: center; gap: 8px; flex: none; }
-.gdetail-actions .icon-btn {
-  background: rgba(0, 0, 0, 0.45);
+.gdetail-actions .icon-btn,
+.gdetail-actions .btn-ghost {
+  background: rgba(0, 0, 0, 0.42);
   border-color: rgba(255, 255, 255, 0.2);
   color: #fff;
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
 }
-.gdetail-actions .icon-btn:hover { background: rgba(0, 0, 0, 0.65); }
-.gdetail-actions .btn-ghost {
-  background: rgba(0, 0, 0, 0.45);
-  border-color: rgba(255, 255, 255, 0.24);
-  color: #fff;
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-}
+.gdetail-actions .icon-btn:hover,
 .gdetail-actions .btn-ghost:hover { background: rgba(0, 0, 0, 0.62); }
 
 @media (max-width: 640px) {
-  .gdetail-hero { padding: 0 16px 16px; }
+  .gdetail-hero { padding: 0 16px; }
+  .gdetail-banner { height: 280px; }
+  .gdetail-scrim { height: 280px; }
   .gdetail-id { flex-wrap: wrap; gap: 12px; }
-  .gdetail-logo { width: 60px; height: 60px; }
+  .gdetail-logo { width: 54px; height: 54px; }
   .gdetail-actions { width: 100%; }
   .gdetail-actions .btn { flex: 1; justify-content: center; }
 }
 
-/* --- The stat strip -------------------------------------------------------- */
-/* One row, wrapping, hairline between. Scannable across, which a grid of tiles
-   is not. Each entry is a grey label over a value, with a small icon so the eye
-   can find "the players number" without reading every word. */
+/* --- The primary figure --------------------------------------------------- */
+/* The largest thing on the page, and the only thing in the accent. */
 
-.gdetail-stats {
-  display: flex; flex-wrap: wrap;
+.gdetail-primary {
+  display: flex; align-items: flex-end; gap: 34px; flex-wrap: wrap;
+  padding: 4px 0 22px;
+}
+.gprimary { min-width: 0; }
+.gprimary-label {
+  display: flex; align-items: center; gap: 7px;
+  font-family: var(--mono); font-size: 0.68rem;
+  letter-spacing: 0.09em; text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 4px;
+}
+.gprimary-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.gprimary-value {
+  font-size: clamp(2.6rem, 6.4vw, 4rem);
+  font-weight: 600; letter-spacing: -0.045em; line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-bright);
+  text-shadow: 0 4px 30px rgba(139, 107, 255, 0.35);
+}
+.gprimary-delta {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--mono); font-size: 0.8rem; font-weight: 600;
+  padding: 3px 8px; border-radius: 5px;
+}
+.gprimary-delta.up   { color: #6ee7b7; background: rgba(61, 220, 151, 0.14); }
+.gprimary-delta.down { color: #ff8a8a; background: rgba(255, 107, 107, 0.14); }
+.gprimary-delta.flat { color: rgba(255, 255, 255, 0.6); background: rgba(255, 255, 255, 0.08); }
+
+/* --- The caption line ----------------------------------------------------- */
+/* The other eight facts, demoted to a single quiet row. Small, monospace, and
+   hairline-separated, so it reads as a spec line under a headline rather than
+   as eight more tiles competing with the one number that matters. */
+
+.gdetail-meta {
+  display: flex; flex-wrap: wrap; align-items: baseline;
+  gap: 6px 0;
   margin: 0; padding: 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  width: 100%;
 }
-.gdetail-stats > div {
-  min-width: 0; flex: 1 1 102px;
-  padding: 13px 15px 3px 0;
+.gdetail-meta > div {
+  display: flex; align-items: baseline; gap: 6px;
+  padding: 12px 14px 0 0;
+  /* A floor, so the row wraps instead of squeezing. At 375px the flex items
+     were compressing to 60px each and "Max players" became two clipped words. */
+  flex: 0 1 auto;
+  min-width: 104px;
 }
-.gdetail-stats > div + div { padding-left: 15px; border-left: 1px solid rgba(255, 255, 255, 0.14); }
-.gdetail-stats dt {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 0.72rem; font-weight: 500;
-  color: rgba(255, 255, 255, 0.62);
+.gdetail-meta > div + div { padding-left: 14px; border-left: 1px solid rgba(255, 255, 255, 0.11); }
+.gdetail-meta dt {
+  font-family: var(--mono); font-size: 0.66rem;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
   white-space: nowrap;
 }
-.gdetail-stats dd {
-  margin: 3px 0 0;
-  font-size: 1.02rem; font-weight: 600; letter-spacing: -0.02em;
-  color: #fff;
+.gdetail-meta dd {
+  margin: 0;
+  font-size: 0.8rem; font-weight: 600; letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.94);
   font-variant-numeric: tabular-nums;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap;
 }
-/* The strip is on a darkened photograph in BOTH themes, so this one cell
-   takes the light-theme green in both. Following the token meant the number
-   rendered as #0b7a45 on a dark banner, which is the worst possible contrast
-   on the one number people came to read. */
-.gdetail-stats dd.ok { color: #6ee7b7; }
-
-.gs-ico {
-  width: 13px; height: 13px; flex: none;
-  display: inline-block;
-  background: currentColor;
-  opacity: 0.7;
-  -webkit-mask-position: center; mask-position: center;
-  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-  -webkit-mask-size: contain; mask-size: contain;
-}
-.gs-ico[data-ico="rank"]   { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M12 3l3 6 6 1-4.5 4.3 1.1 6.2L12 17.6 6.4 20.5 7.5 14 3 9.7 9 9z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M12 3l3 6 6 1-4.5 4.3 1.1 6.2L12 17.6 6.4 20.5 7.5 14 3 9.7 9 9z'/%3E%3C/svg%3E"); }
-.gs-ico[data-ico="players"] { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='9' cy='8' r='3.2'/%3E%3Cpath d='M2.5 20a6.5 6.5 0 0 1 13 0M16 5.2a3.2 3.2 0 0 1 0 5.6M18 14.4A6.5 6.5 0 0 1 21.5 20'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='9' cy='8' r='3.2'/%3E%3Cpath d='M2.5 20a6.5 6.5 0 0 1 13 0M16 5.2a3.2 3.2 0 0 1 0 5.6M18 14.4A6.5 6.5 0 0 1 21.5 20'/%3E%3C/svg%3E"); }
-.gs-ico[data-ico="visits"]  { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2'%3E%3Cpath d='M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z'/%3E%3Ccircle cx='12' cy='12' r='2.6'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2'%3E%3Cpath d='M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z'/%3E%3Ccircle cx='12' cy='12' r='2.6'/%3E%3C/svg%3E"); }
-.gs-ico[data-ico="likes"]   { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linejoin='round'%3E%3Cpath d='M12 20.5S3.5 15 3.5 9.2A4.7 4.7 0 0 1 12 6.6a4.7 4.7 0 0 1 8.5 2.6c0 5.8-8.5 11.3-8.5 11.3z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linejoin='round'%3E%3Cpath d='M12 20.5S3.5 15 3.5 9.2A4.7 4.7 0 0 1 12 6.6a4.7 4.7 0 0 1 8.5 2.6c0 5.8-8.5 11.3-8.5 11.3z'/%3E%3C/svg%3E"); }
-.gs-ico[data-ico="rating"]  { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M12 3v18M5 7.5h14M5 16.5h14'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M12 3v18M5 7.5h14M5 16.5h14'/%3E%3C/svg%3E"); }
-.gs-ico[data-ico="fav"]     { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M6 3h12v18l-6-4.5L6 21z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M6 3h12v18l-6-4.5L6 21z'/%3E%3C/svg%3E"); }
-.gs-ico[data-ico="clock"]   { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7v5.4l3.4 2'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7v5.4l3.4 2'/%3E%3C/svg%3E"); }
-.gs-ico[data-ico="calendar"]{ -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Crect x='3.5' y='5' width='17' height='16' rx='2'/%3E%3Cpath d='M3.5 10h17M8 3v4M16 3v4'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2' stroke-linecap='round'%3E%3Crect x='3.5' y='5' width='17' height='16' rx='2'/%3E%3Cpath d='M3.5 10h17M8 3v4M16 3v4'/%3E%3C/svg%3E"); }
-.gs-ico[data-ico="server"]  { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2'%3E%3Crect x='3' y='4' width='18' height='6' rx='1.5'/%3E%3Crect x='3' y='14' width='18' height='6' rx='1.5'/%3E%3Cpath d='M7 7h.01M7 17h.01'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.2'%3E%3Crect x='3' y='4' width='18' height='6' rx='1.5'/%3E%3Crect x='3' y='14' width='18' height='6' rx='1.5'/%3E%3Cpath d='M7 7h.01M7 17h.01'/%3E%3C/svg%3E"); }
+/* The strip sits on a darkened photograph in both themes, so this one row of
+   values takes the light-theme text colour in both. */
+.gdetail-meta dd.dim { color: rgba(255, 255, 255, 0.42); font-weight: 450; }
+.gdetail-meta dd.dim:hover { color: rgba(255, 255, 255, 0.8); }
 
 /* --- Body ------------------------------------------------------------------ */
 
-.gdetail-body { padding: 22px 28px 28px; overflow-y: auto; flex: 1; }
+.gdetail-body { padding: 22px 30px 30px; overflow-y: auto; flex: 1; }
 
-.gdetail-cards {
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
-  margin-bottom: 18px;
+.gdetail-panels {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
 }
-@media (max-width: 760px) { .gdetail-cards { grid-template-columns: 1fr; } }
+@media (max-width: 880px) { .gdetail-panels { grid-template-columns: 1fr; } }
 
-.gcard {
+/* --- Panel ----------------------------------------------------------------- */
+
+.gpanel {
+  position: relative;
+  display: flex; flex-direction: column;
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 15px 16px 13px;
+  padding: 15px 16px 14px;
   min-width: 0;
+  transition: border-color 0.15s;
 }
-.gcard-label {
-  display: block;
-  font-size: 0.72rem; font-weight: 500;
+.gpanel:hover { border-color: var(--border-strong); }
+
+.gpanel-label {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 0.66rem;
+  letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 7px;
+  margin-bottom: 9px;
 }
-.gcard-row { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
-.gcard-row b {
-  font-size: 1.5rem; font-weight: 600; letter-spacing: -0.035em; line-height: 1.1;
+/* The swatch is the metric's colour, and it is the same colour its line is
+   drawn in. That is the whole point: the encoding is the identity. */
+.gpanel-swatch {
+  width: 8px; height: 8px; border-radius: 2px; flex: none;
+  background: var(--metric, var(--accent));
+}
+.gpanel-row { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+.gpanel-value {
+  font-size: 1.7rem; font-weight: 600; letter-spacing: -0.038em; line-height: 1.05;
   font-variant-numeric: tabular-nums;
+  color: var(--text);
 }
-.gcard-delta {
+.gpanel-wide .gpanel-value { font-size: 2.2rem; }
+.gpanel-delta {
   display: inline-flex; align-items: center; gap: 3px;
   font-family: var(--mono); font-size: 0.68rem; font-weight: 600;
   padding: 2px 6px; border-radius: 4px;
 }
-.gcard-delta.up   { color: var(--ok-ink); background: var(--ok-soft); }
-.gcard-delta.down { color: var(--danger); background: var(--danger-soft); }
-.gcard-delta.flat { color: var(--muted); background: var(--panel-2); }
-.gcard-bar {
-  height: 5px; border-radius: 3px; margin: 12px 0 8px;
+.gpanel-delta.up   { color: var(--ok-ink); background: var(--ok-soft); }
+.gpanel-delta.down { color: var(--danger); background: var(--danger-soft); }
+.gpanel-delta.flat { color: var(--muted); background: var(--panel-2); }
+
+.gpanel-bar {
+  height: 4px; border-radius: 2px; margin: 11px 0 8px;
   background: var(--panel-3); overflow: hidden;
 }
-.gcard-bar i {
-  display: block; height: 100%; border-radius: 3px;
-  background: var(--accent);
-  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+.gpanel-bar i {
+  display: block; height: 100%; border-radius: 2px;
+  background: var(--metric, var(--accent));
+  transition: width 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.gcard[data-metric="playing"] .gcard-bar i { background: var(--ok); }
-.gcard-foot { font-size: 0.72rem; color: var(--muted); }
+.gpanel-foot { font-size: 0.71rem; color: var(--muted); line-height: 1.45; }
 
-/* --- Chart panel ----------------------------------------------------------- */
+/* The wide panel carries the chart, because the chart is the number's own
+   history and putting it in a separate box made two things argue. */
+.gpanel-wide { padding-bottom: 12px; }
+.gpanel-wide .gpanel-bar { margin-bottom: 6px; }
 
-.gdetail-chart {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 4px 18px 18px;
-  margin-bottom: 18px;
-}
-.gdetail-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border-faint); }
+/* --- Tabs ------------------------------------------------------------------ */
+
+.gdetail-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border-faint); margin-top: 10px; }
 .gdetail-tabs button {
-  font: inherit; font-size: 0.86rem; font-weight: 550;
-  padding: 12px 14px; cursor: pointer;
+  font: inherit; font-size: 0.82rem; font-weight: 550;
+  padding: 9px 11px; cursor: pointer;
   background: none; border: 0; border-bottom: 2px solid transparent;
   color: var(--muted); margin-bottom: -1px;
   transition: color 0.14s, border-color 0.14s;
 }
 .gdetail-tabs button:hover { color: var(--text); }
-.gdetail-tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+.gdetail-tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--metric, var(--accent)); }
 .gdetail-tabs button[disabled] { opacity: 0.5; cursor: default; }
 
-.gdetail-readout {
-  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
-  padding: 16px 0 6px;
-}
+.gdetail-readout { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; padding: 13px 0 2px; }
 .gdetail-readout b {
-  font-size: 1.8rem; font-weight: 600; letter-spacing: -0.035em; line-height: 1;
+  font-size: 1.35rem; font-weight: 600; letter-spacing: -0.032em;
   font-variant-numeric: tabular-nums;
 }
-.gRead-metric { font-size: 0.82rem; color: var(--muted); }
-.gRead-note { font-size: 0.76rem; color: var(--muted); margin-left: auto; }
+.gRead-metric { font-size: 0.78rem; color: var(--muted); }
+.gRead-note { font-size: 0.73rem; color: var(--muted); margin-left: auto; }
 
-.gdetail-chart .chart-container { height: 260px; }
-.gdetail-chart .chart-note { margin: 12px 0 0; }
+.gpanel .chart-container { height: 190px; margin-top: 4px; }
+.gpanel .chart-note { margin: 10px 0 0; font-size: 0.74rem; }
 
-/* The modal used to size itself to content; this one fills the screen. */
-.modal-overlay:has(.gdetail) { padding: 0; align-items: stretch; justify-content: center; }
-.gdetail { max-height: none; height: 100%; border-radius: 0; border: 0; max-width: 1160px; }
-@media (max-width: 700px) { .gdetail { max-width: none; } }
+/* --- Rest ------------------------------------------------------------------ */
+
+.gdetail-copy {
+  display: flex; align-items: flex-start; gap: 14px;
+  margin-top: 18px; padding-top: 16px;
+  border-top: 1px solid var(--border-faint);
+}
+#modalDescription {
+  flex: 1; margin: 0;
+  font-size: 0.88rem; color: var(--text-soft); line-height: 1.6;
+  white-space: pre-line;
+  max-height: 5.4em; overflow-y: auto;
+}
+.gdetail-links { display: flex; flex-wrap: wrap; gap: 8px; flex: none; }
 
 .modal-close {
-  position: absolute; top: 12px; right: 12px; z-index: 6;
+  position: absolute; top: 13px; right: 13px; z-index: 6;
   width: 32px; height: 32px; border-radius: var(--radius-sm);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(0, 0, 0, 0.5); color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.45); color: #fff;
   font-size: 1.25rem; line-height: 1; cursor: pointer;
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   display: grid; place-items: center;
   transition: background 0.14s;
 }
-.modal-close:hover { background: rgba(0, 0, 0, 0.72); }
+.modal-close:hover { background: rgba(0, 0, 0, 0.68); }
+
+/* The panel fills the screen rather than floating in it. */
+.modal-overlay:has(.gdetail) { padding: 0; align-items: stretch; }
+.gdetail { max-height: none; height: 100%; border-radius: 0; border: 0; max-width: 1180px; }
+@media (max-width: 700px) { .gdetail { max-width: none; } }
+@media (max-width: 640px) { .gdetail-body { padding: 18px 16px 24px; } }
 
 /* --- Responsive ----------------------------------------------------------- */
 

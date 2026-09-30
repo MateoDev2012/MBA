@@ -148,11 +148,18 @@
       </div>
     </section>
 
-    <!-- Game detail. Modelled on a stats page rather than a dialog: the banner
-         runs to the edge of the screen, the numbers sit in one dense strip under
-         the title, and the chart gets a full panel instead of the bottom third
-         of a box. Everything in it is a real reading — the deltas and the bars
-         are computed from samples this page has taken, never typed in. -->
+    <!-- Game detail.
+
+         One dominant figure and a caption line under it. The reference gave
+         nine numbers the same weight, which is why a page built out of equal
+         columns reads as a form; almost everyone who opens a game wants the
+         one number, so that number is the largest thing here and the other
+         eight are small monospace reference. The chart lives inside the panel
+         that owns the figure, because it is that figure's own history.
+
+         Every value is a real reading. The deltas and the bars are computed
+         from samples this page took, never typed in, and where there is not
+         enough data the element says so and shows nothing. -->
     <div class="modal-overlay" id="gameModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" style="display:none">
       <article class="gdetail">
         <button class="modal-close" aria-label="Close">&times;</button>
@@ -184,71 +191,88 @@
             </div>
           </div>
 
-          <!-- One dense row, the way a stats page does it. Icon, grey label,
-               value under it, hairline between. -->
-          <dl class="gdetail-stats" id="gdetailStats">
-            <div><dt><span class="gs-ico" data-ico="rank"></span><span id="gsRankLabel">Rank</span></dt><dd id="gsRank">-</dd></div>
-            <div><dt><span class="gs-ico" data-ico="players"></span>Playing now</dt><dd id="gsPlaying">-</dd></div>
-            <div><dt><span class="gs-ico" data-ico="visits"></span>Visits</dt><dd id="gsVisits">-</dd></div>
-            <div><dt><span class="gs-ico" data-ico="likes"></span>Likes</dt><dd id="gsLikes">-</dd></div>
-            <div><dt><span class="gs-ico" data-ico="rating"></span>Rating</dt><dd id="gsRatio">-</dd></div>
-            <div><dt><span class="gs-ico" data-ico="fav"></span>Favorites</dt><dd id="gsFavorites">-</dd></div>
-            <div><dt><span class="gs-ico" data-ico="clock"></span>Updated</dt><dd id="gsUpdated">-</dd></div>
-            <div><dt><span class="gs-ico" data-ico="calendar"></span>Created</dt><dd id="gsCreated">-</dd></div>
-            <div><dt><span class="gs-ico" data-ico="server"></span>Max players</dt><dd id="gsMax">-</dd></div>
+          <div class="gdetail-primary">
+            <div class="gprimary">
+              <span class="gprimary-label"><span class="dot-live" aria-hidden="true"></span> Players right now</span>
+              <div class="gprimary-row">
+                <b class="gprimary-value" id="gPrimaryValue">&mdash;</b>
+                <span class="gprimary-delta flat" id="gPrimaryDelta" hidden></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- The caption. Small, monospace, hairline-separated: reference
+               material, not eight more things shouting. -->
+          <dl class="gdetail-meta" id="gdetailMeta">
+            <div><dt id="gsRankLabel">Rank</dt><dd id="gsRank" class="dim">&mdash;</dd></div>
+            <div><dt>Visits</dt><dd id="gsVisits">&mdash;</dd></div>
+            <div><dt>Likes</dt><dd id="gsLikes">&mdash;</dd></div>
+            <div><dt>Rating</dt><dd id="gsRatio">&mdash;</dd></div>
+            <div><dt>Favorites</dt><dd id="gsFavorites">&mdash;</dd></div>
+            <div><dt>Updated</dt><dd id="gsUpdated">&mdash;</dd></div>
+            <div><dt>Created</dt><dd id="gsCreated">&mdash;</dd></div>
+            <div><dt>Max players</dt><dd id="gsMax">&mdash;</dd></div>
           </dl>
         </header>
 
         <div class="gdetail-body">
-          <!-- Three panels, each with a delta chip and a bar. The delta compares
-               the newest reading with the oldest one on this machine; the bar
-               is this value against the largest in the current result set. Both
-               are computed, neither is stored, and both disappear rather than
-               guess when there is not enough data. -->
-          <div class="gdetail-cards" id="gdetailCards">
-            <div class="gcard" data-metric="playing">
-              <span class="gcard-label">Players right now</span>
-              <div class="gcard-row"><b data-role="value">-</b><span class="gcard-delta" data-role="delta" hidden></span></div>
-              <div class="gcard-bar"><i data-role="bar" style="width:0%"></i></div>
-              <span class="gcard-foot" data-role="foot">no comparison yet</span>
+          <!-- One wide panel that owns the number and its history, then two
+               supporting ones. Not three equal cards: a three-up grid of the
+               same box is the same box three times, and it gives the reader no
+               reason to look at the one that matters most. -->
+          <div class="gdetail-panels" id="gdetailPanels">
+            <section class="gpanel gpanel-wide" data-metric="playing" style="--metric: var(--accent-bright)">
+              <span class="gpanel-label"><i class="gpanel-swatch"></i> Players</span>
+              <div class="gpanel-row">
+                <b class="gpanel-value" data-role="value">&mdash;</b>
+                <span class="gpanel-delta flat" data-role="delta" hidden></span>
+              </div>
+              <div class="gpanel-bar"><i data-role="bar" style="width:0%"></i></div>
+              <span class="gpanel-foot" data-role="foot">&nbsp;</span>
+
+              <div class="gdetail-tabs" role="tablist" aria-label="Metric to chart">
+                <button type="button" role="tab" data-metric="playing" aria-selected="true">Players</button>
+                <button type="button" role="tab" data-metric="upVotes" aria-selected="false">Likes</button>
+                <button type="button" role="tab" data-metric="visits" aria-selected="false">Visits</button>
+              </div>
+              <div class="gdetail-readout">
+                <b id="gReadValue">&mdash;</b>
+                <span class="gRead-metric" id="gReadMetric">Players right now</span>
+                <span class="gRead-note" id="gReadNote"></span>
+              </div>
+              <div class="chart-container" id="chartWrap">
+                <canvas id="trendChart" aria-label="Readings collected by this page"></canvas>
+              </div>
+              <p class="chart-note" id="chartNote"></p>
+            </section>
+
+            <div class="gpanel" data-metric="upVotes" style="--metric: #38bdf8">
+              <span class="gpanel-label"><i class="gpanel-swatch"></i> Likes</span>
+              <div class="gpanel-row">
+                <b class="gpanel-value" data-role="value">&mdash;</b>
+                <span class="gpanel-delta flat" data-role="delta" hidden></span>
+              </div>
+              <div class="gpanel-bar"><i data-role="bar" style="width:0%"></i></div>
+              <span class="gpanel-foot" data-role="foot">&nbsp;</span>
             </div>
-            <div class="gcard" data-metric="upVotes">
-              <span class="gcard-label">Total likes</span>
-              <div class="gcard-row"><b data-role="value">-</b><span class="gcard-delta" data-role="delta" hidden></span></div>
-              <div class="gcard-bar"><i data-role="bar" style="width:0%"></i></div>
-              <span class="gcard-foot" data-role="foot">no comparison yet</span>
-            </div>
-            <div class="gcard" data-metric="visits">
-              <span class="gcard-label">Total visits</span>
-              <div class="gcard-row"><b data-role="value">-</b><span class="gcard-delta" data-role="delta" hidden></span></div>
-              <div class="gcard-bar"><i data-role="bar" style="width:0%"></i></div>
-              <span class="gcard-foot" data-role="foot">no comparison yet</span>
+
+            <div class="gpanel" data-metric="visits" style="--metric: #f5b544">
+              <span class="gpanel-label"><i class="gpanel-swatch"></i> Visits</span>
+              <div class="gpanel-row">
+                <b class="gpanel-value" data-role="value">&mdash;</b>
+                <span class="gpanel-delta flat" data-role="delta" hidden></span>
+              </div>
+              <div class="gpanel-bar"><i data-role="bar" style="width:0%"></i></div>
+              <span class="gpanel-foot" data-role="foot">&nbsp;</span>
             </div>
           </div>
 
-          <section class="gdetail-chart">
-            <div class="gdetail-tabs" role="tablist" aria-label="Metric to chart">
-              <button type="button" role="tab" data-metric="playing" aria-selected="true">Players</button>
-              <button type="button" role="tab" data-metric="upVotes" aria-selected="false">Likes</button>
-              <button type="button" role="tab" data-metric="visits" aria-selected="false">Visits</button>
+          <div class="gdetail-copy">
+            <p id="modalDescription"></p>
+            <div class="gdetail-links">
+              <button class="btn btn-ghost btn-sm" id="copyEmbed" type="button">Copy embed</button>
+              <a class="chip" href="/docs/endpoints">REST &rarr;</a>
             </div>
-            <div class="gdetail-readout">
-              <b id="gReadValue">-</b>
-              <span class="gRead-metric" id="gReadMetric">Players right now</span>
-              <span class="gRead-note" id="gReadNote"></span>
-            </div>
-            <div class="chart-container" id="chartWrap">
-              <canvas id="trendChart" aria-label="Readings collected by this page"></canvas>
-            </div>
-            <p class="chart-note" id="chartNote"></p>
-          </section>
-
-          <p id="modalDescription" class="modal-description"></p>
-
-          <div class="modal-actions">
-            <button class="btn btn-ghost" id="copyEmbed" type="button">Copy embed code</button>
-            <a class="chip" href="/docs/endpoints">REST endpoint &rarr;</a>
-            <a class="chip" href="/docs/autofill">Stat names &rarr;</a>
           </div>
         </div>
       </article>
@@ -300,7 +324,22 @@
   'use strict';
 
   var api = window.RbxApi;
-  var abbr = api.abbr;
+  // Wrapped so an axis can ask for more precision than the shorthand
+  // gives. Both take and return the same thing otherwise.
+  var abbr = function (n, digits) {
+    var s = api.abbr(n);
+    if (digits === undefined) return s;
+    // A value the shorthand rounded to a single letter, "1M", cannot be made
+    // more precise by trimming characters. Rebuild it from the number.
+    if (!/[.,]/.test(s) && s.length <= 3 && Math.abs(n) >= 1000) {
+      return n.toLocaleString(undefined, {
+        notation: 'compact',
+        maximumFractionDigits: digits,
+        minimumFractionDigits: 0
+      });
+    }
+    return s;
+  };
 
   // State
   var state = {
@@ -570,10 +609,14 @@
     var rank = rankCell();
     setStat('gsRank', rank.text);
     var rankLabel = document.getElementById('gsRankLabel');
-    if (rankLabel) rankLabel.textContent = state.query ? 'Search rank' : 'Global';
+    if (rankLabel) rankLabel.textContent = state.query ? 'Search rank' : 'Rank';
     var rankDd = document.getElementById('gsRank');
-    if (rankDd) rankDd.title = rank.title;
-    setStat('gsPlaying', stat(game.playing), true);
+    if (rankDd) {
+      rankDd.title = rank.title;
+      // A rank we could not work out is dimmed rather than dressed up: the
+      // cell is present so the row reads evenly, not to imply an answer.
+      rankDd.className = rank.text.charAt(0) === '#' ? '' : 'dim';
+    }
     setStat('gsVisits', stat(game.visits));
     setStat('gsLikes', stat(game.ratings ? game.ratings.upVotes : game.upVotes));
     setStat('gsRatio', ratio === null ? '-' : ratio.toFixed(1) + '%');
@@ -598,7 +641,8 @@
     gameModal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
 
-    paintCards(game);
+    paintPanels(game);
+    paintHeadline(game);
     loadTrendChart(game.id);
     startSampling(game.id);
     startUpdatedTicker(game);
@@ -711,8 +755,26 @@
    * Both disappear when there is not enough to compute. A fabricated arrow is
    * worse than no arrow.
    */
-  function paintCards(game) {
-    var cards = document.querySelectorAll('.gcard');
+  /**
+   * The CSS custom property each metric wears. Not a literal colour: the light
+   * theme needs a different value for two of these, and hard-coding one hex
+   * meant the light theme's chart was drawn in a colour that measures about 2:1
+   * on white.
+   */
+  var METRIC_TOKEN = {
+    playing: '--accent-bright',
+    upVotes: '--metric-likes',
+    visits: '--metric-visits'
+  };
+
+  function metricColour(metric) {
+    var css = getComputedStyle(document.documentElement);
+    return (css.getPropertyValue(METRIC_TOKEN[metric] || '--accent-bright') || '').trim() ||
+      css.getPropertyValue('--accent-bright').trim();
+  }
+
+  function paintPanels(game) {
+    var cards = document.querySelectorAll('.gpanel[data-metric]');
     var metrics = {
       playing: { label: 'Players right now', get: function (g) { return g.playing; } },
       upVotes: {
@@ -757,7 +819,7 @@
         var change = ((value - list[0].v) / list[0].v) * 100;
         var kind = Math.abs(change) < 0.05 ? 'flat' : change > 0 ? 'up' : 'down';
         deltaEl.hidden = false;
-        deltaEl.className = 'gcard-delta ' + kind;
+        deltaEl.className = 'gpanel-delta ' + kind;
         deltaEl.textContent =
           (kind === 'up' ? '↗ +' : kind === 'down' ? '↘ ' : '→ ') + Math.abs(change).toFixed(1) + '%';
         footEl.textContent += ' · since your first reading';
@@ -766,6 +828,32 @@
         footEl.textContent += list.length === 1 ? ' · one reading so far' : ' · no history yet';
       }
     }
+  }
+
+  /**
+   * The headline. It is the same reading the players panel shows, so it cannot
+   * disagree with the chart below it, and the change beside it is the same
+   * comparison the panel computes. Duplicated rather than derived, because a
+   * reader who looks up and looks down should see the same number twice.
+   */
+  function paintHeadline(game) {
+    var value = typeof game.playing === 'number' ? game.playing : null;
+    var out = document.getElementById('gPrimaryValue');
+    var delta = document.getElementById('gPrimaryDelta');
+    if (out) out.textContent = value === null ? '—' : formatNumber(value);
+    if (!delta) return;
+
+    var list = samplesFor(game.id, 'playing');
+    if (list.length < 2 || list[0].v <= 0 || value === null) {
+      delta.hidden = true;
+      return;
+    }
+    var change = ((value - list[0].v) / list[0].v) * 100;
+    var kind = Math.abs(change) < 0.05 ? 'flat' : change > 0 ? 'up' : 'down';
+    delta.hidden = false;
+    delta.className = 'gprimary-delta ' + kind;
+    delta.textContent =
+      (kind === 'up' ? '↗ +' : kind === 'down' ? '↘ ' : '→ ') + Math.abs(change).toFixed(1) + '%';
   }
 
   // While a game is on screen, ask the API about that one game again every half
@@ -815,11 +903,11 @@
           // returns the same count does not churn the canvas.
           if (samplesFor(id, 'playing').length === before) return;
           if (state.currentGame && state.currentGame.id === id) {
-            setStat('gsPlaying', abbr(playing), true);
+            paintHeadline(state.currentGame);
             if (typeof visits === 'number') setStat('gsVisits', formatNumber(visits));
             if (typeof upVotes === 'number') setStat('gsLikes', formatNumber(upVotes));
             tickUpdated(state.currentGame);
-            if (state.currentGame) paintCards(state.currentGame);
+            if (state.currentGame) paintPanels(state.currentGame);
             loadTrendChart(id);
           }
         })
@@ -1010,6 +1098,7 @@
     }
 
     syncTabs(gameId);
+    applyMetricColour();
 
     var metric = state.metric || 'playing';
     var info = METRIC_INFO[metric] || METRIC_INFO.playing;
@@ -1060,7 +1149,13 @@
     var token = function (name, fallback) {
       return css.getPropertyValue(name).trim() || fallback;
     };
-    var accent = token(info.color, '#16a34a');
+    // Read --metric off the panel, not off :root. It is declared on the
+    // panel, so a :root lookup returns an empty string, and "var(--accent-bright)22"
+    // is not a colour: the canvas rejected it and filled the area under the
+    // line black.
+    var panel = document.querySelector('.gpanel-wide');
+    var accent = (panel && getComputedStyle(panel).getPropertyValue('--metric').trim()) ||
+      metricColour(metric);
 
     var first = new Date(points[0].t);
     var spansDays = points[points.length - 1].t - points[0].t > 86400000;
@@ -1070,6 +1165,10 @@
         ? d.toLocaleDateString([], { month: 'short', day: 'numeric' })
         : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
+
+    var lo = Math.min.apply(null, points.map(function (pt) { return pt.v; }));
+    var hi = Math.max.apply(null, points.map(function (pt) { return pt.v; }));
+    var scale = { lo: lo, span: Math.max(1, hi - lo) };
 
     state.chart = new Chart(trendChart.getContext('2d'), {
       type: 'line',
@@ -1120,12 +1219,41 @@
             ticks: {
               color: token('--muted', '#888'),
               font: { size: 11 },
-              callback: function (v) { return abbr(v); }
+              maxTicksLimit: 5,
+              // abbr() rounds 1.04M and 1.02M to the same "1M", which on a
+              // chart whose entire range is four percent is an axis saying
+              // nothing at all. The span decides the precision.
+              callback: function (v) { return axisLabel(v, scale); }
             }
           }
         }
       }
     });
+  }
+
+  /** The wide panel wears the colour of the metric it is currently
+   *  drawing, so the swatch, the bar and the line never point at two things. */
+  /**
+   * An axis label. When the visible range is narrow the short form collapses
+   * every tick into the same word, so the number of decimals comes from how
+   * much the values actually move.
+   */
+  function axisLabel(value, scale) {
+    if (!scale || !scale.span) return abbr(value);
+    var size = Math.max(1, Math.abs(scale.lo));
+    var relative = scale.span / size;
+    // Relative, not absolute. A 40,000 spread is a big number and a 4% spread,
+    // and only the second one needs decimals to tell 1.04M from 1.02M.
+    var digits = relative >= 1 ? 0 : Math.min(4, Math.max(0, Math.ceil(-Math.log(relative) / Math.LN10)));
+    return abbr(value, digits);
+  }
+
+  function applyMetricColour() {
+    var wide = document.querySelector('.gpanel-wide');
+    if (wide) {
+      var token = METRIC_TOKEN[state.metric] || METRIC_TOKEN.playing;
+      wide.style.setProperty('--metric', 'var(' + token + ')');
+    }
   }
 
   /** One click handler for the whole tab strip. */
@@ -1137,6 +1265,7 @@
     for (var i = 0; i < tabs.length; i++) {
       tabs[i].setAttribute('aria-selected', String(tabs[i] === btn));
     }
+    applyMetricColour();
     loadTrendChart(state.currentGame.id);
   }
 
@@ -1312,7 +1441,8 @@
           setStat('gsMax', stat(d.maxPlayers));
           setStat('gsFavorites', stat(d.favorites ?? (d.ratings && d.ratings.favorites)));
           setStat('gsCreated', d.created ? formatDate(d.created) : '-');
-          paintCards(g);
+          paintPanels(g);
+          paintHeadline(g);
         }
         return d;
       })
