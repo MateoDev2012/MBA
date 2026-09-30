@@ -28,6 +28,23 @@ export const config = {
   port: num(process.env.PORT, 3000),
   corsOrigin: process.env.CORS_ORIGIN || '*',
   upstreamTimeoutMs: num(process.env.UPSTREAM_TIMEOUT_MS, 10000),
+
+  /**
+   * How much traffic we are willing to send Roblox, per minute.
+   *
+   * This is the part of the problem we control. Roblox's own limit is not ours
+   * to know, but firing a burst of simultaneous requests at it is reliably a way
+   * to be refused, so the outbound side is capped and smoothed instead.
+   *
+   * The defaults sit well under what the public endpoints appear to tolerate
+   * and far above what this API needs, because the cache answers almost
+   * everything: these only ever see misses.
+   */
+  upstreamPerMinute: num(process.env.UPSTREAM_PER_MINUTE, 90),
+  // How much of the minute's budget may arrive at once. A bucket that only
+  // trickles turns a burst into a queue measured in seconds; this lets a short
+  // spike through and holds the steady rate afterwards.
+  upstreamBurst: num(process.env.UPSTREAM_BURST, 12),
   // Cap on a template sent to POST /api/v1/render, so one request cannot make
   // the server chew through megabytes of string.
   renderMaxTemplateChars: num(process.env.RENDER_MAX_TEMPLATE_CHARS, 200_000),

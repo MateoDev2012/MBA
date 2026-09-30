@@ -21,7 +21,7 @@ import { apikey, apiKeyGuard, describe, firstKey } from './apikey.js';
 import { router as gamesRouter } from './routes/games.js';
 import { router as templateRouter } from './routes/template.js';
 import { cache } from './cache.js';
-import { RobloxError } from './roblox.js';
+import { RobloxError, lastRateLimit } from './roblox.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(__dirname, '..');
@@ -97,6 +97,19 @@ app.get('/health', (req, res) => {
     ok: true,
     uptime: Math.round(process.uptime()),
     cache: cache.stats(),
+    // Enough to tell "we are being refused" from "we have nothing cached"
+    // without opening a log, and to see whether the rate limit is hurting or
+    // whether the gateway is simply idle.
+    upstream: {
+      rateLimitedAt: lastRateLimit().at || null,
+      retryAfterMs: lastRateLimit().pauseMs || null,
+      secondsSinceRateLimit: lastRateLimit().at
+        ? Math.round((Date.now() - lastRateLimit().at) / 1000)
+        : null,
+      queuedRefills: cache.pendingRefills(),
+      perMinute: config.upstreamPerMinute,
+      burst: config.upstreamBurst,
+    },
     keys: { mode: apikey.mode, configured: apikey.configured },
   });
 });

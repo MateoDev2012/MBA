@@ -1,36 +1,165 @@
 /**
- * In-memory cache with TTL, single-flight deduplication, a stale grace period
+ * Disk-backed cache with TTL, single-flight deduplication, a stale grace period
  * and an upstream cooldown.
  *
- * Four things matter here, and each one exists because of a specific failure:
+ * The memory part is the same as it was. What is new is that entries are also
+ * written to a file, because the whole resilience story depends on having
+ * something to serve when Roblox says no — and Railway wipes memory on every
+ * deploy and every restart. A cold cache after a deploy means the first
+ * visitor pays for it, and if Roblox happens to be refusing us at that moment,
+ * they get the error that all the rest of this file exists to prevent.
  *
- *  1. Per-namespace TTL: the active player count changes every second while
- *     the logo never changes. Caching everything equally means serving stale
- *     data; caching nothing means Roblox blocks us.
+ * The file is a single JSON snapshot, written at most once every few seconds
+ * and never blocking a request. Losing the last few seconds of it costs
+ * nothing: the values are re-fetched, which is what the cache does anyway.
  *
- *  2. Single-flight: if 50 people request the same game while the cache is
- *     cold, we make ONE call to Roblox, not 50.
+ * The four behaviours, and the failure each one exists for:
  *
- *  3. A stale grace period. Values are kept past their TTL so that a 429 from
- *     Roblox does not have to become an error page. Ninety seconds of real
- *     data beats an error, and on a page whose whole argument is "this is live"
- *     it beats it by a lot. The value is marked stale in the response so nobody
- *     is misled about how fresh it is.
- *
- *  4. A cooldown after a refusal. This is the one that stops a rate limit from
- *     becoming an outage. Without it, every visitor during a 429 window fires a
- *     fresh call at an endpoint that is already refusing us — a thundering herd
- *     aimed at Roblox's own limiter. That is how a soft limit turns into a hard
- *     one and a two-second wobble turns into twenty minutes of errors.
+ *  1. Per-namespace TTL. The active player count changes every second and the
+ *     logo never changes.
+ *  2. Single-flight. Fifty people asking for the same cold game is one call to
+ *     Roblox, not fifty.
+ *  3. A stale grace period, so a 429 produces a slightly old answer instead of
+ *     an error page.
+ *  4. A cooldown after a refusal, so a run of visitors does not turn one
+ *     refusal into a stream of them. Without it, every visitor during a 429
+ *     fires a fresh request at an endpoint that is already refusing us, which
+ *     is how a soft limit turns into a hard one.
  */
 
+import { readFileSync, writeFileSync, renameSync, mkdirSync, existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { RobloxError } from './errors.js';
+
+const SNAPSHOT_PATH =
+  process.env.CACHE_SNAPSHOT_PATH || join(process.cwd(), '.cache', 'snapshot.json');
+const SNAPSHOT_INTERVAL_MS = 5000;
+/** How long a restored value is still worth serving, as an absolute age. */
+const SNAPSHOT_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 
 const store = new Map(); // key -> { value, expiresAt, staleUntil }
 const inflight = new Map(); // key -> Promise
 const cooling = new Map(); // key -> timestamp until which upstream is off-limits
 
-/** Lazily drop entries that are past even the stale window, on write. */
+let dirty = false;
+let snapshotTimer = null;
+
+// --------------------------------------------------------------- snapshot
+
+function restore() {
+  if (!existsSync(SNAPSHOT_PATH)) return 0;
+  let parsed;
+  try {
+    parsed = JSON.parse(readFileSync(SNAPSHOT_PATH, 'utf8'));
+  } catch {
+    // A truncated file from a kill mid-write is not worth failing a boot over.
+    return 0;
+  }
+  const now = Date.now();
+  let n = 0;
+  for (const [key, entry] of Object.entries(parsed.entries || {})) {
+    if (now - entry.at > SNAPSHOT_MAX_AGE_MS) continue;
+    // Restored as already-stale: it was written before a restart, so its age
+    // includes the time the process was down. Expires at once, servable for the
+    // grace window, which is exactly the state it deserves.
+    store.set(key, {
+      value: entry.value,
+      expiresAt: now,
+      staleUntil: now + (entry.staleSeconds ?? 0) * 1000,
+    });
+    n++;
+  }
+  return n;
+}
+
+function writeSnapshot() {
+  const now = Date.now();
+  const entries = {};
+  for (const [key, entry] of store) {
+    // Only keep things that are still servable, and record how much longer.
+    const remaining = entry.staleUntil - now;
+    if (remaining <= 0) continue;
+    entries[key] = {
+      at: now,
+      value: entry.value,
+      staleSeconds: Math.floor(remaining / 1000),
+    };
+  }
+  const payload = JSON.stringify({ at: now, entries });
+  // Written to a sibling then renamed: a process killed during the write leaves
+  // the previous snapshot intact instead of a half-written one.
+  const tmp = SNAPSHOT_PATH + '.tmp';
+  try {
+    mkdirSync(dirname(SNAPSHOT_PATH), { recursive: true });
+    writeFileSync(tmp, payload);
+    renameSync(tmp, SNAPSHOT_PATH);
+    dirty = false;
+  } catch {
+    // A read-only filesystem is a reason to run without persistence, not a
+    // reason to take the API down.
+  }
+}
+
+function scheduleSnapshot() {
+  dirty = true;
+  if (snapshotTimer) return;
+  snapshotTimer = setTimeout(() => {
+    snapshotTimer = null;
+    if (dirty) writeSnapshot();
+  }, SNAPSHOT_INTERVAL_MS);
+  // Never hold the process open for this.
+  if (typeof snapshotTimer.unref === 'function') snapshotTimer.unref();
+}
+
+// ------------------------------------------------------------------ sweep
+
+const refillQueue = new Map(); // key -> { ttlSeconds, producer, options, tries }
+let refillTimer = null;
+const REFILL_BASE_MS = 2000;
+const REFILL_MAX_MS = 30000;
+
+/**
+ * Queue a key to be retried once Roblox stops refusing us.
+ *
+ * A visitor who hits a cold cache during a refusal still gets an error, because
+ * there is genuinely nothing to give them. But they should not have to come
+ * back: the value they wanted is fetched as soon as the cooldown allows, so the
+ * next request, theirs or anyone else's, is answered normally. That is the
+ * difference between an error that resolves itself and an outage.
+ */
+function scheduleRefill(key, ttlSeconds, producer, options) {
+  if (refillQueue.has(key)) return;
+  refillQueue.set(key, { ttlSeconds, producer, options: options || {}, tries: 0 });
+  if (refillTimer) return;
+  armRefill(REFILL_BASE_MS);
+}
+
+function armRefill(delayMs) {
+  refillTimer = setTimeout(drainRefills, delayMs);
+  // Never hold the process open for this.
+  if (typeof refillTimer.unref === 'function') refillTimer.unref();
+}
+
+function drainRefills() {
+  refillTimer = null;
+  const now = Date.now();
+  for (const [key, job] of [...refillQueue]) {
+    if ((cooling.get(key) || 0) > now) continue; // still refusing us
+    refillQueue.delete(key);
+    cache
+      .wrapResilient(key, job.ttlSeconds, job.producer, job.options)
+      .catch(() => {
+        // The refill failed too. Back off, and give up after a few tries so a
+        // key that can never be filled does not spin for the life of the
+        // process.
+        const tries = (job.tries || 0) + 1;
+        if (tries > 6) return;
+        refillQueue.set(key, { ...job, tries });
+      });
+  }
+  if (refillQueue.size) armRefill(Math.min(REFILL_MAX_MS, REFILL_BASE_MS * 4));
+}
+
 function sweep(now) {
   if (store.size < 500) return;
   for (const [key, entry] of store) {
@@ -38,24 +167,29 @@ function sweep(now) {
   }
 }
 
+const restored = restore();
+
 export const cache = {
-  /** Fresh value, or null if missing or expired. */
+  restoredFromDisk: restored,
+  pendingRefills: () => refillQueue.size,
+  snapshotPath: SNAPSHOT_PATH,
+
+  /**
+   * Fresh value, or null if missing or expired.
+   *
+   * It does NOT delete on expiry, which it used to. That made a read destroy the
+   * stale copy: asking whether a value was fresh threw away the fallback that
+   * only exists for the case where it is not. Expiry is sweep()'s job; this
+   * reports and leaves the entry alone.
+   */
   get(key) {
     const entry = store.get(key);
     if (!entry) return null;
-    if (entry.expiresAt <= Date.now()) {
-      store.delete(key);
-      return null;
-    }
+    if (entry.expiresAt <= Date.now()) return null;
     return entry.value;
   },
 
-  /**
-   * Expired, but still worth showing.
-   *
-   * get() above deletes on read, which would make this impossible, so callers
-   * that want the grace period must use wrapResilient, which never calls get().
-   */
+  /** Expired, but still worth showing. */
   getStale(key) {
     const entry = store.get(key);
     if (!entry) return null;
@@ -71,6 +205,7 @@ export const cache = {
       expiresAt: now + ttlSeconds * 1000,
       staleUntil: now + (ttlSeconds + staleSeconds) * 1000,
     });
+    scheduleSnapshot();
     return value;
   },
 
@@ -102,14 +237,9 @@ export const cache = {
   /**
    * Like wrap, but it survives the upstream saying no.
    *
-   * In order of preference:
-   *   1. a fresh value,
-   *   2. a stale one, inside the grace period,
-   *   3. a refusal — but only after checking the cooldown, so that a run of
-   *      visitors does not turn one refusal into a stream of them.
-   *
-   * `staleSeconds` is how long past the TTL a value still beats an error.
-   * `cooldownSeconds` is how long to stop asking after a refusal.
+   * In order of preference: a fresh value, a stale one inside the grace period,
+   * a refusal. Before refusing it checks the cooldown, so a run of visitors does
+   * not turn one refusal into a stream of them.
    */
   async wrapResilient(
     key,
@@ -117,8 +247,8 @@ export const cache = {
     producer,
     { staleSeconds = 900, cooldownSeconds = 45 } = {}
   ) {
-    // Read the raw entry rather than get(): get() deletes on expiry, which
-    // would throw away the very thing this function exists to fall back on.
+    // The raw entry, not get(): get() deletes on expiry, which would throw away
+    // the very thing this function falls back on.
     const entry = store.get(key);
     const now = Date.now();
     if (entry && entry.expiresAt > now) {
@@ -133,11 +263,11 @@ export const cache = {
 
     const staleValue = entry && entry.staleUntil > now ? entry.value : null;
 
-    // Upstream is already refusing us. Do not ask again — serve what we have.
     if ((cooling.get(key) || 0) > now) {
       if (staleValue !== null) {
         return { value: staleValue, cached: true, stale: true, cooled: true };
       }
+      scheduleRefill(key, ttlSeconds, producer, { staleSeconds, cooldownSeconds });
       throw new RobloxError('Roblox is rate limiting requests (429)', {
         status: 429,
         code: 'UPSTREAM_RATE_LIMITED',
@@ -157,6 +287,12 @@ export const cache = {
         if (staleValue !== null) {
           return { value: staleValue, cached: true, stale: true };
         }
+        // Nothing cached and we were refused. Queue the value so the next
+        // visitor is served normally instead of finding the same wall. This is
+        // the case the refill exists for, and it is reached here rather than
+        // only from the cooldown branch, because a cold cache with an upstream
+        // that is currently refusing us is the common one.
+        scheduleRefill(key, ttlSeconds, producer, { staleSeconds, cooldownSeconds });
       }
       throw err;
     } finally {
@@ -164,12 +300,10 @@ export const cache = {
     }
   },
 
-  /** Is upstream currently in cooldown for this key? */
   isCooling(key) {
     return (cooling.get(key) || 0) > Date.now();
   },
 
-  /** Seconds left on the cooldown, for a Retry-After header. */
   cooldownRemaining(key) {
     return Math.max(0, Math.ceil(((cooling.get(key) || 0) - Date.now()) / 1000));
   },
@@ -181,25 +315,31 @@ export const cache = {
     for (const key of cooling.keys()) {
       if (key.startsWith(prefix)) cooling.delete(key);
     }
+    scheduleSnapshot();
   },
 
   clear() {
     store.clear();
     inflight.clear();
     cooling.clear();
+    scheduleSnapshot();
+  },
+
+  /** Force a write now. Called on shutdown, where a debounce would lose it. */
+  flush() {
+    if (dirty) writeSnapshot();
   },
 
   stats() {
     let stale = 0;
     const now = Date.now();
-    for (const entry of store.values()) {
-      if (entry.expiresAt <= now) stale++;
-    }
+    for (const entry of store.values()) if (entry.expiresAt <= now) stale++;
     return {
       entries: store.size,
       inflight: inflight.size,
       cooling: cooling.size,
       stale,
+      restored: restored,
     };
   },
 };

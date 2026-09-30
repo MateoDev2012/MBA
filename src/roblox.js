@@ -18,10 +18,26 @@
 
 import { RobloxError } from './errors.js';
 
+/**
+ * Local to this module, and deliberately not the shared src/config.js: the
+ * fetch path needs no Express settings. The consequence, learned the hard way,
+ * is that a key added to one of the two is NOT added to the other. A gate built
+ * from a key that existed only in the shared config got a NaN capacity and
+ * looped forever instead of making a request.
+ */
 const config = {
   userAgent: process.env.USER_AGENT || 'RobloxStatsAPI/1.0',
   timeoutMs: Number(process.env.UPSTREAM_TIMEOUT_MS || 10000),
+  // Our own budget towards Roblox. A burst of simultaneous requests is a
+  // reliable way to be refused, so the outbound side is capped and smoothed.
+  upstreamPerMinute: Number(process.env.UPSTREAM_PER_MINUTE || 90),
+  upstreamBurst: Number(process.env.UPSTREAM_BURST || 12),
 };
+
+/** A finite positive number, or the fallback. The gate must never see NaN. */
+function positive(value, fallback) {
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
 
 // RobloxError lives in errors.js now, so the cache can raise the same error on its
 // cooldown path without importing this module. Re-exported here because every
@@ -31,10 +47,101 @@ export { RobloxError };
 /**
  * GET request to Roblox with timeout, retries and typed errors.
  */
+/**
+ * Outbound rate gate, one per upstream host.
+ *
+ * A token bucket, so bursts are smoothed rather than blocked: a bucket that
+ * refills continuously allows a short spike up to its capacity and then holds
+ * the steady rate. Without it, forty visitors arriving together became forty
+ * simultaneous requests to Roblox, and the endpoint that refused us was one we
+ * had asked too hard.
+ *
+ * Waits are queued rather than rejected, so this adds latency instead of
+ * errors — which is the right trade for a public free API.
+ */
+const gates = new Map();
+
+function gateFor(host) {
+  let g = gates.get(host);
+  if (!g) {
+    g = {
+      capacity: positive(config.upstreamBurst, 12),
+      tokens: positive(config.upstreamBurst, 12),
+      refillPerMs: positive(config.upstreamPerMinute, 90) / 60000,
+      last: Date.now(),
+      queue: Promise.resolve(),
+    };
+    gates.set(host, g);
+  }
+  return g;
+}
+
+async function takeToken(host) {
+  const g = gateFor(host);
+  // Serialised, so a hundred callers cannot all read the same token count and
+  // all decide there is one available.
+  const turn = g.queue.then(async () => {
+    // Bounded. With correct arithmetic this never trips, but a bucket that
+    // cannot be satisfied must cost latency, not the whole process.
+    for (let guard = 0; guard < 500; guard++) {
+      const now = Date.now();
+      g.tokens = Math.min(g.capacity, g.tokens + (now - g.last) * g.refillPerMs);
+      g.last = now;
+      if (g.tokens >= 1) {
+        g.tokens -= 1;
+        return;
+      }
+      const waitMs = Math.max(20, Math.ceil((1 - g.tokens) / g.refillPerMs));
+      await new Promise((r) => setTimeout(r, Math.min(waitMs, 1000)));
+    }
+    // Out of patience: let the request through rather than refusing it. A slow
+    // answer beats an error, and the cache's cooldown covers the case where
+    // Roblox is refusing us regardless.
+  });
+  // Keep the chain alive even if a caller goes away mid-wait.
+  g.queue = turn.then(
+    () => undefined,
+    () => undefined
+  );
+  return turn;
+}
+
+/** How long Roblox asked us to wait, in ms, or null. */
+function retryAfterMs(res) {
+  const raw = res.headers?.get('retry-after');
+  if (!raw) return null;
+  const seconds = Number(raw);
+  if (Number.isFinite(seconds)) return Math.min(seconds * 1000, 10000);
+  const at = Date.parse(raw);
+  if (Number.isFinite(at)) return Math.min(Math.max(0, at - Date.now()), 10000);
+  return null;
+}
+
+
+let lastRateLimitAt = 0;
+let lastRateLimitPause = 0;
+
+/** When we were last refused, and how long Roblox said to wait. For /health. */
+export function lastRateLimit() {
+  return { at: lastRateLimitAt, pauseMs: lastRateLimitPause };
+}
+
 export async function robloxFetch(url, { retries = 2, signal } = {}) {
   let lastError;
 
+  // One host per URL for our purposes, and Roblox spreads across four
+  // subdomains, so the gate is per host rather than global.
+  let host = '';
+  try { host = new URL(url).host; } catch { /* relative or malformed */ }
+
+  // A 429 gets its own budget of one, separate from the generic retry
+  // count. Retrying it three times is not caution, it is three more requests at
+  // an endpoint that has already said no, which is how a soft limit becomes a
+  // hard one.
+  let rateLimitRetried = false;
+
   for (let attempt = 0; attempt <= retries; attempt++) {
+    if (host) await takeToken(host);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), config.timeoutMs);
     // If the caller goes away, abort the upstream request too.
@@ -48,9 +155,22 @@ export async function robloxFetch(url, { retries = 2, signal } = {}) {
       });
 
       if (res.status === 429) {
+        // Respect Retry-After, and retry once. Roblox tells us how long to
+        // wait, so the previous behaviour of refusing to try again at all was
+        // not caution, it was giving up on a refusal that lasts a second.
+        const wait = retryAfterMs(res);
+        if (!rateLimitRetried) {
+          rateLimitRetried = true;
+          const pause = wait !== null ? wait : 400 * 2 ** attempt;
+          lastRateLimitAt = Date.now();
+          lastRateLimitPause = pause;
+          await new Promise((r) => setTimeout(r, Math.min(pause, 5000)));
+          continue;
+        }
         throw new RobloxError('Roblox is rate limiting requests (429)', {
           status: 429,
           code: 'UPSTREAM_RATE_LIMITED',
+          retryAfterMs: wait ?? 1000,
         });
       }
       if (res.status === 404) {
@@ -85,9 +205,14 @@ export async function robloxFetch(url, { retries = 2, signal } = {}) {
     } catch (err) {
       lastError = err;
       const isClientAbort = err?.name === 'AbortError';
-      const isDefinitive =
-        err instanceof RobloxError &&
-        (err.code === 'NOT_FOUND' || err.code === 'UPSTREAM_RATE_LIMITED');
+      // A 429 is no longer treated as definitive, because it is retried at
+      // the point where it is raised. Leaving it in this list would have thrown
+      // it out of the catch before the backoff below ever ran.
+      // A 429 has already spent its single retry above. Letting the generic
+      // budget re-drive it produced three requests against an endpoint that had
+      // just refused, which is the opposite of what a rate limit needs.
+      if (err?.code === 'UPSTREAM_RATE_LIMITED') throw err;
+      const isDefinitive = err instanceof RobloxError && err.code === 'NOT_FOUND';
 
       if (isDefinitive) throw err;
       // The caller cancelled: don't retry on their behalf.
