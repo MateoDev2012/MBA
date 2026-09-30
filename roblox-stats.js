@@ -650,10 +650,92 @@
    * header rather than the URL on purpose: a query parameter is written to
    * access logs, to browser history and to the Referer of every outbound link.
    */
-  function apiFetch(url) {
-    var opts = { headers: {} };
+  /** How long one attempt may take before it is abandoned. */
+  var REQUEST_TIMEOUT_MS = 8000;
+  /** How many extra attempts after the first. Two, not five: a widget is on
+   *  somebody's page, and a page that keeps retrying a dead network is worse
+   *  than a page that shows what it has. */
+  var REQUEST_RETRIES = 2;
+
+  /** Statuses worth trying again. 429 because we rate-limit deliberately and
+   *  say when to come back, 5xx because that is somebody having a moment. 4xx
+   *  other than 429 is an answer: a 404 game will still be a 404 in a second. */
+  function isRetryable(status) {
+    return status === 429 || status === 408 || status >= 500;
+  }
+
+  /** How long Roblox, or any proxy, asked us to wait. */
+  function retryAfterMs(res) {
+    var raw = res.headers && res.headers.get('retry-after');
+    if (!raw) return null;
+    var seconds = Number(raw);
+    if (isFinite(seconds)) return Math.min(Math.max(0, seconds * 1000), 15000);
+    var at = Date.parse(raw);
+    if (isFinite(at)) return Math.min(Math.max(0, at - Date.now()), 15000);
+    return null;
+  }
+
+  /** One attempt, with a timeout that actually aborts the request. */
+  function fetchOnce(url) {
+    var controller = typeof AbortController === 'function' ? new AbortController() : null;
+    var timer = null;
+    if (controller) {
+      timer = setTimeout(function () { controller.abort(); }, REQUEST_TIMEOUT_MS);
+    }
+    var opts = { headers: {}, credentials: 'omit' };
     if (API_KEY) opts.headers['X-API-Key'] = API_KEY;
-    return fetch(url, opts);
+    if (controller) opts.signal = controller.signal;
+    return fetch(url, opts).then(
+      function (res) {
+        if (timer) clearTimeout(timer);
+        return res;
+      },
+      function (err) {
+        if (timer) clearTimeout(timer);
+        // Distinguishable from a refusal, because it is: the request never got
+        // an answer, which is the visitor's network rather than our server.
+        if (err && err.name === 'AbortError') {
+          var timeout = new Error('The request took too long.');
+          timeout.code = 'RBX_TIMEOUT';
+          throw timeout;
+        }
+        throw err;
+      }
+    );
+  }
+
+  /**
+   * Every request goes through here, so the key and the credit are enforced in
+   * one place instead of at each call site. The key rides in the X-API-Key
+   * header rather than the URL on purpose: a query parameter is written to
+   * access logs, to browser history and to the Referer of every outbound link.
+   *
+   * Retries are here rather than at the call sites because a page can ask for
+   * twenty placeholders on one game, and twenty independent retry loops is
+   * twenty times the traffic for the same single request.
+   */
+  function apiFetch(url) {
+    var attempt = 0;
+    function run() {
+      return fetchOnce(url).then(function (res) {
+        if (!isRetryable(res.status) || attempt >= REQUEST_RETRIES) return res;
+        var wait = retryAfterMs(res);
+        attempt++;
+        var pause = wait !== null ? wait : 300 * 2 ** (attempt - 1);
+        return new Promise(function (resolve) {
+          setTimeout(resolve, Math.min(pause, 5000));
+        }).then(run);
+      }, function (err) {
+        // A network failure is worth one more try. Giving up on the first
+        // packet is how a card ends up broken by nothing at all.
+        if (attempt >= REQUEST_RETRIES) throw err;
+        attempt++;
+        return new Promise(function (resolve) {
+          setTimeout(resolve, Math.min(300 * 2 ** (attempt - 1), 3000));
+        }).then(run);
+      });
+    }
+    return run();
   }
 
   function loadGame(id) {
@@ -837,6 +919,8 @@
       // The text properties a host page is most likely to set on bare
       // elements, restated so the card looks the same wherever it is pasted.
       '.' + PREFIX + 'title,.' + PREFIX + 'creator,.' + PREFIX + 'stat,.' + PREFIX + 'val,.' + PREFIX + 'cap,.' + PREFIX + 'live,.' + PREFIX + 'err,.' + PREFIX + 'foot{font-family:inherit;line-height:1.4;font-style:normal}' +
+      '.' + PREFIX + 'foot [data-stale]{color:#fbbf24;cursor:help}' +
+      '.' + PREFIX + 'light .foot [data-stale]{color:#a16207}' +
       '.' + PREFIX + 'foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--rbxw-line);font-size:12px;font-weight:600;color:var(--rbxw-dim)}' +
       '.' + PREFIX + 'go{display:inline-flex;align-items:center;gap:5px;color:var(--rbxw-fg)}' +
       '.' + PREFIX + 'go svg{width:13px;height:13px;flex-shrink:0;transition:transform .18s ease}' +
@@ -1107,8 +1191,53 @@
         buildCard(host, data, opts);
       })
       .catch(function (err) {
-        renderError(host, err.message);
+        // If a card is already on screen it was real a moment ago, and one
+        // lost packet is not a reason to take it away from somebody reading
+        // it. The numbers are a few seconds old; the card is still true.
+        if (host.querySelector('.' + PREFIX + 'card')) {
+          markStale(host);
+          return;
+        }
+        renderError(host, describeError(err));
       });
+  }
+
+  /**
+   * Two different failures with two different words, because the action a
+   * visitor can take is different. A timeout is our server or the path to it;
+   * an offline browser is theirs.
+   */
+  function describeError(err) {
+    if (err && err.code === 'RBX_TIMEOUT') return 'The server did not answer in time. This usually clears on its own.';
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      return 'This device appears to be offline.';
+    }
+    var message = (err && err.message) || '';
+    if (!message) return 'The request failed.';
+    return message;
+  }
+
+  /**
+   * Marks a card as showing older numbers rather than replacing it. The
+   * timestamp going quiet is the whole signal: it stops being a live counter,
+   * which is the difference between "this is current" and "this is when we last
+   * heard".
+   */
+  function markStale(host) {
+    // The card says "Stats update live" in the first cell of its foot, and that
+    // is the claim that becomes untrue. It is a <span> with no class of its own,
+    // so it is found by position rather than by name.
+    var foot = host.querySelector('.' + PREFIX + 'foot');
+    if (!foot) return;
+    var stamp = foot.firstElementChild;
+    if (!stamp) return;
+    if (stamp.getAttribute('data-stale') === 'true') return;
+    stamp.setAttribute('data-stale', 'true');
+    var was = stamp.textContent;
+    stamp.textContent = 'Last update failed';
+    stamp.title =
+      'Showing the last successful update' + (was ? ' (' + was.toLowerCase() + ')' : '') +
+      '. These numbers are a few seconds old, not wrong.';
   }
 
   function runWidgets() {
