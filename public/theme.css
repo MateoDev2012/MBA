@@ -626,6 +626,29 @@ img, svg, canvas { max-width: 100%; }
 .docs-main > .section:first-child,
 .docs-main > .pagehead:first-child { padding-top: 24px; }
 
+/* Layout for pages with a sidebar TOC (legal, demo) */
+.page-with-toc { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 48px; align-items: start; }
+@media (max-width: 940px) { .page-with-toc { grid-template-columns: 1fr; gap: 0; } }
+.page-with-toc > .toc { position: sticky; top: calc(var(--topbar-h) + 24px); }
+.page-with-toc > .toc[hidden] { display: none; }
+.page-with-toc > .toc-title {
+  font-family: var(--mono);
+  font-size: 0.68rem; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted);
+  margin: 0 0 10px;
+}
+.page-with-toc > .toc a {
+  display: block; padding: 5px 10px; border-radius: var(--radius-sm);
+  font-size: 0.85rem; color: var(--muted);
+  border-left: 1px solid var(--border);
+  transition: color 0.14s, border-color 0.14s;
+}
+.page-with-toc > .toc a:hover { color: var(--text); text-decoration: none; }
+.page-with-toc > .toc a.active { color: var(--text); border-left-color: var(--accent); background: var(--panel-2); }
+.page-with-toc-main { min-width: 0; }
+.page-with-toc-main > .section:first-child,
+.page-with-toc-main > .pagehead:first-child { padding-top: 24px; }
+
 .toc { position: sticky; top: calc(var(--topbar-h) + 24px); }
 .toc[hidden] { display: none; }
 .toc-title {

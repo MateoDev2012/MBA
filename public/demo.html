@@ -67,28 +67,7 @@
 </header>
 
 <main id="main">
-<div class="wrap">
-
-  <div class="pagehead">
-    <nav class="crumbs" aria-label="Breadcrumb">
-      <a href="/">Home</a><span class="sep">/</span><span>Live demo</span>
-    </nav>
-    <h1>One file, real data</h1>
-    <p class="lead">
-      Everything below is loaded by a single <code>&lt;script&gt;</code> tag pointing at
-      <code>roblox-stats.js</code>. There is no other JavaScript on this page doing the filling — the
-      only numbers you see are the ones the file wrote.
-    </p>
-    <div class="pagehead-rail">
-      <a class="btn btn-accent" href="/roblox-stats.js?download=1">Download the file</a>
-      <a class="btn btn-ghost" href="/docs#autofill">How the rules work</a>
-    </div>
-    <div class="pills" aria-label="Demo status">
-      <span class="pill ok" aria-live="polite">Filling in live</span>
-      <span class="pill">Blox Fruits <span id="demoGameId" style="font-weight:400"></span></span>
-      <span class="pill">Open console for typo report</span>
-    </div>
-  </div>
+<div class="wrap page-with-toc">
 
   <nav class="toc" aria-label="Demo examples" data-toc="demo">
     <div class="toc-title">Examples on this page</div>
@@ -102,7 +81,27 @@
     </ol>
   </nav>
 
-  <!-- ================= 1. Variables in your own text ================= -->
+  <div class="page-with-toc-main">
+    <div class="pagehead">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a href="/">Home</a><span class="sep">/</span><span>Live demo</span>
+      </nav>
+      <h1>One file, real data</h1>
+      <p class="lead">
+        Everything below is loaded by a single <code>&lt;script&gt;</code> tag pointing at
+        <code>roblox-stats.js</code>. There is no other JavaScript on this page doing the filling — the
+        only numbers you see are the ones the file wrote.
+      </p>
+      <div class="pagehead-rail">
+        <a class="btn btn-accent" href="/roblox-stats.js?download=1">Download the file</a>
+        <a class="btn btn-ghost" href="/docs#autofill">How the rules work</a>
+      </div>
+      <div class="pills" aria-label="Demo status">
+        <span class="pill ok" aria-live="polite">Filling in live</span>
+        <span class="pill">Blox Fruits <span id="demoGameId" style="font-weight:400"></span></span>
+        <span class="pill">Open console for typo report</span>
+      </div>
+    </div>  <!-- ================= 1. Variables in your own text ================= -->
   <section class="section" id="inline">
     <div class="section-head">
       <span class="kicker">1</span>
