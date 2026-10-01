@@ -22,7 +22,8 @@
  *        <h2>{{name}}</h2>
  *        <p>{{playing}} players right now · {{likes}} likes</p>
  *        <img data-rbx-set="src=thumbnail:url">
- *      </script src="https://YOUR-DOMAIN.com/roblox-stats.js"></script>
+ *      </body>
+ *      <script src="https://YOUR-DOMAIN.com/roblox-stats.js"></script>
  *
  *   3) Ready-made card: put a game id in an empty div
  *
@@ -68,6 +69,10 @@
  *   window.RobloxStatsConfig = { gameId: '994732206' };
  *
  * If set, you don't need data-rbx-game on the body. Placeholders work globally.
+ *
+ *   window.RBX_DEBUG = true;                       log every request to the console
+ *
+ * Same thing at runtime, without reloading: RobloxStats.debug(true).
  *
  * -----------------------------------------------------------------------------
  * Syntax
@@ -158,6 +163,26 @@
   var creditNotice = null;
 
   // ==========================================================================
+  // Debugging
+  // ==========================================================================
+  //
+  // A widget that silently does nothing is the hardest kind to debug, so this
+  // file can narrate itself: set window.RBX_DEBUG = true before the script
+  // loads (or call RobloxStats.debug(true) later) and every request, retry and
+  // render decision is logged with a [roblox-stats] prefix. Off by default,
+  // because a file pasted into somebody else's page should be quiet.
+  var DEBUG = !!window.RBX_DEBUG;
+
+  function debug() {
+    if (!DEBUG || typeof console === 'undefined' || !console.log) return;
+    try {
+      console.log.apply(console, ['[roblox-stats]'].concat(Array.prototype.slice.call(arguments)));
+    } catch (_) {
+      console.log('[roblox-stats]', arguments[0]);
+    }
+  }
+
+  // ==========================================================================
   // Where the API lives
   // ==========================================================================
   //
@@ -214,8 +239,11 @@
 
   /** 1290 -> "1.3K", the way roblox.com itself writes it. */
   function short(n) {
+    // Missing data reads as missing, not as zero. A card that says "0 players"
+    // because the field was absent is an invented number.
+    if (n === null || n === undefined || n === '') return '—';
     var num = Number(n);
-    if (typeof num !== 'number' || !isFinite(num)) return '0';
+    if (!isFinite(num)) return '—';
     if (num >= 1e9) return trim(num / 1e9) + 'B';
     if (num >= 1e6) return trim(num / 1e6) + 'M';
     if (num >= 1e3) return trim(num / 1e3) + 'K';
@@ -303,7 +331,9 @@
   var inlineGamePromises = {};
 
   // Request an inline game once, even when several placeholders use it. A failed
-  // lookup resolves to null so one bad id cannot block every other game.
+  // lookup resolves to null so one bad id cannot block every other game — but
+  // the failure is NOT remembered, so the next refresh may try again instead of
+  // showing the same hole forever.
   function ensureInlineGame(id) {
     if (inlineGameCache[id]) return Promise.resolve(inlineGameCache[id]);
     if (!inlineGamePromises[id]) {
@@ -313,11 +343,24 @@
           return game;
         },
         function () {
+          delete inlineGamePromises[id];
           return null;
         }
       );
     }
     return inlineGamePromises[id];
+  }
+
+  /**
+   * The refresh timer's job: forget what was fetched, then read it again.
+   * Without the first half, data-rbx-refresh would re-run the bindings but
+   * every inline-id placeholder would keep answering from the cache, so the
+   * "live" page would freeze at its first load.
+   */
+  function refreshInlineGames() {
+    inlineGameCache = {};
+    inlineGamePromises = {};
+    return runBindings();
   }
 
   // Nodes inside pre/code/script/style are examples, not content to fill.
@@ -713,8 +756,22 @@
    * Retries are here rather than at the call sites because a page can ask for
    * twenty placeholders on one game, and twenty independent retry loops is
    * twenty times the traffic for the same single request.
+   *
+   * Identical requests that are already in flight are shared rather than
+   * repeated: two cards for the same game, or a page where run() is called
+   * twice before the first answer lands, become one request. Every caller gets
+   * its own clone of the response, because a Response body can only be read
+   * once and each caller reads it separately. The entry is dropped the moment
+   * the request settles, so a refresh still reaches the network — this
+   * de-duplicates concurrency, it does not cache.
    */
+  var inFlight = {};
+
   function apiFetch(url) {
+    if (inFlight[url]) {
+      debug('join in-flight request:', url);
+      return inFlight[url].then(function (res) { return res.clone(); });
+    }
     var attempt = 0;
     function run() {
       return fetchOnce(url).then(function (res) {
@@ -722,6 +779,7 @@
         var wait = retryAfterMs(res);
         attempt++;
         var pause = wait !== null ? wait : 300 * 2 ** (attempt - 1);
+        debug('retry #' + attempt + ' for HTTP ' + res.status + ' in ' + Math.min(pause, 5000) + 'ms:', url);
         return new Promise(function (resolve) {
           setTimeout(resolve, Math.min(pause, 5000));
         }).then(run);
@@ -730,12 +788,41 @@
         // packet is how a card ends up broken by nothing at all.
         if (attempt >= REQUEST_RETRIES) throw err;
         attempt++;
+        debug('retry #' + attempt + ' after a network error:', url);
         return new Promise(function (resolve) {
           setTimeout(resolve, Math.min(300 * 2 ** (attempt - 1), 3000));
         }).then(run);
       });
     }
-    return run();
+    var request = run();
+    inFlight[url] = request;
+    var forget = function () {
+      if (inFlight[url] === request) delete inFlight[url];
+    };
+    request.then(forget, forget);
+    // Clone for this caller too: the stored response must stay unread, or the
+    // next caller's clone would have nothing left to tee from.
+    return request.then(function (res) {
+      debug('GET', res.status, url);
+      return res.clone();
+    });
+  }
+
+  /**
+   * Words for a status the API answered with but explained badly (or not at
+   * all). The API's own message always wins when there is one; this is the
+   * fallback, so a card never shows a bare "HTTP 403" to a visitor.
+   */
+  function httpMessage(status) {
+    if (status === 401 || status === 403) {
+      return 'The API key was rejected (HTTP ' + status + '). Check X-API-Key in roblox-stats.js.';
+    }
+    if (status === 404) return 'That game was not found (HTTP 404).';
+    if (status === 429) {
+      return 'Rate limited by the API (HTTP 429). It clears on its own in a few seconds.';
+    }
+    if (status >= 500) return 'The API is having a problem (HTTP ' + status + '). Try again shortly.';
+    return 'The API answered with HTTP ' + status + '.';
   }
 
   function loadGame(id) {
@@ -749,7 +836,9 @@
           } catch (_) {
             throw new Error(wrongDomainMessage(r.url, text));
           }
-          if (!body.ok) throw new Error(body.error && body.error.message);
+          if (!body.ok) {
+            throw new Error((body.error && body.error.message) || httpMessage(r.status));
+          }
           return body.data;
         });
       });
@@ -1001,6 +1090,7 @@
     var compact = opts.fields === 'compact';
 
     host.textContent = '';
+    host.removeAttribute('aria-busy');
     host.className = host.className.replace(/\brbxw-\S+/g, '').trim();
 
     var card = document.createElement('div');
@@ -1011,6 +1101,10 @@
     link.href = data.url || '#';
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
+    // The whole card is one link, so its accessible name is every string in
+    // it concatenated. State the purpose instead: name plus where it goes.
+    link.setAttribute('aria-label',
+      'Open ' + (data.name || 'this game') + ' on Roblox (opens in a new tab)');
 
     // The logo only overlaps the banner when there is a banner to overlap, and
     // only when the card is wide enough for the pull-up to read as intentional.
@@ -1065,10 +1159,16 @@
     var stats = document.createElement('div');
     stats.className = PREFIX + 'stats';
 
-    function addStat(label, value, opts) {
+    function addStat(label, raw, opts) {
       opts = opts || {};
       var stat = document.createElement('div');
       stat.className = PREFIX + 'stat';
+
+      // Abbreviate for the eye (1.2M), keep the exact figure for the tooltip:
+      // the abbreviation is a display choice, not the value itself.
+      var text = short(raw);
+      var num = Number(raw);
+      var exact = (raw === null || raw === undefined || raw === '' || !isFinite(num)) ? '' : group(num);
 
       // The value and the label are separate block-level elements. As a bare
       // text node the label landed on the same line as the number, because
@@ -1086,15 +1186,15 @@
         dot.className = PREFIX + 'dot';
         dot.setAttribute('aria-hidden', 'true');
         wrap.appendChild(dot);
-        val.textContent = value;
+        val.textContent = text;
         wrap.appendChild(val);
         stat.appendChild(wrap);
       } else {
-        val.textContent = value;
+        val.textContent = text;
         stat.appendChild(val);
       }
 
-      val.title = value; // the exact value in the tooltip
+      if (exact) val.title = exact; // the exact value in the tooltip
 
       var cap = document.createElement('span');
       cap.className = PREFIX + 'cap';
@@ -1104,9 +1204,9 @@
       stats.appendChild(stat);
     }
 
-    addStat('playing', short(playing), { live: true });
-    addStat('likes', short(upVotes));
-    if (!compact) addStat('visits', short(visits));
+    addStat('playing', playing, { live: true });
+    addStat('likes', upVotes);
+    if (!compact) addStat('visits', visits);
 
     body.appendChild(stats);
 
@@ -1147,6 +1247,7 @@
 
   function renderError(host, message) {
     host.textContent = '';
+    host.removeAttribute('aria-busy');
     var box = document.createElement('div');
     box.className = PREFIX + 'card ' + PREFIX + 'dark';
     var err = document.createElement('div');
@@ -1166,6 +1267,9 @@
       return Promise.resolve();
     }
     var url = API_BASE + '/api/v1/games/' + encodeURIComponent(opts.gameId) + '/quick';
+    // aria-busy tells assistive tech the host is mid-update, so a refresh does
+    // not read as a silent, unexplained change of content.
+    host.setAttribute('aria-busy', 'true');
     return apiFetch(url)
       .then(function (res) {
         return res.text().then(function (text) {
@@ -1176,7 +1280,7 @@
             throw new Error(wrongDomainMessage(res.url, text));
           }
           if (!res.ok || !body.ok) {
-            throw new Error((body && body.error && body.error.message) || 'HTTP ' + res.status);
+            throw new Error((body && body.error && body.error.message) || httpMessage(res.status));
           }
           return body.data;
         });
@@ -1224,6 +1328,9 @@
    * heard".
    */
   function markStale(host) {
+    // The refresh failed, so the "updating" state must end — leaving
+    // aria-busy set would tell assistive tech the host is forever mid-update.
+    host.removeAttribute('aria-busy');
     // The card says "Stats update live" in the first cell of its foot, and that
     // is the claim that becomes untrue. It is a <span> with no class of its own,
     // so it is found by position rather than by name.
@@ -1240,6 +1347,52 @@
       '. These numbers are a few seconds old, not wrong.';
   }
 
+  /**
+   * Repeating work that stays out of the way: nothing runs while the tab is
+   * hidden (nobody is reading the numbers, and a background tab polling every
+   * few seconds is how a phone battery dies), and the first tick after the tab
+   * comes back runs immediately so the data is not minutes stale.
+   *
+   * Returns a stop function so a re-run does not stack a second timer on top
+   * of the one already there.
+   */
+  function every(seconds, fn) {
+    var stopped = false;
+    var due = false;
+    function tick() {
+      if (document.hidden === true) { due = true; return; }
+      due = false;
+      fn();
+    }
+    var timer = setInterval(tick, seconds * 1000);
+    function onVisible() {
+      if (document.hidden !== true && due) tick();
+    }
+    document.addEventListener('visibilitychange', onVisible);
+    return function stop() {
+      if (stopped) return;
+      stopped = true;
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }
+
+  /** Parses a refresh attribute: 0/absent/garbage means "never". */
+  function refreshSeconds(el, attr) {
+    var raw = el.getAttribute(attr);
+    if (raw === null || raw === undefined) return 0;
+    var seconds = parseFloat(raw);
+    if (!isFinite(seconds) || seconds <= 0) return 0;
+    // A refresh faster than every second is a load test, not a widget, and the
+    // API is rate-limited on purpose. Clamp instead of refusing: the page asked
+    // for live data, it just does not get to melt the server for it.
+    if (seconds < 1) {
+      console.warn('[roblox-stats] ' + attr + '="' + raw + '" is faster than 1s; using 1s.');
+      return 1;
+    }
+    return seconds;
+  }
+
   function runWidgets() {
     injectStyles();
     var hosts = document.querySelectorAll('[data-roblox-game]');
@@ -1254,14 +1407,28 @@
         return;
       }
       // Reserve the card's footprint before the request goes out, so the page
-      // does not jump once the numbers land.
-      buildSkeleton(host, opts.theme, opts.fields === 'compact');
+      // does not jump once the numbers land. If something is already painted
+      // there, leave it: a re-run (run() or a restored credit) should update
+      // the card in place, not flash it back to a skeleton first.
+      if (!host.querySelector('.' + PREFIX + 'card')) {
+        buildSkeleton(host, opts.theme, opts.fields === 'compact');
+      }
       loadCard(host, opts);
-      var refresh = parseInt(host.getAttribute('data-roblox-refresh'), 10);
+      var refresh = refreshSeconds(host, 'data-roblox-refresh');
       if (refresh > 0) {
-        setInterval(function () {
+        // Replace, never stack. run() is a public handle and restoreCredit()
+        // calls it, so without this every restore would double the poll rate.
+        if (host._rbxwStopRefresh) host._rbxwStopRefresh();
+        host._rbxwStopRefresh = every(refresh, function () {
+          // The host was pulled out of the page: stop polling for a card that
+          // can no longer be shown.
+          if (!host.isConnected) {
+            if (host._rbxwStopRefresh) host._rbxwStopRefresh();
+            host._rbxwStopRefresh = null;
+            return;
+          }
           loadCard(host, opts);
-        }, refresh * 1000);
+        });
       }
     });
   }
@@ -1532,15 +1699,21 @@
   function start() {
     renderCredit();
     watchCredit();
+    debug('boot: API base =', API_BASE || '(same origin)', '| credit =', CREDIT_LABEL);
     runBindings();
     runWidgets();
 
     // data-rbx-refresh="60" on any scope re-reads the data every 60 seconds.
+    // One timer for the whole page at the shortest requested interval: five
+    // scopes each asking for 60 seconds is one refresh of the page, not five,
+    // and if one scope wants 10s it gets 10s without the others multiplying.
     var timers = document.querySelectorAll('[data-rbx-refresh]');
+    var shortest = 0;
     Array.prototype.forEach.call(timers, function (el) {
-      var seconds = parseInt(el.getAttribute('data-rbx-refresh'), 10);
-      if (seconds > 0) setInterval(runBindings, seconds * 1000);
+      var seconds = refreshSeconds(el, 'data-rbx-refresh');
+      if (seconds > 0 && (shortest === 0 || seconds < shortest)) shortest = seconds;
     });
+    if (shortest > 0) every(shortest, refreshInlineGames);
   }
 
   if (document.readyState === 'loading') {
@@ -1556,6 +1729,12 @@
     fill: fill,
     abbreviate: abbreviate,
     fields: Array.from(KNOWN),
+    // RobloxStats.debug(true) turns on request logging at runtime; it is also
+    // settable before this file loads with window.RBX_DEBUG = true.
+    debug: function (on) {
+      DEBUG = on !== false;
+      return DEBUG;
+    },
     // Exposed so a host page can react to, or undo, a removed credit.
     credit: {
       config: CREDIT,
