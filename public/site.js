@@ -37,6 +37,9 @@
       btn.addEventListener('click', function () {
         applyTheme(currentTheme() === 'dark' ? 'light' : 'dark');
       });
+      // The markup can only say "Switch theme"; say WHICH way before the first
+      // click, so the label and the icon agree from the moment the page loads.
+      applyTheme(currentTheme());
     }
     // Exposed so a page can force a theme (the widget demo, for example).
     window.RbxTheme = { get: currentTheme, set: applyTheme };

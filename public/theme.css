@@ -80,10 +80,15 @@
      this is a token with a value per theme. */
   --code-kw: #c084fc;
 
-  // One colour per metric, and the colour is the encoding: the swatch, the bar
-  // and the line of a metric are always the same value. Cyan and amber had to
-  // be darkened for the light theme — the dark theme's values measure about
-  // 2:1 on white, which is not a colour anyone can read a number in.
+  /* One colour per metric, and the colour is the encoding: the swatch, the bar
+     and the line of a metric are always the same value. Cyan and amber had to
+     be darkened for the light theme — the dark theme's values measure about
+     2:1 on white, which is not a colour anyone can read a number in.
+
+     This must stay a block comment. Written with leading double slashes it is
+     not CSS at all, and the parser then discards everything up to the next
+     semicolon — which is the declaration below, leaving dark mode with no
+     likes colour and a chart that silently fell back to the accent. */
   --metric-likes: #38bdf8;
   --metric-visits: #f5b544;
 
@@ -101,6 +106,14 @@
   --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
 }
+
+/* Which native widgets the browser paints in which colours: scrollbars, form
+   controls, the overscroll edge. Without it the UA follows the OS preference
+   rather than the page's theme, so a dark page on a light system showed a
+   light scrollbar down its right edge - the visible half of "the theme only
+   half works". The token block above is written for :root too (it is the
+   default set), so this cannot live in there: it has to be per theme. */
+:root[data-theme="dark"] { color-scheme: dark; }
 
 /* --- Tokens: light -------------------------------------------------------- */
 /* Not an inversion. Dark surfaces are what the layout is drawn against, so the
@@ -147,6 +160,7 @@
   --grad: linear-gradient(180deg, #ffffff, #fafafa);
   --focus: 0 0 0 2px #fff, 0 0 0 4px var(--accent);
 }
+:root[data-theme="light"] { color-scheme: light; }
 
 /* --- Reset ---------------------------------------------------------------- */
 
@@ -275,8 +289,14 @@ img, svg, canvas { max-width: 100%; }
 .nav + .topbar-actions { margin-left: 0; }
 
 /* The CTA is the inverse of the pill - white with dark text - so the eye
-   lands on it first, the way a "Get started" button should. */
-.topbar .topbar-cta {
+   lands on it first, the way a "Get started" button should.
+
+   :root[data-theme] is deliberate extra weight, not decoration. The dark
+   theme declares :root[data-theme="dark"] .btn { background: rgba(255,
+   255, 255, .06) } further down, three classes against a bare .topbar rule's
+   two: it won and turned this button into dark-on-nearly-transparent in dark
+   mode. Four classes beats three whatever the source order. */
+:root[data-theme] .topbar .topbar-cta {
   display: inline-flex;
   background: #f4f4f5; color: #101114;
   border-color: transparent;
@@ -284,7 +304,7 @@ img, svg, canvas { max-width: 100%; }
   padding: 7px 16px;
   font-weight: 650;
 }
-.topbar .topbar-cta:hover { background: #e4e4e7; color: #101114; }
+:root[data-theme] .topbar .topbar-cta:hover { background: #e4e4e7; color: #101114; }
 .topbar .icon-btn {
   width: 32px; height: 32px;
   border-radius: 10px;
@@ -321,13 +341,15 @@ img, svg, canvas { max-width: 100%; }
 }
 .mobilenav a:hover { background: rgba(255, 255, 255, 0.08); color: #fff; text-decoration: none; }
 .mobilenav a.active { color: #fff; background: rgba(255, 255, 255, 0.1); }
-.mobilenav .btn {
+/* Same weight reason as the topbar CTA above: without :root[data-theme] the
+   dark theme's .btn rule paints this button the same dark-on-dark. */
+:root[data-theme] .mobilenav .btn {
   margin-top: 8px; justify-content: center;
   background: #f4f4f5; color: #101114;
   border-color: transparent; border-radius: 999px;
   font-weight: 650;
 }
-.mobilenav .btn:hover { background: #e4e4e7; color: #101114; }
+:root[data-theme] .mobilenav .btn:hover { background: #e4e4e7; color: #101114; }
 
 .progress {
   position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 70;
