@@ -10,12 +10,9 @@
  *   node extras/tests/smoke-widget.js
  */
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
+import { requirePatchright } from './patchright.mjs';
 
-const REQUIRE_FROM =
-  process.env.PATCHRIGHT_PATH ||
-  'C:/Users/Asus/.vscode/extensions/danielsanmedium.dscodegpt-3.24.74/standalone/node_modules/x.js';
-const { chromium } = createRequire(REQUIRE_FROM)('patchright');
+const { chromium } = requirePatchright();
 
 const BASE = process.argv[2] || 'http://127.0.0.1:3000';
 const widget = readFileSync('roblox-stats.js', 'utf8');

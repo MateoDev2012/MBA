@@ -94,7 +94,7 @@
   --radius-sm: 6px;
   --radius-lg: 12px;
   --radius-xl: 16px;
-  --topbar-h: 60px;
+  --topbar-h: 68px;
   --maxw: 1080px;
   --maxw-wide: 1240px;
 
@@ -210,27 +210,45 @@ img, svg, canvas { max-width: 100%; }
 }
 
 /* --- Top bar -------------------------------------------------------------- */
-/* Sticky and translucent, because the point of a sticky bar is that the content
-   scrolls under it. A solid bar would be a lid. */
+/* A floating pill rather than a full-width strip: brand on the left, links
+   centred, CTA and icon buttons on the right. The pill is the same dark in
+   both themes - it reads as the same masthead wherever the visitor is, and
+   the CTA is always the one bright thing inside it. A band in the page's own
+   colour sits behind the pill so scrolled content fades out around its
+   edges instead of peeking through the gaps. */
 
 .topbar {
   position: sticky; top: 0; z-index: 60;
   min-height: var(--topbar-h);
   display: flex; align-items: center;
-  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  padding: 12px 0 8px;
+  background: linear-gradient(to bottom, var(--bg) 60%, color-mix(in srgb, var(--bg) 55%, transparent));
   backdrop-filter: saturate(160%) blur(12px);
   -webkit-backdrop-filter: saturate(160%) blur(12px);
-  border-bottom: 1px solid var(--border-faint);
 }
-.topbar .wrap { display: flex; align-items: center; gap: 20px; width: 100%; }
+.topbar .wrap {
+  display: flex; align-items: center; gap: 10px;
+  width: calc(100% - 32px);
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 6px 7px 6px 15px;
+  border-radius: 999px;
+  background: #101114;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.18);
+}
 
+/* Brand and actions take a flex wing each, so the link cluster in the middle
+   is centred whatever the two sides weigh - and neither wing can push the
+   pill past the viewport, because both shrink before anything overflows. */
 .brand {
+  flex: 1 1 0; min-width: 0;
   display: flex; align-items: center; gap: 9px;
-  font-weight: 600; color: var(--text); letter-spacing: -0.02em;
+  font-weight: 600; color: #f4f4f5; letter-spacing: -0.02em;
   font-size: 0.98rem; white-space: nowrap;
 }
 .brand:hover { text-decoration: none; }
-.brand small { color: var(--muted); font-weight: 450; letter-spacing: 0; }
+.brand small { color: #a1a1aa; font-weight: 450; letter-spacing: 0; }
 .brand-mark {
   width: 24px; height: 24px; border-radius: 7px; flex: none;
   background: var(--accent);
@@ -240,36 +258,76 @@ img, svg, canvas { max-width: 100%; }
 }
 .brand-mark svg { width: 14px; height: 14px; display: block; }
 
-.nav { display: flex; gap: 2px; margin-left: auto; align-items: center; }
+.nav { flex: 0 0 auto; display: flex; gap: 2px; margin: 0; align-items: center; }
 .nav a {
-  color: var(--muted); font-size: 0.875rem; font-weight: 500;
-  padding: 6px 10px; border-radius: var(--radius-sm);
+  color: #a1a1aa; font-size: 0.875rem; font-weight: 500;
+  padding: 5px 11px; border-radius: 999px;
   transition: color 0.14s, background 0.14s;
 }
-.nav a:hover { color: var(--text); background: var(--panel-2); text-decoration: none; }
-.nav a.active { color: var(--text); background: var(--panel-2); }
+.nav a:hover { color: #fff; background: rgba(255, 255, 255, 0.08); text-decoration: none; }
+.nav a.active { color: #fff; background: rgba(255, 255, 255, 0.1); }
 
-.topbar-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.topbar-actions {
+  flex: 1 1 0; min-width: 0;
+  display: flex; align-items: center; justify-content: flex-end; gap: 6px;
+  margin-left: 0;
+}
 .nav + .topbar-actions { margin-left: 0; }
-.topbar-cta { display: inline-flex; }
 
-.menu-btn { display: none; }
+/* The CTA is the inverse of the pill - white with dark text - so the eye
+   lands on it first, the way a "Get started" button should. */
+.topbar .topbar-cta {
+  display: inline-flex;
+  background: #f4f4f5; color: #101114;
+  border-color: transparent;
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-weight: 650;
+}
+.topbar .topbar-cta:hover { background: #e4e4e7; color: #101114; }
+.topbar .icon-btn {
+  width: 32px; height: 32px;
+  border-radius: 10px;
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+  color: #c9c9d1;
+}
+.topbar .icon-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.32);
+}
 
+/* Specified against .icon-btn, not bare: both classes sit on the menu button
+   and .icon-btn { display: grid } is declared later, so a bare .menu-btn
+   loses the tie and the hamburger shows up on desktop. */
+.topbar .menu-btn { display: none; }
+
+/* The phone menu is a rounded card tucked under the pill rather than a
+   full-width sheet: it looks like it belongs to the bar that opened it. */
 .mobilenav {
-  position: absolute; top: 100%; left: 0; right: 0; z-index: 60;
-  background: var(--bg); border-bottom: 1px solid var(--border);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
-  padding: 10px 24px 16px;
+  position: absolute; top: 100%; left: 16px; right: 16px; z-index: 60;
+  background: #101114;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 22px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+  padding: 10px;
   display: grid; gap: 2px;
 }
 .mobilenav[hidden] { display: none; }
 .mobilenav a {
-  color: var(--text-soft); padding: 9px 10px; border-radius: var(--radius-sm);
+  color: #c9c9d1; padding: 10px 12px; border-radius: 12px;
   font-size: 0.92rem; font-weight: 500;
 }
-.mobilenav a:hover { background: var(--panel-2); color: var(--text); text-decoration: none; }
-.mobilenav a.active { color: var(--text); background: var(--accent-soft); }
-.mobilenav .btn { margin-top: 8px; justify-content: center; }
+.mobilenav a:hover { background: rgba(255, 255, 255, 0.08); color: #fff; text-decoration: none; }
+.mobilenav a.active { color: #fff; background: rgba(255, 255, 255, 0.1); }
+.mobilenav .btn {
+  margin-top: 8px; justify-content: center;
+  background: #f4f4f5; color: #101114;
+  border-color: transparent; border-radius: 999px;
+  font-weight: 650;
+}
+.mobilenav .btn:hover { background: #e4e4e7; color: #101114; }
 
 .progress {
   position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 70;
@@ -2112,8 +2170,8 @@ footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40
    phones. That is exactly what happened once. */
 @media (max-width: 900px) {
   .nav { display: none; }
-  .topbar-cta { display: none; }
-  .menu-btn { display: grid; }
+  .topbar .topbar-cta { display: none; }
+  .topbar .menu-btn { display: grid; }
 }
 
 @media (max-width: 640px) {
