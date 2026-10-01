@@ -923,7 +923,50 @@ select {
 .legal-block li { margin-bottom: 7px; }
 .legal-meta { font-size: 0.85rem; color: var(--muted); margin-bottom: 32px; }
 
-/* --- 404 ------------------------------------------------------------------ */
+/* Legal page TOC — shares structure with docs TOC but on a simple wrap layout */
+.wrap > .toc {
+  position: sticky; top: calc(var(--topbar-h) + 24px);
+  max-height: calc(100vh - var(--topbar-h) - 60px);
+  overflow-y: auto;
+  padding-right: 8px;
+}
+@media (max-width: 940px) {
+  .wrap > .toc { position: static; max-height: none; padding-right: 0; }
+}
+.wrap > .toc h4 {
+  font-family: var(--mono);
+  font-size: 0.68rem; font-weight: 500; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted);
+  margin: 0 0 10px;
+}
+.wrap > .toc ol { margin: 0; padding-left: 16px; }
+.wrap > .toc li { margin-bottom: 2px; }
+.wrap > .toc a {
+  display: block; padding: 5px 10px; border-radius: var(--radius-sm);
+  font-size: 0.85rem; color: var(--muted);
+  border-left: 1px solid var(--border);
+  transition: color 0.14s, border-color 0.14s;
+}
+.wrap > .toc a:hover { color: var(--text); text-decoration: none; }
+.wrap > .toc a.active { color: var(--text); border-left-color: var(--accent); background: var(--panel-2); }
+
+/* Legal page uses ol instead of ul for TOC numbering */
+.wrap > .toc ol {
+  counter-reset: toc-item;
+  list-style: none; padding-left: 0;
+}
+.wrap > .toc li {
+  counter-increment: toc-item;
+  display: flex; align-items: center; gap: 8px;
+}
+.wrap > .toc li::before {
+  content: counter(toc-item) ".";
+  font-family: var(--mono);
+  font-size: 0.68rem; font-weight: 500;
+  color: var(--muted); min-width: 1.2em;
+}
+
+/* 404 ------------------------------------------------------------------ */
 
 .errpage { padding: 96px 0; text-align: center; }
 .errcode {
