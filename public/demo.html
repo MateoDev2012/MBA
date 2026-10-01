@@ -16,7 +16,9 @@
     } catch (_) {}
   })();
 </script>
-<link rel="stylesheet" href="/theme.css" />
+<link rel="stylesheet" href="/theme.css" /><style>
+    .studio-credit { height: 28px !important; min-height: 28px !important; line-height: 28px !important; display: block !important; text-decoration: none !important; color: inherit !important; padding: 0 12px !important; border-radius: 6px !important; }
+  </style>
 </head>
 
 <!-- One attribute says which game the auto-filled parts of this page are about. -->
@@ -100,7 +102,7 @@
     <div class="card">
       <img data-rbx-set="src=thumbnail:url" alt="" style="width:64px;height:64px;border-radius:14px;float:right;margin:0 0 12px 16px;border:1px solid var(--border)">
       <h3 class="mt-0">{{name}}</h3>
-      <p>by <a href="{{creatorUrl}}">{{creator}}</a></p>
+      <p>by <a class="demo-link" href="{{creatorUrl}}">{{creator}}</a></p>
       <p class="muted" style="font-size:.9rem">{{description}}</p>
       <div style="clear:both"></div>
       <div class="statgrid">
@@ -110,7 +112,7 @@
         <div><span>Favorites</span><b>{{favorites}}</b></div>
         <div><span>Rating</span><b>{{upVoteRatio}}</b></div>
       </div>
-      <p class="mb-0"><a href="{{url}}">Open on Roblox →</a></p>
+      <p class="mb-0"><a class="demo-link" href="{{url}}">Open on Roblox →</a></p>
     </div>
   </section>
 
@@ -232,7 +234,7 @@
       <pre><code>&lt;span data-rbx-bind="playng"&gt;&lt;/span&gt;   &lt;-- wrong name</code></pre>
     </div>
     <p><span data-rbx-bind="playng"></span> ← left empty and logged, because a blank box is impossible to debug.</p>
-    <p><a href="/api/v1/fields">GET /api/v1/fields</a> is the authoritative list of names.</p>
+    <p><a class="demo-link" href="/api/v1/fields">GET /api/v1/fields</a> is the authoritative list of names.</p>
 
     <div class="banner mt-3">
       <div style="flex:1 1 300px">
@@ -261,19 +263,19 @@
         <p class="footer-about">Live Roblox game statistics over plain HTTP, free to use. Data comes from Roblox's public APIs; this project is not affiliated with Roblox Corporation.</p>
       </div>
       <div class="footer-col">
-        <h4>Product</h4>
+        <div class="footer-col-title">Product</div>
         <a href="/docs">Documentation</a>
         <a href="/explorer">Explorer</a>
         <a href="/demo">Live demo</a>
       </div>
       <div class="footer-col">
-        <h4>Reference</h4>
+        <div class="footer-col-title">Reference</div>
         <a href="/pricing">Pricing &amp; limits</a>
         <a href="/docs/endpoints">Endpoints</a>
         <a href="/docs/fields">Stat names</a>        <a href="/health">Health</a>
       </div>
       <div class="footer-col">
-        <h4>Legal</h4>
+        <div class="footer-col-title">Legal</div>
         <a href="/legal">Terms of use</a>
         <a href="/pricing">Privacy</a>
         <a href="/legal">License</a>
@@ -281,7 +283,7 @@
     </div>
     <div class="footer-bottom">
       <p>&copy; <span data-year>2026</span> &middot; Data provided by Roblox's public APIs. Not affiliated with Roblox Corporation.</p>
-      <a class="studio-credit" href="https://ms-mba.up.railway.app" target="_blank" rel="noopener"><span class="tag">MBA</span> Made by Moonlight Studios</a>
+      <a class="studio-credit" href="https://ms-mba.up.railway.app" target="_blank" rel="noopener" style="display:block;height:28px;min-height:28px;line-height:28px;padding:0 12px;border-radius:6px;text-decoration:none;color:inherit;"><span class="tag">MBA</span> Made by Moonlight Studios</a>
     </div>
   </div>
 </footer>

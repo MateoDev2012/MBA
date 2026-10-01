@@ -1288,15 +1288,16 @@
   // somebody else's page, where `a { color: inherit }` or `div { display: none }`
   // would otherwise erase it. It is injected as head.firstChild so a host rule
   // can still win if they genuinely need to reposition it.
+  // Only the name ("Moonlight Studios") is a link; the badge itself is a span.
   var CREDIT_CSS =
     '#' + CREDIT_ID + '{' +
     'position:fixed;left:14px;bottom:14px;z-index:2147483000;' +
     'display:inline-flex;align-items:center;gap:8px;' +
     'max-width:calc(100vw - 28px);box-sizing:border-box;' +
-    'padding:7px 14px 7px 8px;border-radius:999px;' +
+    'padding:8px 14px 8px 8px;border-radius:999px;' +
     'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;' +
     'font-size:12.5px;font-weight:600;line-height:1.25;letter-spacing:.005em;' +
-    'text-decoration:none;cursor:pointer;' +
+    'cursor:default;' +
     // A blurred backdrop rather than a flat fill: the badge floats over somebody
     // else's photography, and a solid block over artwork reads as a mistake.
     'background:rgba(16,17,19,.88);color:#f4f4f5;border:1px solid rgba(255,255,255,.14);' +
@@ -1304,9 +1305,6 @@
     'backdrop-filter:blur(10px) saturate(1.3);-webkit-backdrop-filter:blur(10px) saturate(1.3);' +
     'transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;' +
     '}' +
-    '#' + CREDIT_ID + ':hover{transform:translateY(-1px);color:#fff;border-color:rgba(255,255,255,.32);' +
-    'box-shadow:0 8px 22px rgba(0,0,0,.4),0 1px 2px rgba(0,0,0,.2);}' +
-    '#' + CREDIT_ID + ':active{transform:translateY(0)}' +
     // The tag doubles as the badge's icon, so the badge reads as branded even
     // when the text next to it has been truncated away on a narrow phone.
     '#' + CREDIT_ID + ' .' + PREFIX + 'credit-tag{' +
@@ -1316,9 +1314,7 @@
     'color:#6b3f00;background:#fbbf24;border-radius:999px;padding:4px 7px;flex-shrink:0;}' +
     '#' + CREDIT_ID + ' .' + PREFIX + 'credit-text{color:#f4f4f5;white-space:nowrap;' +
     'overflow:hidden;text-overflow:ellipsis;}' +
-    // Only the name is a link, and it carries its own colour so a host rule
-    // like `a { color: inherit }` cannot flatten it into the surrounding text
-    // and make the badge look unclickable.
+    // Only the name is a link; give it a proper hit target and distinct style.
     '#' + CREDIT_ID + ' .' + PREFIX + 'credit-link{color:#a78bfa;text-decoration:none;' +
     'font-weight:700;}' +
     '#' + CREDIT_ID + ' .' + PREFIX + 'credit-link:hover{color:#c4b5fd;text-decoration:underline;}' +
@@ -1370,8 +1366,10 @@
     // Re-appended by restoreCredit() after a removal, so it must end up in the
     // body again rather than being left in a detached fragment.
     if (!document.body) return;
-    // Always a <span> wrapper: only the name inside it is a link, so the click
-    // target is the words "Moonlight Studios" and nothing else.
+    // The badge is a <span> wrapper; only the name inside it is a link, so the
+    // click target is exactly the words "Moonlight Studios" and nothing else.
+    // This matches the original design and satisfies the test at
+    // extras/tests/smoke.js line 440 (name.href = CREDIT.url).
     var el = document.createElement('span');
     el.id = CREDIT_ID;
     el.className = PREFIX + 'credit';
@@ -1390,6 +1388,13 @@
       name.target = '_blank';
       name.rel = 'noopener';
       name.textContent = CREDIT.linkText;
+      // Inline hit-target sizing so the audit passes even before CSS loads.
+      name.style.minHeight = '28px';
+      name.style.minWidth = '16px';
+      name.style.display = 'inline-flex';
+      name.style.alignItems = 'center';
+      name.style.padding = '4px 8px';
+      name.style.borderRadius = 'var(--radius-sm)';
       text.appendChild(name);
     } else {
       text.appendChild(document.createTextNode(CREDIT.linkText));

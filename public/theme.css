@@ -393,6 +393,41 @@ img, svg, canvas { max-width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { .dot-live { animation: none; } }
 
+/* Hero footer link — needs a real hit target even though it sits inline */
+.herofoot-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 10px; border-radius: var(--radius-sm);
+  min-height: 24px; font-size: 0.9rem;
+  transition: background 0.14s, color 0.14s;
+}
+.herofoot-link:hover { background: var(--panel-2); color: var(--text); text-decoration: none; }
+
+.banner-link {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 8px; border-radius: var(--radius-sm);
+  min-height: 24px; font-size: inherit;
+  transition: background 0.14s, color 0.14s;
+}
+.banner-link:hover { background: var(--panel-2); color: var(--text); text-decoration: none; }
+
+/* Demo page links that sit in prose but need a real hit target */
+.demo-link {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 8px; border-radius: var(--radius-sm);
+  min-height: 24px; font-size: inherit;
+  transition: background 0.14s, color 0.14s;
+}
+.demo-link:hover { background: var(--panel-2); color: var(--text); text-decoration: none; }
+
+/* Doc prose links that are standalone (not inline in a sentence) */
+.doc-link {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 8px; border-radius: var(--radius-sm);
+  min-height: 24px; font-size: inherit;
+  transition: background 0.14s, color 0.14s;
+}
+.doc-link:hover { background: var(--panel-2); color: var(--text); text-decoration: none; }
+
 /* --- Page head (docs) ----------------------------------------------------- */
 
 .pagehead { padding: 52px 0 8px; }
@@ -551,6 +586,25 @@ code:not(pre code) {
   background: var(--panel-2); border: 1px solid var(--border-faint);
   padding: 1px 5px; border-radius: 4px;
   font-size: 0.85em; color: var(--text-soft); word-break: break-word;
+}
+
+/* Links wrapping code elements — common in docs for API endpoints */
+a > code, a:has(> code) {
+  display: inline-flex; align-items: center;
+  padding: 4px 8px; border-radius: var(--radius-sm);
+  min-height: 24px; min-width: 16px;
+  text-decoration: none;
+  transition: background 0.14s, color 0.14s;
+}
+a > code:hover, a:has(> code):hover { background: var(--accent-soft); color: var(--accent-ink); text-decoration: none; }
+
+/* Fallback for browsers without :has() */
+a > code {
+  display: inline-flex; align-items: center;
+  padding: 4px 8px; border-radius: var(--radius-sm);
+  min-height: 24px; min-width: 16px;
+  text-decoration: none;
+  transition: background 0.14s, color 0.14s;
 }
 
 .codeblock { position: relative; margin: 18px 0; }
@@ -804,14 +858,20 @@ select {
 footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40px 0 28px; }
 .footer-grid { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 32px; }
 @media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: 24px; } }
-.footer-col h4 {
+.footer-col-title {
   font-family: var(--mono);
   font-size: 0.68rem; font-weight: 500; letter-spacing: 0.08em;
   text-transform: uppercase; color: var(--muted);
   margin: 0 0 12px;
 }
-.footer-col a { display: block; color: var(--muted); font-size: 0.87rem; padding: 4px 0; }
-.footer-col a:hover { color: var(--text); text-decoration: none; }
+.footer-col a {
+  display: inline-flex; align-items: center;
+  color: var(--muted); font-size: 0.87rem;
+  padding: 8px 0; /* 24px+ hit target */
+  border-radius: var(--radius-sm);
+  min-height: 24px;
+}
+.footer-col a:hover { color: var(--text); background: var(--panel-2); text-decoration: none; }
 .footer-brand { margin-bottom: 12px; }
 .footer-about { font-size: 0.85rem; color: var(--muted); max-width: 34ch; }
 .footer-bottom {
@@ -823,8 +883,14 @@ footer.site { border-top: 1px solid var(--border); margin-top: 40px; padding: 40
 .footer-bottom p { margin: 0; }
 .footer-bottom .sep { opacity: 0.4; }
 .footer-bottom .push { margin-left: auto; }
-.studio-credit { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); }
-.studio-credit:hover { color: var(--text); text-decoration: none; }
+.studio-credit {
+  display: flex; align-items: center; gap: 7px; color: var(--muted);
+  padding: 0 12px; border-radius: var(--radius-sm);
+  height: 28px; min-height: 28px; /* explicit hit target */
+  line-height: 1.2;
+  width: fit-content;
+}
+.studio-credit:hover { color: var(--text); background: var(--panel-2); text-decoration: none; }
 .studio-credit .tag {
   font-size: 0.6rem; font-weight: 800; letter-spacing: 0.05em;
   color: #2a1500; background: #fbbf24; border-radius: 4px; padding: 2px 5px;
