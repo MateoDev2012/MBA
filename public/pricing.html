@@ -88,6 +88,10 @@
       There is no paid tier, no per-request billing and no account to create. What follows is the whole
       commercial situation, written out so nobody has to ask.
     </p>
+    <div class="pagehead-rail">
+      <a class="btn btn-accent" href="/docs/quickstart">Start integrating</a>
+      <a class="btn btn-ghost" href="/docs/response">Test an endpoint</a>
+    </div>
   </div>
 
   <!-- ================= Plans ================= -->
@@ -103,6 +107,7 @@
         <h3>Public instance</h3>
         <div class="price-num">Free</div>
         <p class="price-tag">forever, no signup</p>
+        <p class="hint">Best for: side projects, Discord bots and stat cards on a page.</p>
         <ul class="price-feats">
           <li>All 15 endpoints</li>
           <li>All 20 stat names</li>
@@ -118,6 +123,7 @@
         <h3>Your own deployment</h3>
         <div class="price-num">Free</div>
         <p class="price-tag">same code, your server</p>
+        <p class="hint">Best for: production apps that cannot depend on somebody else’s free server.</p>
         <ul class="price-feats">
           <li>Everything in the column on the left</li>
           <li>Your own limits, your own cache TTLs</li>
@@ -278,6 +284,18 @@
           <p>No. A key only exists on deployments where somebody configured one, and it is documented as
             public, not secret — it buys a higher rate limit, revocation and domain locks. It does not make
             your copy of the data private, and it is not what funds this.</p>
+        </div>
+      </details>
+      <details>
+        <summary>What happens when I hit the rate limit?</summary>
+        <div class="faq-body">
+          <p>You get a <code>429</code> with a <code>Retry-After</code> header saying how long to wait — that is
+            the whole punishment for an occasional burst. Every response also carries
+            <code>RateLimit-Limit</code>, <code>RateLimit-Remaining</code> and <code>RateLimit-Reset</code>, so
+            you can see the quota coming, and
+            <a class="doc-link" href="/api/v1/keys/me"><code>GET /api/v1/keys/me</code></a> tells you how the
+            server is treating you right now. Only sustained abuse that ignores the <code>429</code>s gets an IP
+            blocked, because the alternative is the API going down for everybody.</p>
         </div>
       </details>
       <details>
