@@ -65,8 +65,20 @@
 </header>
 
 <main id="main">
-<div class="wrap">
+<div class="wrap page-with-toc">
 
+  <nav class="toc" aria-label="Table of contents" data-toc="pricing">
+    <div class="toc-title">On this page</div>
+    <ol>
+      <li><a href="#plans">Plans</a></li>
+      <li><a href="#rule">The one rule</a></li>
+      <li><a href="#free">No account needed</a></li>
+      <li><a href="#limits">Limits</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ol>
+  </nav>
+
+  <div class="page-with-toc-main">
   <div class="pagehead">
     <nav class="crumbs" aria-label="Breadcrumb">
       <a href="/">Home</a><span class="sep">/</span><span>Pricing &amp; limits</span>
@@ -79,7 +91,7 @@
   </div>
 
   <!-- ================= Plans ================= -->
-  <section class="section">
+  <section class="section" id="plans">
     <div class="section-head">
       <span class="kicker">Plans</span>
       <h2>Choose your path</h2>
@@ -114,7 +126,7 @@
           <li>No dependency on this server staying up</li>
           <li class="off">You host and pay for the server</li>
         </ul>
-        <a class="btn btn-ghost" href="/docs#run">How to self-host</a>
+        <a class="btn btn-ghost" href="/docs/self-hosting">How to self-host</a>
       </div>
 
       <div class="price">
@@ -134,7 +146,7 @@
   </section>
 
   <!-- ================= The rule ================= -->
-  <section class="section">
+  <section class="section" id="rule">
     <div class="section-head">
       <span class="kicker">The one rule</span>
       <h2>Keep the badge, keep the API</h2>
@@ -166,7 +178,7 @@
   </section>
 
   <!-- ================= What is not behind anything ================= -->
-  <section class="section">
+  <section class="section" id="free">
     <div class="section-head">
       <span class="kicker">No account needed</span>
       <h2>What is <em>not</em> behind anything</h2>
@@ -203,7 +215,7 @@
   </section>
 
   <!-- ================= Limits ================= -->
-  <section class="section">
+  <section class="section" id="limits">
     <div class="section-head">
       <span class="kicker">The actual numbers</span>
       <h2>Limits as they are</h2>
@@ -236,7 +248,7 @@
   </section>
 
   <!-- ================= FAQ ================= -->
-  <section class="section">
+  <section class="section" id="faq">
     <div class="section-head">
       <span class="kicker">Questions</span>
       <h2>Frequently asked</h2>
@@ -273,7 +285,7 @@
         <div class="faq-body">
           <p>No promise, and nobody should build a business on somebody else’s free server. The cache, the
             rate limits and the fact that the whole thing is one small Node app are all there so that
-            <a class="doc-link" href="/docs#run">running your own copy</a> takes an afternoon and costs a few dollars a month.</p>
+            <a class="doc-link" href="/docs/self-hosting">running your own copy</a> takes an afternoon and costs a few dollars a month.</p>
         </div>
       </details>
       <details>
@@ -308,6 +320,7 @@
     </div>
   </section>
 
+  </div>
 </div>
 </main>
 
